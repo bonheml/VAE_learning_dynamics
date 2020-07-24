@@ -1,0 +1,7 @@
+defaults:
+  - dataset: mnist
+  - model: fc_vae
+  - optimizer: adam
+  - reconstruction_loss: bernoulli
+  - hyperparameters: locatello
+  - callbacks: svcca

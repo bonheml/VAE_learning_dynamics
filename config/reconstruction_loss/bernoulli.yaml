@@ -1,0 +1,4 @@
+reconstruction_loss:
+  class: tensorflow.keras.losses.BinaryCrossentropy
+  params:
+    from_logits: true

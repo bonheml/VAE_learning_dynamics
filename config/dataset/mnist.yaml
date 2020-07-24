@@ -1,0 +1,3 @@
+dataset:
+  name: mnist
+  input_shape: [28, 28, 1]

@@ -1,0 +1,6 @@
+model:
+  class: models.vaes.VAE
+  encoder:
+    class: models.encoders.FullyConnectedEncoder
+  decoder:
+    class: models.decoders.FullyConnectedDecoder

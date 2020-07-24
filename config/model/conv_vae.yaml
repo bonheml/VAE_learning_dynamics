@@ -1,0 +1,6 @@
+model:
+  class: models.vaes.VAE
+  encoder:
+    class: models.encoders.ConvolutionalEncoder
+  decoder:
+    class: models.decoders.DeConvolutionalDecoder
