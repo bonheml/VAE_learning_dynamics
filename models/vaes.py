@@ -203,7 +203,7 @@ class FactorVAE(VAE):
             reconstruction = dec_out[-1]
 
             if self.save_activations is True:
-                self.store_activations(enc_out, dec_out)
+                self.store_activations(enc_out + dec_out)
 
             tc_loss, discriminator_loss = self.compute_tc_and_discriminator_loss(z)
             reconstruction_loss = tf.reduce_mean(self.reconstruction_loss_fn(data, reconstruction),
