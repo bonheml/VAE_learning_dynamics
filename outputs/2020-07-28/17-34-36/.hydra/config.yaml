@@ -1,0 +1,37 @@
+callbacks:
+- class: src.models.callbacks.SvccaCallback
+  params:
+    filepath: /home/bonheml/Projects/VAE_learning_dynamics/layers_outputs/layers_activations.{epoch:02d}.npz
+- class: tensorflow.keras.callbacks.ModelCheckpoint
+  params:
+    filepath: /tmp/checkpoint/weights.{epoch:02d}-{model_loss:.2f}-{elbo:.2f}.hdf5
+dataset:
+  input_shape:
+  - 28
+  - 28
+  - 1
+  name: mnist
+hyperparameters:
+  batch_size: 64
+  epochs: 300000
+  latent_shape: 10
+  save_activations: true
+  seed: 1
+model:
+  class: src.models.vaes.VAE
+  decoder:
+    class: src.models.decoders.FullyConnectedDecoder
+  encoder:
+    class: src.models.encoders.FullyConnectedEncoder
+optimizer:
+  class: tensorflow.keras.optimizers.Adam
+  params:
+    amsgrad: false
+    beta_1: 0.9
+    beta_2: 0.999
+    epsilon: 1.0e-08
+    learning_rate: 0.0001
+reconstruction_loss:
+  class: tensorflow.keras.losses.BinaryCrossentropy
+  params:
+    from_logits: true

@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tensorflow import math as tfm
-from models.vae_utils import compute_gaussian_kl, compute_batch_tc, compute_covariance, shuffle_z
+from src.models.vae_utils import compute_gaussian_kl, compute_batch_tc, compute_covariance, shuffle_z
 
 
 class VAE(tf.keras.Model):

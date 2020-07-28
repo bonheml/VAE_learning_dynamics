@@ -1,0 +1,4 @@
+dataset:
+  name: scream
+  path: $(DATA_PATH)/scream
+  input_shape: (64, 64, 3)

@@ -1,5 +1,5 @@
 callbacks:
-  - class: models.svcca_utils.SvccaCallback
+  - class: src.models.callbacks.SvccaCallback
     params:
       filepath: "/home/bonheml/Projects/VAE_learning_dynamics/layers_outputs/layers_activations.{epoch:02d}.npz"
   - class: tensorflow.keras.callbacks.ModelCheckpoint

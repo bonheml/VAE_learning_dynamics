@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import hydra
 import tensorflow as tf
 import numpy as np
@@ -12,7 +14,7 @@ def mnist_data():
     return mnist_digits
 
 
-@hydra.main(config_path="config/config.yaml")
+@hydra.main(config_path="config/training/config.yaml")
 def train(cfg):
     print("{0}\n{2:^80}\n{1}\n{3}{1}\n".format("-" * 80, "=" * 80, "Current model config", cfg.pretty(resolve=True)))
     np.random.seed(cfg.hyperparameters.seed)

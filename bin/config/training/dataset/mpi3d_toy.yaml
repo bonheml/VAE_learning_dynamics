@@ -1,0 +1,4 @@
+dataset:
+  name: mpi3d_toy
+  path: $(DATA_PATH)/mpi3d_toy
+  input_shape: (64, 64, 3)
