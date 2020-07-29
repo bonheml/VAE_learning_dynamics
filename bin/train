@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-import functools
-import sys
 from pathlib import Path
 
 import hydra
@@ -9,26 +7,18 @@ import numpy as np
 from hydra.utils import instantiate
 
 
-def mnist_data():
-    # TODO: remove this dataset part once finished
-    (x_train, _), (x_test, _) = tf.keras.datasets.mnist.load_data()
-    mnist_digits = np.concatenate([x_train, x_test], axis=0)
-    mnist_digits = np.expand_dims(mnist_digits, -1).astype("float32") / 255
-    return mnist_digits
-
-
 @hydra.main(config_path="config/training/config.yaml")
 def train(cfg):
     print("{0}\n{2:^80}\n{1}\n{3}{1}\n".format("-" * 80, "=" * 80, "Current model config", cfg.pretty()))
+
     np.random.seed(cfg.hyperparameters.seed)
     tf.random.set_seed(cfg.hyperparameters.seed)
-
     latent_shape = cfg.hyperparameters.latent_shape
-    input_shape = cfg.dataset.input_shape
+    input_shape = cfg.dataset.params.observation_shape
     save = cfg.hyperparameters.save_activations
 
-    # TODO: create a proper pipeline for loading data. (one class per dataset that can be instantiated?)
-    data = mnist_data()
+    data_loader = instantiate(cfg.dataset)
+    data = data_loader.load_data()
 
     optimizer = instantiate(cfg.optimizer)
     rec_loss = instantiate(cfg.reconstruction_loss)

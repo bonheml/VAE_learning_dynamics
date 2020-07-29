@@ -22,6 +22,7 @@ setup(
         "pandas",
         "simplejson",
         "six",
+        "requests",
         "matplotlib>=3.3.0",
         "pillow>=7.2.0",
         "pandas>=1.0.5",

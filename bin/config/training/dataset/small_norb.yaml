@@ -1,4 +1,4 @@
 dataset:
   name: small_norb
-  path: $(DATA_PATH)/small_norb
+  path: ${env:DATA_PATH}/small_norb
   input_shape: (64, 64, 3)
