@@ -1,7 +1,17 @@
 callbacks:
-  - class: src.models.callbacks.SvccaCallback
-    params:
-      filepath: "/home/bonheml/Projects/VAE_learning_dynamics/layers_outputs/layers_activations.{epoch:02d}.npz"
-  - class: tensorflow.keras.callbacks.ModelCheckpoint
-    params:
-      filepath: "/tmp/checkpoint/weights.{epoch:02d}-{model_loss:.2f}-{elbo:.2f}.hdf5"
+  subdirs:
+    - layers_outputs
+    - checkpoint
+    - tensorboard
+  cls:
+    - class: src.models.callbacks.SvccaCallback
+      params:
+        filepath: layers_outputs/layers_activations.{epoch:02d}.npz
+    - class: tensorflow.keras.callbacks.ModelCheckpoint
+      params:
+        filepath: checkpoint/{epoch:02d}-{model_loss:.2f}-{elbo:.2f}
+        save_best_only: true
+        monitor: model_loss
+    - class: tensorflow.keras.callbacks.TensorBoard
+      params:
+        log_dir: tensorboard/

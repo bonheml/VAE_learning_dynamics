@@ -1,6 +1,6 @@
 hyperparameters:
   save_activations: yes
   batch_size: 64
-  epochs: 300000
+  epochs: 5
   latent_shape: 10
   seed: 1

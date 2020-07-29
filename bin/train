@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+import functools
+import sys
+from pathlib import Path
 
 import hydra
 import tensorflow as tf
@@ -16,7 +19,7 @@ def mnist_data():
 
 @hydra.main(config_path="config/training/config.yaml")
 def train(cfg):
-    print("{0}\n{2:^80}\n{1}\n{3}{1}\n".format("-" * 80, "=" * 80, "Current model config", cfg.pretty(resolve=True)))
+    print("{0}\n{2:^80}\n{1}\n{3}{1}\n".format("-" * 80, "=" * 80, "Current model config", cfg.pretty()))
     np.random.seed(cfg.hyperparameters.seed)
     tf.random.set_seed(cfg.hyperparameters.seed)
 
@@ -26,9 +29,13 @@ def train(cfg):
 
     # TODO: create a proper pipeline for loading data. (one class per dataset that can be instantiated?)
     data = mnist_data()
+
     optimizer = instantiate(cfg.optimizer)
     rec_loss = instantiate(cfg.reconstruction_loss)
-    callbacks = [instantiate(callback) for callback in cfg.callbacks]
+    callbacks = [instantiate(callback) for callback in cfg.callbacks.cls]
+    for folder in cfg.callbacks.subdirs:
+        path = Path(folder)
+        path.mkdir(parents=True, exist_ok=True)
 
     encoder = instantiate(cfg.model.encoder, input_shape=input_shape, output_shape=latent_shape, save_activations=save)
     encoder = encoder.build()
