@@ -30,7 +30,7 @@ class DeconvolutionalDecoder:
         inputs = tf.keras.Input(shape=self.input_shape)
         d1 = layers.Dense(256, activation="relu", name="d1")(inputs)
         d2 = layers.Dense(1024, activation="relu", name="d2")(d1)
-        d3 = layers.Reshape((-1, 4, 4, 64))(d2)
+        d3 = layers.Reshape((4, 4, 64))(d2)
         d4 = layers.Conv2DTranspose(filters=64, kernel_size=4, strides=2, activation="relu", padding="same",
                                     name="d3")(d3)
         d5 = layers.Conv2DTranspose(filters=32, kernel_size=4, strides=2, activation="relu", padding="same",
@@ -39,7 +39,7 @@ class DeconvolutionalDecoder:
                                     name="d5")(d5)
         d7 = layers.Conv2DTranspose(filters=self.output_shape[2], kernel_size=4, strides=2, activation="relu",
                                     padding="same", name="d6")(d6)
-        output = layers.Reshape((-1,) + self.output_shape, name="output")(d7)
+        output = layers.Reshape(self.output_shape, name="output")(d7)
         if self.save_activations is True:
             return tf.keras.Model(inputs=inputs, outputs=[d1, d2, d3, d4, d5, d6, d7, output], name="decoder")
         return tf.keras.Model(inputs=inputs, outputs=[output], name="decoder")

@@ -1,6 +1,6 @@
 defaults:
-  - dataset: mnist
-  - model: fc_vae
+  - dataset: cars
+  - model: fc_beta_vae
   - optimizer: adam
   - reconstruction_loss: bernoulli
   - hyperparameters: locatello

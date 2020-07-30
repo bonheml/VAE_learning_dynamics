@@ -45,6 +45,7 @@ class ConvolutionalEncoder:
         e6 = layers.Dense(256, activation="relu", name="e6")(e5)
         z_mean = layers.Dense(self.output_shape, name="z_mean")(e6)
         z_log_var = layers.Dense(self.output_shape, name="z_log_var")(e6)
+        # noinspection PyTypeChecker
         z = Sampling()([z_mean, z_log_var])
         if self.save_activations is True:
             return tf.keras.Model(inputs=inputs, outputs=[e1, e2, e3, e4, e5, e6, z_mean, z_log_var, z], name="encoder")
@@ -80,6 +81,7 @@ class FullyConnectedEncoder:
         e3 = layers.Dense(1200, activation="relu", name="e3")(e2)
         z_mean = layers.Dense(self.output_shape, activation=None, name="z_mean")(e3)
         z_log_var = layers.Dense(self.output_shape, activation=None, name="z_log_var")(e3)
+        # noinspection PyTypeChecker
         z = Sampling()([z_mean, z_log_var])
         if self.save_activations is True:
             return tf.keras.Model(inputs=inputs, outputs=[e1, e2, e3, z_mean, z_log_var, z], name="encoder")

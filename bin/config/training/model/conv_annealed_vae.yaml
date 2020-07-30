@@ -1,0 +1,11 @@
+model:
+  class: src.models.vaes.AnnealedVAE
+  params:
+    gamma: 1000
+    # Max capacity tested by Locatello et al. : [5, 10, 25, 50, 75, 100]
+    max_capacity: 5
+    iteration_threshold: 100000
+  encoder:
+    class: src.models.encoders.ConvolutionalEncoder
+  decoder:
+    class: src.models.decoders.DeconvolutionalDecoder

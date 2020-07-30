@@ -1,0 +1,12 @@
+model:
+  class: src.models.vaes.DIPVAE
+  params:
+    # lambda_off_diag tested by locatello et al.: [1, 2, 5, 10, 20, 50]
+    lambda_off_diag: 1
+    # lambda_off_diag tested by locatello et al.: [10, 20, 50, 100, 200, 500]
+    lambda_diag: 10
+    dip_type: i
+  encoder:
+    class: src.models.encoders.ConvolutionalEncoder
+  decoder:
+    class: src.models.decoders.DeconvolutionalDecoder

@@ -1,0 +1,9 @@
+model:
+  class: src.models.vaes.BetaVAE
+  params:
+    # Beta tested by Locatello et al.: [1, 2, 4, 6, 8, 16]
+    beta: 1
+  encoder:
+    class: src.models.encoders.FullyConnectedEncoder
+  decoder:
+    class: src.models.decoders.FullyConnectedDecoder

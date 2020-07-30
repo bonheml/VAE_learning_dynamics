@@ -1,0 +1,11 @@
+model:
+  class: src.models.vaes.FactorVAE
+  params:
+    # Gamma tested by Locatello et al.: [10, 20, 30, 40, 50, 100]
+    gamma: 10
+  discriminator:
+    class: src.models.discriminators.FullyConnectedDiscriminator
+  encoder:
+    class: src.models.encoders.FullyConnectedEncoder
+  decoder:
+    class: src.models.decoders.FullyConnectedDecoder
