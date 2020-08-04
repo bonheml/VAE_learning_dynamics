@@ -3,4 +3,5 @@ hyperparameters:
   batch_size: 64
   epochs: 300000
   latent_shape: 10
+  input_shape: [64, 64, 3]
   seed: 1

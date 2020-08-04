@@ -1,4 +1,0 @@
-dataset:
-  name: scream
-  path: ${env:DATA_PATH}/scream
-  input_shape: (64, 64, 3)

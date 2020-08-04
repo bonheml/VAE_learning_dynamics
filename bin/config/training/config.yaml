@@ -1,7 +1,7 @@
 defaults:
+  - hyperparameters: locatello
   - dataset: cars
-  - model: fc_beta_vae
   - optimizer: adam
   - reconstruction_loss: bernoulli
-  - hyperparameters: locatello
   - callbacks: svcca
+  - model: fc_beta_vae

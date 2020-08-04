@@ -9,4 +9,3 @@ model:
     class: src.models.encoders.FullyConnectedEncoder
   decoder:
     class: src.models.decoders.FullyConnectedDecoder
-

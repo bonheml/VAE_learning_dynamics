@@ -18,19 +18,15 @@ def train(cfg):
     tf.random.set_seed(cfg.hyperparameters.seed)
 
     # Define aliases for cfg values of recurring usage
-    latent_shape = cfg.hyperparameters.latent_shape
-    input_shape = cfg.dataset.params.observation_shape
-    save = cfg.hyperparameters.save_activations
-    model_params = {"save_activations": save, "reconstruction_loss_fn": instantiate(cfg.reconstruction_loss)}
+    model_params = {"reconstruction_loss_fn": instantiate(cfg.reconstruction_loss)}
 
     logger.info("Creating the encoder...")
-    encoder = instantiate(cfg.model.encoder, input_shape=input_shape, output_shape=latent_shape, save_activations=save)
+    encoder = instantiate(cfg.model.encoder)
     model_params["encoder"] = encoder.build()
     model_params["encoder"].summary()
 
     logger.info("Creating the decoder...")
-    decoder = instantiate(cfg.model.decoder, input_shape=(latent_shape,), output_shape=input_shape,
-                          save_activations=save)
+    decoder = instantiate(cfg.model.decoder)
     model_params["decoder"] = decoder.build()
     model_params["decoder"].summary()
 
@@ -43,7 +39,7 @@ def train(cfg):
     # Create a discriminator the VAE architecture requires it (e.g. factorVAE)
     if cfg.model.discriminator is not None:
         logger.info("Creating the discriminator...")
-        discriminator = instantiate(cfg.model.discriminator, input_shape=(latent_shape,), save_activations=save)
+        discriminator = instantiate(cfg.model.discriminator)
         model_params["discriminator"] = discriminator
         model_params["discriminator"].summary()
 
@@ -66,7 +62,7 @@ def train(cfg):
     logger.info("Creating the model...")
     model_cls = hydra.utils.get_class(cfg.model["class"])
     model = model_cls(**cfg.model.params, **model_params)
-    model.compile(optimizer=optimizer, run_eagerly=save)
+    model.compile(optimizer=optimizer, run_eagerly=cfg.hyperparameters.save_activations)
 
     logger.info("Starting model training...")
     model.fit(data, epochs=cfg.hyperparameters.epochs, batch_size=cfg.hyperparameters.batch_size, callbacks=callbacks)

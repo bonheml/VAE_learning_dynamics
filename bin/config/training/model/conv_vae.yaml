@@ -1,6 +1,16 @@
 model:
   class: src.models.vaes.VAE
+  params:
+    save_activations: ${hyperparameters.save_activations}
   encoder:
     class: src.models.encoders.ConvolutionalEncoder
+    params:
+      input_shape: ${hyperparameters.input_shape}
+      output_shape: ${hyperparameters.latent_shape}
+      save_activations: ${hyperparameters.save_activations}
   decoder:
     class: src.models.decoders.DeconvolutionalDecoder
+    params:
+      input_shape: ${hyperparameters.latent_shape}
+      output_shape: ${hyperparameters.input_shape}
+      save_activations: ${hyperparameters.save_activations}

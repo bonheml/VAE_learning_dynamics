@@ -1,4 +1,0 @@
-dataset:
-  name: dsprites
-  path: ${env:DATA_PATH}/dsprites
-  input_shape: (64, 64, 3)

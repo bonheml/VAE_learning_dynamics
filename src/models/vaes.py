@@ -53,19 +53,22 @@ class VAE(tf.keras.Model):
         for i, k in enumerate(self.layers_activations.keys()):
             self.layers_activations[k].append(activations[i])
 
+    def get_train_step_output(self, data):
+        enc_out = self.encoder(data)
+        z_mean, z_log_var, z = enc_out[-3:] if self.save_activations is True else enc_out
+        dec_out = self.decoder(z)
+        reconstruction = dec_out[-1] if self.save_activations is True else dec_out
+
+        if self.save_activations is True:
+            self.store_activations(enc_out + dec_out)
+        return z_mean, z_log_var, z, reconstruction
+
     def train_step(self, data):
         if isinstance(data, tuple):
             data = data[0]
 
         with tf.GradientTape() as tape:
-            enc_out = self.encoder(data)
-            z_mean, z_log_var, z = enc_out[-3:]
-            dec_out = self.decoder(z)
-            reconstruction = dec_out[-1]
-
-            if self.save_activations is True:
-                self.store_activations(enc_out + dec_out)
-
+            z_mean, z_log_var, z, reconstruction = self.get_train_step_output(data)
             reconstruction_loss = tf.reduce_mean(self.reconstruction_loss_fn(data, reconstruction),
                                                  name="reconstruction_loss")
             kl_loss = compute_gaussian_kl(z_log_var, z_mean)
@@ -76,7 +79,7 @@ class VAE(tf.keras.Model):
         self.optimizer.apply_gradients(zip(grads, self.trainable_weights))
         return {
             "model_loss": model_loss,
-            "elbo": elbo,
+            "elbo": -elbo,
             "reconstruction_loss": reconstruction_loss,
             "kl_loss": kl_loss,
         }
@@ -197,13 +200,7 @@ class FactorVAE(VAE):
             data = data[0]
 
         with tf.GradientTape() as tape:
-            enc_out = self.encoder(data)
-            z_mean, z_log_var, z = enc_out[-3:]
-            dec_out = self.decoder(z)
-            reconstruction = dec_out[-1]
-
-            if self.save_activations is True:
-                self.store_activations(enc_out + dec_out)
+            z_mean, z_log_var, z, reconstruction = self.get_train_step_output(data)
 
             tc_loss, discriminator_loss = self.compute_tc_and_discriminator_loss(z)
             reconstruction_loss = tf.reduce_mean(self.reconstruction_loss_fn(data, reconstruction),

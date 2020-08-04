@@ -3,9 +3,21 @@ model:
   params:
     # Gamma tested by Locatello et al.: [10, 20, 30, 40, 50, 100]
     gamma: 10
+    save_activations: ${hyperparameters.save_activations}
   discriminator:
     class: src.models.discriminators.FullyConnectedDiscriminator
+    params:
+      input_shape: (${hyperparameters.latent_shape},)
+      save_activations: ${hyperparameters.save_activations}
   encoder:
     class: src.models.encoders.FullyConnectedEncoder
+    params:
+      input_shape: ${hyperparameters.input_shape}
+      output_shape: ${hyperparameters.latent_shape}
+      save_activations: ${hyperparameters.save_activations}
   decoder:
     class: src.models.decoders.FullyConnectedDecoder
+    params:
+      input_shape: (${hyperparameters.latent_shape},)
+      output_shape: ${hyperparameters.input_shape}
+      save_activations: ${hyperparameters.save_activations}

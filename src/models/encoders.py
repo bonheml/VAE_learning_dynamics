@@ -1,3 +1,5 @@
+from collections import Iterable
+
 import tensorflow as tf
 from tensorflow.keras import layers
 
@@ -13,27 +15,32 @@ class Sampling(layers.Layer):
         return z_mean + tf.exp(0.5 * z_log_var) * eps
 
 
-class ConvolutionalEncoder:
-
+class GenericEncoder:
     def __init__(self, *, input_shape, output_shape, save_activations):
-        """ Convolutional encoder initially used in beta-VAE [1]. Based on Locatello et al. [2] implementation
-       (https://github.com/google-research/disentanglement_lib)
-
-       [1] Higgins, I. et al. (2017). β-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework.
-       In 5th International Conference on Learning Representations, ICLR 2017, Toulon, France.
-       [2] Locatello, F. et al. (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
-       Representations. In K. Chaudhuri and R. Salakhutdinov, eds., Proceedings of the 36th International Conference
-       on Machine Learning, Proceedings of Machine Learning Research, vol. 97, Long Beach, California, USA: PMLR,
-       pp. 4114–4124.
-
-       :param input_shape: shape of the input
-       :param output_shape: shape of the latent representations
-       :paramsave_activations: if True, track all the layer outputs else, only the mean, variance and sampled latent.
-       :return: the encoder
-       """
+        """ Generic encoder initialisation
+        :param input_shape: shape of the input
+        :param output_shape: shape of the latent representations
+        :param save_activations: if True, track all the layer outputs else, only the mean, variance and sampled latent
+        """
         self.input_shape = tuple(input_shape)
         self.output_shape = output_shape
         self.save_activations = save_activations
+
+    def build(self):
+        raise NotImplementedError()
+
+
+class ConvolutionalEncoder(GenericEncoder):
+    """ Convolutional encoder initially used in beta-VAE [1]. Based on Locatello et al. [2] implementation
+    (https://github.com/google-research/disentanglement_lib)
+
+    [1] Higgins, I. et al. (2017). β-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework.
+    In 5th International Conference on Learning Representations, ICLR 2017, Toulon, France.
+    [2] Locatello, F. et al. (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
+    Representations. In K. Chaudhuri and R. Salakhutdinov, eds., Proceedings of the 36th International Conference
+    on Machine Learning, Proceedings of Machine Learning Research, vol. 97, Long Beach, California, USA: PMLR,
+    pp. 4114–4124.
+    """
 
     def build(self):
         inputs = tf.keras.Input(shape=self.input_shape)
@@ -52,27 +59,17 @@ class ConvolutionalEncoder:
         return tf.keras.Model(inputs=inputs, outputs=[z_mean, z_log_var, z], name="encoder")
 
 
-class FullyConnectedEncoder:
+class FullyConnectedEncoder(GenericEncoder):
+    """ Fully connected encoder initially used in beta-VAE [1]. Based on Locatello et al. [2] implementation
+    (https://github.com/google-research/disentanglement_lib)
 
-    def __init__(self, *, input_shape, output_shape, save_activations):
-        """ Fully connected encoder initially used in beta-VAE [1]. Based on Locatello et al. [2] implementation
-        (https://github.com/google-research/disentanglement_lib)
-
-        [1] Higgins, I. et al. (2017). β-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework.
-        In 5th International Conference on Learning Representations, ICLR 2017, Toulon, France.
-        [2] Locatello, F. et al. (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
-        Representations. In K. Chaudhuri and R. Salakhutdinov, eds., Proceedings of the 36th International Conference
-        on Machine Learning, Proceedings of Machine Learning Research, vol. 97, Long Beach, California, USA: PMLR,
-        pp. 4114–4124.
-
-        :param input_shape: shape of the input
-        :param output_shape: shape of the latent representations
-        :param save_activations: if True, track all the layer outputs else, only the mean, variance and sampled latent.
-        :return: the encoder
-        """
-        self.input_shape = tuple(input_shape)
-        self.output_shape = output_shape
-        self.save_activations = save_activations
+    [1] Higgins, I. et al. (2017). β-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework.
+    In 5th International Conference on Learning Representations, ICLR 2017, Toulon, France.
+    [2] Locatello, F. et al. (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
+    Representations. In K. Chaudhuri and R. Salakhutdinov, eds., Proceedings of the 36th International Conference
+    on Machine Learning, Proceedings of Machine Learning Research, vol. 97, Long Beach, California, USA: PMLR,
+    pp. 4114–4124.
+    """
 
     def build(self):
         inputs = tf.keras.Input(shape=self.input_shape)
