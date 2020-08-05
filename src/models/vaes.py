@@ -15,9 +15,9 @@ class VAE(tf.keras.Model):
 
         :param encoder: the encoder to use (must be initialised beforehand). It is expected to return a sampled z,
         z_mean and z_log_var
-        :type encoder:  tf.keras.Model
+        :dip_type encoder:  tf.keras.Model
         :param decoder: the decoder to use (must be initialised beforehand). It should take a sampled z as input
-        :type decoder:  tf.keras.Model
+        :dip_type decoder:  tf.keras.Model
         :param reconstruction_loss_fn: The metric to use for the reconstruction loss (e.g. l2, bernoulli, etc.)
         :param optimizer: The optimizer to use (e.g., adam). It must be initialised beforehand
         """
@@ -26,13 +26,6 @@ class VAE(tf.keras.Model):
         self.decoder = decoder
         self.reconstruction_loss_fn = reconstruction_loss_fn
         self.save_activations = save_activations
-        self.layers_activations = {}
-
-    def init_layers_activations(self):
-        for layer in self.encoder.layers[1:]:
-            self.layers_activations[layer.name] = []
-        for layer in self.decoder.layers[1:]:
-            self.layers_activations[layer.name] = []
 
     # noinspection PyMethodMayBeStatic
     def compute_model_loss(self, reconstruction_loss, kl_loss, z_mean, z_log_var, z):
@@ -47,20 +40,12 @@ class VAE(tf.keras.Model):
         """
         return tf.add(reconstruction_loss, kl_loss, name="model_loss")
 
-    def store_activations(self, activations):
-        if self.layers_activations == {}:
-            self.init_layers_activations()
-        for i, k in enumerate(self.layers_activations.keys()):
-            self.layers_activations[k].append(activations[i])
-
     def get_train_step_output(self, data):
-        enc_out = self.encoder(data)
-        z_mean, z_log_var, z = enc_out[-3:] if self.save_activations is True else enc_out
-        dec_out = self.decoder(z)
-        reconstruction = dec_out[-1] if self.save_activations is True else dec_out
+        out = self.encoder(data, training=True)
+        z_mean, z_log_var, z = out[-3:] if self.save_activations else out
+        rec = self.decoder(z, training=True)
+        reconstruction = rec[-1] if self.save_activations is True else rec
 
-        if self.save_activations is True:
-            self.store_activations(enc_out + dec_out)
         return z_mean, z_log_var, z, reconstruction
 
     def train_step(self, data):
@@ -126,7 +111,7 @@ class AnnealedVAE(VAE):
         self.iteration_threshold = iteration_threshold
 
     def compute_model_loss(self, reconstruction_loss, kl_loss, z_mean, z_log_var, z):
-        current_step = tf.cast(self.optimizer.iterations, dtype=tf.float64)
+        current_step = tf.cast(self.optimizer.iterations, dtype=tf.float32)
         current_capacity = self.max_capacity * current_step / self.iteration_threshold
         c = tf.minimum(self.max_capacity, current_capacity)
         reg_kl_loss = self.gamma * tf.abs(kl_loss - c)
@@ -156,7 +141,7 @@ class BetaTCVAE(VAE):
 
 
 class FactorVAE(VAE):
-    def __init__(self, *, gamma, discriminator, **kwargs):
+    def __init__(self, *, gamma, discriminator, discriminator_optimizer, **kwargs):
         """ Creates a FactorVAE model [1] based on Locatello et al. [2] implementation
         (https://github.com/google-research/disentanglement_lib)
 
@@ -173,6 +158,7 @@ class FactorVAE(VAE):
         super(FactorVAE, self).__init__(**kwargs)
         self.gamma = gamma
         self.discriminator = discriminator
+        self.discriminator_optimizer = discriminator_optimizer
 
     def compute_tc_and_discriminator_loss(self, z):
         """ Compute the loss of the discriminator and the tc loss based on Locatello et al. implementation
@@ -182,16 +168,17 @@ class FactorVAE(VAE):
         :return: tuple containing tc_loss and discriminator_loss
         """
         z_shuffled = shuffle_z(z)
-        logits_z, p_z = self.discriminator(z)
-        _, p_z_shuffled = self.discriminator(z_shuffled)
-
+        discr_output = self.discriminator(z, training=True)
+        logits_z, p_z = discr_output[-2:] if self.save_activations else discr_output
+        discr_shuffled = self.discriminator(z_shuffled, training=True)
+        _, p_z_shuffled = discr_shuffled[-2:] if self.save_activations else discr_shuffled
         # tc_loss = E[log(p_z_real) - log(p_z_fake)] = E[logits_z_real - logits_z_fake]
-        tc_loss = tf.reduce_mean(logits_z[:, 0] - logits_z[:, 1])
+        tc_loss = tf.reduce_mean(logits_z[:, 0] - logits_z[:, 1], axis=0)
 
-        # discriminator_loss = 0.5 * (E[log(p_z_real)] + E[log(p_z_shuffled_fake)])
+        # discriminator_loss = -0.5 * (E[log(p_z_real)] + E[log(p_z_shuffled_fake)])
         e_log_p_z_real = tf.reduce_mean(tfm.log(p_z[:, 0]))
         e_log_p_z_shuffled_fake = tf.reduce_mean(tfm.log(p_z_shuffled[:, 1]))
-        discriminator_loss = tf.add(0.5 * e_log_p_z_real, 0.5 * e_log_p_z_shuffled_fake, name="discriminator_loss")
+        discriminator_loss = -tf.add(0.5 * e_log_p_z_real, 0.5 * e_log_p_z_shuffled_fake, name="discriminator_loss")
 
         return tc_loss, discriminator_loss
 
@@ -199,9 +186,8 @@ class FactorVAE(VAE):
         if isinstance(data, tuple):
             data = data[0]
 
-        with tf.GradientTape() as tape:
+        with tf.GradientTape(persistent=True) as tape:
             z_mean, z_log_var, z, reconstruction = self.get_train_step_output(data)
-
             tc_loss, discriminator_loss = self.compute_tc_and_discriminator_loss(z)
             reconstruction_loss = tf.reduce_mean(self.reconstruction_loss_fn(data, reconstruction),
                                                  name="reconstruction_loss")
@@ -209,13 +195,18 @@ class FactorVAE(VAE):
             elbo = tf.add(reconstruction_loss, kl_loss, name="elbo")
             model_loss = tf.add(elbo, self.gamma * tc_loss, name="model_loss")
 
-        grads = tape.gradient(model_loss, self.trainable_weights)
-        self.optimizer.apply_gradients(zip(grads, self.trainable_weights))
+        vae_trainable_weights = self.encoder.trainable_weights + self.decoder.trainable_weights
+        grads_vae = tape.gradient(model_loss, vae_trainable_weights)
+        self.optimizer.apply_gradients(zip(grads_vae, vae_trainable_weights))
+
+        grads_discriminator = tape.gradient(discriminator_loss, self.discriminator.trainable_weights)
+        self.discriminator_optimizer.apply_gradients(zip(grads_discriminator, self.discriminator.trainable_weights))
         return {
             "model_loss": model_loss,
-            "elbo": elbo,
+            "elbo": -elbo,
             "reconstruction_loss": reconstruction_loss,
             "kl_loss": kl_loss,
+            "tc_loss": tc_loss,
             "discriminator_loss": discriminator_loss,
         }
 
@@ -232,13 +223,13 @@ class DIPVAE(VAE):
 
         :param lambda_diag: the regularisation term for diagonal values of covariance matrix
         :param lambda_off_diag: the regularisation term for off-diagonal values of covariance matrix
-        :param dip_type: the type of model. can be "i" or "ii"
+        :param dip_type: the type of model. Can be "i" or "ii"
         """
         super(DIPVAE, self).__init__(**kwargs)
         self.lambda_diag = lambda_diag
         self.lambda_off_diag = lambda_off_diag
         self.lambda_factor = lambda_diag * lambda_off_diag
-        self.type = dip_type
+        self.dip_type = dip_type
 
     def compute_dip_reg(self, cov):
         cov_diag = tf.linalg.diag_part(cov)
@@ -249,7 +240,7 @@ class DIPVAE(VAE):
 
     def compute_model_loss(self, reconstruction_loss, kl_loss, z_mean, z_log_var, z):
         if self.dip_type not in ["i", "ii"]:
-            raise NotImplementedError("DIP type not implemented")
+            raise NotImplementedError("DIP dip_type not implemented")
         cov = compute_covariance(z_mean)
         if self.dip_type == "ii":
             cov += tf.reduce_mean(tf.linalg.diag(tf.exp(z_log_var)), axis=0)

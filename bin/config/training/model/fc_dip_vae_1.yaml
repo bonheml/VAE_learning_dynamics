@@ -16,6 +16,6 @@ model:
   decoder:
     class: src.models.decoders.FullyConnectedDecoder
     params:
-      input_shape: (${hyperparameters.latent_shape},)
+      input_shape: ${hyperparameters.latent_shape}
       output_shape: ${hyperparameters.input_shape}
       save_activations: ${hyperparameters.save_activations}

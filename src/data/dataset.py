@@ -74,7 +74,7 @@ class Cars3D(Data):
     The ground-truth factors of variation are:
      - elevation (4 different values)
      - azimuth (24 different values)
-     - object type (183 different values)
+     - object dip_type (183 different values)
 
     [1] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
     Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124

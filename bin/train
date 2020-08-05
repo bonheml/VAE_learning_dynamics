@@ -16,8 +16,6 @@ def train(cfg):
     logger.info("Ensuring Tensorflow and Numpy are seeded...")
     np.random.seed(cfg.hyperparameters.seed)
     tf.random.set_seed(cfg.hyperparameters.seed)
-
-    # Define aliases for cfg values of recurring usage
     model_params = {"reconstruction_loss_fn": instantiate(cfg.reconstruction_loss)}
 
     logger.info("Creating the encoder...")
@@ -40,8 +38,9 @@ def train(cfg):
     if cfg.model.discriminator is not None:
         logger.info("Creating the discriminator...")
         discriminator = instantiate(cfg.model.discriminator)
-        model_params["discriminator"] = discriminator
+        model_params["discriminator"] = discriminator.build()
         model_params["discriminator"].summary()
+        model_params["discriminator_optimizer"] = instantiate(cfg.model.discriminator.optimizer)
 
     # Disabling creation of new config keys
     OmegaConf.set_struct(cfg, True)

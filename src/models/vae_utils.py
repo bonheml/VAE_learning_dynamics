@@ -36,8 +36,8 @@ def compute_covariance(x):
     :return: the covariance of x, a matrix of size M*M
     """
     e_x = tfm.reduce_mean(x, axis=0)
-    e_x_e_xt = tf.expand_dims(e_x, axis=1) * tf.expand_dims(e_x, axis=0)
-    e_xxt = tfm.reduce_mean(tf.expand_dims(x, 2), tf.expand_dims(x, 1), axis=0)
+    e_x_e_xt = tf.expand_dims(e_x, 1) * tf.expand_dims(e_x, 0)
+    e_xxt = tfm.reduce_mean(tf.expand_dims(x, 2) * tf.expand_dims(x, 1), axis=0)
     return tfm.subtract(e_xxt, e_x_e_xt)
 
 
@@ -65,5 +65,7 @@ def shuffle_z(z):
     :param z: the latent representations of size batch_size * num_latent
     :return: the shuffled representations of size batch_size * num_latent
     """
-    shuffled = [tf.random.shuffle(z[:, i]) for i in range(tf.shape(z)[1])]
+    # Use a frozen variable to prevent tracking of shuffled values from gradient tape
+    z_frozen = tf.Variable(z, trainable=False)
+    shuffled = [tf.random.shuffle(z_frozen[:, i]) for i in range(tf.shape(z_frozen)[1])]
     return tf.stack(shuffled, 1, name="z_shuffled")
