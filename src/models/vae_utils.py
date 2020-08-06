@@ -12,7 +12,7 @@ def compute_gaussian_kl(z_log_var, z_mean):
     :return: the KL divergence
     """
     kl_loss = tfm.square(z_mean) + tfm.exp(z_log_var) - z_log_var - 1
-    return tfm.reduce_mean(0.5 * tfm.reduce_sum(kl_loss, [1]), name="kl_loss")
+    return 0.5 * tfm.reduce_sum(kl_loss, [1])
 
 
 def compute_gaussian_log_pdf(z, z_mean, z_log_var):

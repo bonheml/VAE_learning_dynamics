@@ -2,6 +2,6 @@ dataset:
   class: src.data.dataset.Cars3D
   params:
     path: ${env:DATA_PATH}/cars
-    observation_shape: ${hyperparameters.input_shape}
+    observation_shape: [64,64,3]
     url: http://www.scottreed.info/files/nips2015-analogy-data.tar.gz
-  svcca_file: ${env:DATA_PATH}/cars/svcca_medium.npz
+  sample_file: ${env:DATA_PATH}/cars/svcca_medium.npz

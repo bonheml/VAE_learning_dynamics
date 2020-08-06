@@ -1,9 +1,9 @@
 import os
 import tempfile
 from pathlib import Path
-
 import numpy as np
 import tensorflow as tf
+from tensorflow import sigmoid
 from tensorflow.python.distribute import multi_worker_util
 
 
@@ -52,8 +52,8 @@ class SvccaCallback(FileSaverCallback):
             self.init_layer_names()
 
         layers_activations = {}
-        encoder_layers = self.model.encoder(self.data)
-        decoder_layers = self.model.decoder(encoder_layers[-1])
+        encoder_layers = self.model.encoder(self.data, training=False)
+        decoder_layers = self.model.decoder(encoder_layers[-1], training=False)
         activations = encoder_layers + decoder_layers
         for i, k in enumerate(self.layer_names):
             layers_activations[k] = activations[i].numpy()
@@ -61,21 +61,40 @@ class SvccaCallback(FileSaverCallback):
 
 
 class ImageGeneratorCallback(FileSaverCallback):
-    def __init__(self, *, filepath, nb_samples, latent_shape):
+    def __init__(self, *, filepath, nb_samples, data_path, latent_shape):
+        """ Initialisation of image generator callback
+        :param filepath: the path used for saving the activations
+        :param data_path: the path of the dataset used for retrieving the activation values
+        The dataset is expected to be a npz file containing a data key where the data is stored
+        """
         super(ImageGeneratorCallback, self).__init__()
         self.nb_samples = nb_samples
         self.latent_shape = latent_shape
         self.filepath = filepath
+        data_path = str(Path(data_path).expanduser())
+        self.data = np.load(data_path)["data"][:nb_samples]
+
+    def save_images(self, generated_images, file_path):
+        generated_images = sigmoid(generated_images)
+        generated_images *= 255.
+        generated_images = generated_images.numpy()
+        for i in range(self.nb_samples):
+            img = tf.keras.preprocessing.image.array_to_img(generated_images[i])
+            img.save("{}.{}.png".format(file_path, i))
+
+    def generate_images(self, samples, file_path):
+        generated_images = self.model.decoder(samples, training=False)
+        if type(generated_images) == list:
+            generated_images = generated_images[-1]
+        self.save_images(generated_images, file_path)
 
     def on_epoch_end(self, epoch, logs=None):
         logs = logs if logs else {}
         file_path = self._get_file_path(logs, epoch)
+        if epoch == 0:
+            self.save_images(self.data, "{}.real_data".format(file_path))
         random_latent_vectors = tf.random.normal(shape=(self.nb_samples, self.latent_shape))
-        generated_images = self.model.decoder(random_latent_vectors)
-        if type(generated_images) == list:
-            generated_images = generated_images[-1]
-        generated_images *= 255
-        generated_images.numpy()
-        for i in range(self.nb_samples):
-            img = tf.keras.preprocessing.image.array_to_img(generated_images[i])
-            img.save("{}.{}.png".format(file_path, i))
+        self.generate_images(random_latent_vectors, "{}.from_random_latents".format(file_path))
+        out = self.model.encoder(self.data, training=False)
+        _, _, z = out[-3:] if self.model.save_activations else out
+        self.generate_images(z, "{}.from_real_data".format(file_path))

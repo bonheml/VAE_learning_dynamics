@@ -1,5 +1,3 @@
-from collections import Iterable
-
 import tensorflow as tf
 from tensorflow.keras import layers
 
@@ -52,7 +50,6 @@ class ConvolutionalEncoder(GenericEncoder):
         e6 = layers.Dense(256, activation="relu", name="e6")(e5)
         z_mean = layers.Dense(self.output_shape, name="z_mean")(e6)
         z_log_var = layers.Dense(self.output_shape, name="z_log_var")(e6)
-        # noinspection PyTypeChecker
         z = Sampling()([z_mean, z_log_var])
         if self.save_activations is True:
             return tf.keras.Model(inputs=inputs, outputs=[e1, e2, e3, e4, e5, e6, z_mean, z_log_var, z], name="encoder")
@@ -78,8 +75,26 @@ class FullyConnectedEncoder(GenericEncoder):
         e3 = layers.Dense(1200, activation="relu", name="e3")(e2)
         z_mean = layers.Dense(self.output_shape, activation=None, name="z_mean")(e3)
         z_log_var = layers.Dense(self.output_shape, activation=None, name="z_log_var")(e3)
-        # noinspection PyTypeChecker
         z = Sampling()([z_mean, z_log_var])
         if self.save_activations is True:
             return tf.keras.Model(inputs=inputs, outputs=[e1, e2, e3, z_mean, z_log_var, z], name="encoder")
+        return tf.keras.Model(inputs=inputs, outputs=[z_mean, z_log_var, z], name="encoder")
+
+
+class MnistEncoder(GenericEncoder):
+    """ Convolutional encoder initially used in Keras VAE tutorial for mnist data.
+    (https://keras.io/examples/generative/vae/#define-the-vae-as-a-model-with-a-custom-trainstep)
+    """
+
+    def build(self):
+        inputs = tf.keras.Input(shape=self.input_shape)
+        e1 = layers.Conv2D(32, 3, activation="relu", strides=2, padding="same")(inputs)
+        e2 = layers.Conv2D(64, 3, activation="relu", strides=2, padding="same")(e1)
+        e3 = layers.Flatten()(e2)
+        e4 = layers.Dense(16, activation="relu")(e3)
+        z_mean = layers.Dense(self.output_shape, activation=None, name="z_mean")(e4)
+        z_log_var = layers.Dense(self.output_shape, activation=None, name="z_log_var")(e4)
+        z = Sampling()([z_mean, z_log_var])
+        if self.save_activations is True:
+            return tf.keras.Model(inputs=inputs, outputs=[e1, e2, e3, e4, z_mean, z_log_var, z], name="encoder")
         return tf.keras.Model(inputs=inputs, outputs=[z_mean, z_log_var, z], name="encoder")

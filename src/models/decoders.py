@@ -74,3 +74,19 @@ class FullyConnectedDecoder(GenericDecoder):
         if self.save_activations is True:
             return tf.keras.Model(inputs=inputs, outputs=[d1, d2, d3, d4, output], name="decoder")
         return tf.keras.Model(inputs=inputs, outputs=[output], name="decoder")
+
+
+class MnistDecoder(GenericDecoder):
+    """ Deconvolutional decoder initially used in Keras VAE tutorial for mnist data.
+    (https://keras.io/examples/generative/vae/#define-the-vae-as-a-model-with-a-custom-trainstep)
+    """
+    def build(self):
+        inputs = tf.keras.Input(shape=self.input_shape)
+        d1 = layers.Dense(7 * 7 * 64, activation="relu", name="d1")(inputs)
+        d2 = layers.Reshape((7, 7, 64), name="d2")(d1)
+        d3 = layers.Conv2DTranspose(64, 3, activation="relu", strides=2, padding="same", name="d3")(d2)
+        d4 = layers.Conv2DTranspose(32, 3, activation="relu", strides=2, padding="same", name="d4")(d3)
+        output = layers.Conv2DTranspose(1, 3, activation="sigmoid", padding="same", name="output")(d4)
+        if self.save_activations is True:
+            return tf.keras.Model(inputs=inputs, outputs=[d1, d2, d3, d4, output], name="decoder")
+        return tf.keras.Model(inputs=inputs, outputs=[output], name="decoder")

@@ -1,0 +1,5 @@
+dataset:
+  class: src.data.dataset.Mnist
+  params:
+    observation_shape: [28, 28, 1]
+  sample_file: ${env:DATA_PATH}/mnist/svcca_medium.npz

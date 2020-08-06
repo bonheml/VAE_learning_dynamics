@@ -1,20 +1,8 @@
 callbacks:
   subdirs:
-    - layers_outputs
     - checkpoint
     - tensorboard
-    - images
   cls:
-    - class: src.models.callbacks.SvccaCallback
-      params:
-        filepath: layers_outputs/layers_activations.{data_size}_samples.{epoch:02d}.npz
-        data_path:  ${dataset.sample_file}
-    - class: src.models.callbacks.ImageGeneratorCallback
-      params:
-        filepath: images/generated_image.{epoch:02d}
-        nb_samples: 3
-        data_path:  ${dataset.sample_file}
-        latent_shape: ${hyperparameters.latent_shape}
     - class: tensorflow.keras.callbacks.ModelCheckpoint
       params:
         filepath: checkpoint/{epoch:02d}-{model_loss:.2f}-{reconstruction_loss:.2f}-{kl_loss:.2f}.hdf5
@@ -27,4 +15,4 @@ callbacks:
     - class: tensorflow.keras.callbacks.EarlyStopping
       params:
         monitor: model_loss
-        patience: 50
+        patience: 5

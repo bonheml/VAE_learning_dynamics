@@ -1,6 +1,6 @@
 defaults:
-  - hyperparameters: locatello
   - dataset: cars
+  - hyperparameters: locatello
   - optimizer: adam
   - reconstruction_loss: bernoulli
   - callbacks: svcca

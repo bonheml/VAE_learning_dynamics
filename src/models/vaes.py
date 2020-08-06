@@ -56,7 +56,7 @@ class VAE(tf.keras.Model):
             z_mean, z_log_var, z, reconstruction = self.get_train_step_output(data)
             reconstruction_loss = tf.reduce_mean(self.reconstruction_loss_fn(data, reconstruction),
                                                  name="reconstruction_loss")
-            kl_loss = compute_gaussian_kl(z_log_var, z_mean)
+            kl_loss = tfm.reduce_mean(compute_gaussian_kl(z_log_var, z_mean), name="kl_loss")
             elbo = tf.add(reconstruction_loss, kl_loss, name="elbo")
             model_loss = self.compute_model_loss(reconstruction_loss, kl_loss, z_mean, z_log_var, z)
 
