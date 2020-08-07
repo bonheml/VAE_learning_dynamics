@@ -16,6 +16,8 @@ def train(cfg):
     logger.info("Ensuring Tensorflow and Numpy are seeded...")
     np.random.seed(cfg.hyperparameters.seed)
     tf.random.set_seed(cfg.hyperparameters.seed)
+    steps_per_epochs = cfg.dataset.data_size // cfg.hyperparameters.batch_size
+    epochs = cfg.hyperparameters.training_steps // steps_per_epochs
     model_params = {"reconstruction_loss_fn": instantiate(cfg.reconstruction_loss)}
 
     logger.info("Creating the encoder...")
@@ -64,7 +66,7 @@ def train(cfg):
     model.compile(optimizer=optimizer, run_eagerly=cfg.hyperparameters.save_activations)
 
     logger.info("Starting model training...")
-    model.fit(data, epochs=cfg.hyperparameters.epochs, batch_size=cfg.hyperparameters.batch_size, callbacks=callbacks)
+    model.fit(data, epochs=epochs, batch_size=cfg.hyperparameters.batch_size, callbacks=callbacks)
 
 
 if __name__ == "__main__":

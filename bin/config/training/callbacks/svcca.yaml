@@ -12,7 +12,7 @@ callbacks:
     - class: src.models.callbacks.ImageGeneratorCallback
       params:
         filepath: images/generated_image.{epoch:02d}
-        nb_samples: 3
+        nb_samples: 2
         data_path:  ${dataset.sample_file}
         latent_shape: ${hyperparameters.latent_shape}
     - class: tensorflow.keras.callbacks.ModelCheckpoint
@@ -24,7 +24,3 @@ callbacks:
     - class: tensorflow.keras.callbacks.TensorBoard
       params:
         log_dir: tensorboard/
-    - class: tensorflow.keras.callbacks.EarlyStopping
-      params:
-        monitor: model_loss
-        patience: 50

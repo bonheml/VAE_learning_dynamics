@@ -12,7 +12,3 @@ callbacks:
     - class: tensorflow.keras.callbacks.TensorBoard
       params:
         log_dir: tensorboard/
-    - class: tensorflow.keras.callbacks.EarlyStopping
-      params:
-        monitor: model_loss
-        patience: 5

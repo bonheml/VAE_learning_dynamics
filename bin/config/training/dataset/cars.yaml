@@ -5,3 +5,4 @@ dataset:
     observation_shape: [64,64,3]
     url: http://www.scottreed.info/files/nips2015-analogy-data.tar.gz
   sample_file: ${env:DATA_PATH}/cars/svcca_medium.npz
+  data_size: 17600
