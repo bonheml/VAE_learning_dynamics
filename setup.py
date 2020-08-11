@@ -12,7 +12,8 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     scripts=[
-        "bin/train"
+        "bin/train",
+        "bin/visualise_learning_dynamics"
     ],
     install_requires=[
         "imageio",
@@ -24,6 +25,7 @@ setup(
         "six",
         "requests",
         "matplotlib>=3.3.0",
+        "seaborn",
         "pillow>=7.2.0",
         "pandas>=1.0.5",
         "scipy==1.4.1",
