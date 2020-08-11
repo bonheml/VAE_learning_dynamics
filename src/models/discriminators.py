@@ -21,14 +21,14 @@ class FullyConnectedDiscriminator:
 
     def build(self):
         inputs = tf.keras.Input(shape=self.input_shape)
-        adv1 = layers.Flatten(name="adv1")(inputs)
-        adv2 = layers.Dense(1000, activation=layers.LeakyReLU(alpha=0.2), name="adv2")(adv1)
-        adv3 = layers.Dense(1000, activation=layers.LeakyReLU(alpha=0.2), name="adv3")(adv2)
-        adv4 = layers.Dense(1000, activation=layers.LeakyReLU(alpha=0.2), name="adv4")(adv3)
-        adv5 = layers.Dense(1000, activation=layers.LeakyReLU(alpha=0.2), name="adv5")(adv4)
-        adv6 = layers.Dense(1000, activation=layers.LeakyReLU(alpha=0.2), name="adv6")(adv5)
-        adv7 = layers.Dense(1000, activation=layers.LeakyReLU(alpha=0.2), name="adv7")(adv6)
-        logits = layers.Dense(2, activation=None, name="logits")(adv7)
+        adv1 = layers.Flatten(name="discriminator/1")(inputs)
+        adv2 = layers.Dense(1000, activation=layers.LeakyReLU(alpha=0.2), name="discriminator/2")(adv1)
+        adv3 = layers.Dense(1000, activation=layers.LeakyReLU(alpha=0.2), name="discriminator/3")(adv2)
+        adv4 = layers.Dense(1000, activation=layers.LeakyReLU(alpha=0.2), name="discriminator/4")(adv3)
+        adv5 = layers.Dense(1000, activation=layers.LeakyReLU(alpha=0.2), name="discriminator/5")(adv4)
+        adv6 = layers.Dense(1000, activation=layers.LeakyReLU(alpha=0.2), name="discriminator/6")(adv5)
+        adv7 = layers.Dense(1000, activation=layers.LeakyReLU(alpha=0.2), name="discriminator/7")(adv6)
+        logits = layers.Dense(2, activation=None, name="discriminator/logits")(adv7)
         probs = tf.nn.softmax(logits)
         if self.save_activations is True:
             return tf.keras.Model(inputs=inputs, outputs=[adv1, adv2, adv3, adv4, adv5, adv6, adv7, logits, probs],
