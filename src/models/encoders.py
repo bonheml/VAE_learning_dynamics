@@ -41,16 +41,20 @@ class ConvolutionalEncoder(GenericEncoder):
     """
 
     def build(self):
-        inputs = tf.keras.Input(shape=self.input_shape)
-        e1 = layers.Conv2D(filters=32, kernel_size=4, strides=2, activation="relu", padding="same", name="e1")(inputs)
-        e2 = layers.Conv2D(filters=32, kernel_size=4, strides=2, activation="relu", padding="same", name="e2")(e1)
-        e3 = layers.Conv2D(filters=64, kernel_size=2, strides=2, activation="relu", padding="same", name="e3")(e2)
-        e4 = layers.Conv2D(filters=64, kernel_size=2, strides=2, activation="relu", padding="same", name="e4")(e3)
-        e5 = layers.Flatten(name="e5")(e4)
-        e6 = layers.Dense(256, activation="relu", name="e6")(e5)
-        z_mean = layers.Dense(self.output_shape, name="z_mean")(e6)
-        z_log_var = layers.Dense(self.output_shape, name="z_log_var")(e6)
-        z = Sampling()([z_mean, z_log_var])
+        inputs = tf.keras.Input(shape=self.input_shape, name="encoder/input")
+        e1 = layers.Conv2D(filters=32, kernel_size=4, strides=2, activation="relu", padding="same",
+                           name="encoder/1")(inputs)
+        e2 = layers.Conv2D(filters=32, kernel_size=4, strides=2, activation="relu", padding="same",
+                           name="encoder/2")(e1)
+        e3 = layers.Conv2D(filters=64, kernel_size=2, strides=2, activation="relu", padding="same",
+                           name="encoder/3")(e2)
+        e4 = layers.Conv2D(filters=64, kernel_size=2, strides=2, activation="relu", padding="same",
+                           name="encoder/4")(e3)
+        e5 = layers.Flatten(name="encoder/5")(e4)
+        e6 = layers.Dense(256, activation="relu", name="encoder/6")(e5)
+        z_mean = layers.Dense(self.output_shape, name="encoder/z_mean")(e6)
+        z_log_var = layers.Dense(self.output_shape, name="encoder/z_log_var")(e6)
+        z = Sampling(name="encoder/z")([z_mean, z_log_var])
         if self.save_activations is True:
             return tf.keras.Model(inputs=inputs, outputs=[e1, e2, e3, e4, e5, e6, z_mean, z_log_var, z], name="encoder")
         return tf.keras.Model(inputs=inputs, outputs=[z_mean, z_log_var, z], name="encoder")
@@ -69,13 +73,13 @@ class FullyConnectedEncoder(GenericEncoder):
     """
 
     def build(self):
-        inputs = tf.keras.Input(shape=self.input_shape)
-        e1 = layers.Flatten(name="e1")(inputs)
-        e2 = layers.Dense(1200, activation="relu", name="e2")(e1)
-        e3 = layers.Dense(1200, activation="relu", name="e3")(e2)
-        z_mean = layers.Dense(self.output_shape, activation=None, name="z_mean")(e3)
-        z_log_var = layers.Dense(self.output_shape, activation=None, name="z_log_var")(e3)
-        z = Sampling()([z_mean, z_log_var])
+        inputs = tf.keras.Input(shape=self.input_shape, name="encoder/input")
+        e1 = layers.Flatten(name="encoder/1")(inputs)
+        e2 = layers.Dense(1200, activation="relu", name="encoder/2")(e1)
+        e3 = layers.Dense(1200, activation="relu", name="encoder/3")(e2)
+        z_mean = layers.Dense(self.output_shape, activation=None, name="encoder/z_mean")(e3)
+        z_log_var = layers.Dense(self.output_shape, activation=None, name="encoder/z_log_var")(e3)
+        z = Sampling(name="encoder/z")([z_mean, z_log_var])
         if self.save_activations is True:
             return tf.keras.Model(inputs=inputs, outputs=[e1, e2, e3, z_mean, z_log_var, z], name="encoder")
         return tf.keras.Model(inputs=inputs, outputs=[z_mean, z_log_var, z], name="encoder")
@@ -87,14 +91,14 @@ class MnistEncoder(GenericEncoder):
     """
 
     def build(self):
-        inputs = tf.keras.Input(shape=self.input_shape)
-        e1 = layers.Conv2D(32, 3, activation="relu", strides=2, padding="same")(inputs)
-        e2 = layers.Conv2D(64, 3, activation="relu", strides=2, padding="same")(e1)
-        e3 = layers.Flatten()(e2)
-        e4 = layers.Dense(16, activation="relu")(e3)
-        z_mean = layers.Dense(self.output_shape, activation=None, name="z_mean")(e4)
-        z_log_var = layers.Dense(self.output_shape, activation=None, name="z_log_var")(e4)
-        z = Sampling()([z_mean, z_log_var])
+        inputs = tf.keras.Input(shape=self.input_shape, name="encoder/input")
+        e1 = layers.Conv2D(32, 3, activation="relu", strides=2, padding="same", name="encoder/1")(inputs)
+        e2 = layers.Conv2D(64, 3, activation="relu", strides=2, padding="same", name="encoder/2")(e1)
+        e3 = layers.Flatten(name="encoder/3")(e2)
+        e4 = layers.Dense(16, activation="relu", name="encoder/4")(e3)
+        z_mean = layers.Dense(self.output_shape, activation=None, name="encoder/z_mean")(e4)
+        z_log_var = layers.Dense(self.output_shape, activation=None, name="encoder/z_log_var")(e4)
+        z = Sampling(name="encoder/z")([z_mean, z_log_var])
         if self.save_activations is True:
             return tf.keras.Model(inputs=inputs, outputs=[e1, e2, e3, e4, z_mean, z_log_var, z], name="encoder")
         return tf.keras.Model(inputs=inputs, outputs=[z_mean, z_log_var, z], name="encoder")

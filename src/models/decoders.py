@@ -35,21 +35,21 @@ class DeconvolutionalDecoder(GenericDecoder):
 
     def build(self):
 
-        inputs = tf.keras.Input(shape=self.input_shape)
-        d1 = layers.Dense(256, activation="relu", name="d1")(inputs)
-        d2 = layers.Dense(1024, activation="relu", name="d2")(d1)
+        inputs = tf.keras.Input(shape=self.input_shape, name="decoder/input")
+        d1 = layers.Dense(256, activation="relu", name="decoder/1")(inputs)
+        d2 = layers.Dense(1024, activation="relu", name="decoder/2")(d1)
         d3 = layers.Reshape((4, 4, 64))(d2)
         d4 = layers.Conv2DTranspose(filters=64, kernel_size=4, strides=2, activation="relu", padding="same",
-                                    name="d3")(d3)
+                                    name="decoder/3")(d3)
         d5 = layers.Conv2DTranspose(filters=32, kernel_size=4, strides=2, activation="relu", padding="same",
-                                    name="d4")(d4)
+                                    name="decoder/4")(d4)
         d6 = layers.Conv2DTranspose(filters=32, kernel_size=4, strides=2, activation="relu", padding="same",
-                                    name="d5")(d5)
+                                    name="decoder/5")(d5)
         d7 = layers.Conv2DTranspose(filters=self.output_shape[2], kernel_size=4, strides=2, padding="same",
-                                    name="d6")(d6)
-        output = layers.Reshape(self.output_shape, name="output")(d7)
+                                    name="decoder/6")(d6)
+        output = layers.Reshape(self.output_shape, name="decoder/output")(d7)
         if self.save_activations is True:
-            return tf.keras.Model(inputs=inputs, outputs=[d1, d2, d3, d4, d5, d6, d7, output], name="decoder")
+            return tf.keras.Model(inputs=inputs, outputs=[d1, d2, d3, d4, d5, d6, output], name="decoder")
         return tf.keras.Model(inputs=inputs, outputs=[output], name="decoder")
 
 
@@ -65,12 +65,12 @@ class FullyConnectedDecoder(GenericDecoder):
     pp. 4114–4124.
     """
     def build(self):
-        inputs = tf.keras.Input(shape=self.input_shape)
-        d1 = layers.Dense(1200, activation="tanh", name="d1")(inputs)
-        d2 = layers.Dense(1200, activation="tanh", name="d2")(d1)
-        d3 = layers.Dense(1200, activation="tanh", name="d3")(d2)
-        d4 = layers.Dense(np.prod(self.output_shape), activation=None, name="d4")(d3)
-        output = layers.Reshape(self.output_shape, name="output")(d4)
+        inputs = tf.keras.Input(shape=self.input_shape, name="decoder/input")
+        d1 = layers.Dense(1200, activation="tanh", name="decoder/1")(inputs)
+        d2 = layers.Dense(1200, activation="tanh", name="decoder/2")(d1)
+        d3 = layers.Dense(1200, activation="tanh", name="decoder/3")(d2)
+        d4 = layers.Dense(np.prod(self.output_shape), activation=None, name="decoder/4")(d3)
+        output = layers.Reshape(self.output_shape, name="decoder/output")(d4)
         if self.save_activations is True:
             return tf.keras.Model(inputs=inputs, outputs=[d1, d2, d3, d4, output], name="decoder")
         return tf.keras.Model(inputs=inputs, outputs=[output], name="decoder")
@@ -81,12 +81,12 @@ class MnistDecoder(GenericDecoder):
     (https://keras.io/examples/generative/vae/#define-the-vae-as-a-model-with-a-custom-trainstep)
     """
     def build(self):
-        inputs = tf.keras.Input(shape=self.input_shape)
-        d1 = layers.Dense(7 * 7 * 64, activation="relu", name="d1")(inputs)
-        d2 = layers.Reshape((7, 7, 64), name="d2")(d1)
-        d3 = layers.Conv2DTranspose(64, 3, activation="relu", strides=2, padding="same", name="d3")(d2)
-        d4 = layers.Conv2DTranspose(32, 3, activation="relu", strides=2, padding="same", name="d4")(d3)
-        output = layers.Conv2DTranspose(1, 3, activation="sigmoid", padding="same", name="output")(d4)
+        inputs = tf.keras.Input(shape=self.input_shape, name="decoder/input")
+        d1 = layers.Dense(7 * 7 * 64, activation="relu", name="decoder/1")(inputs)
+        d2 = layers.Reshape((7, 7, 64), name="decoder/2")(d1)
+        d3 = layers.Conv2DTranspose(64, 3, activation="relu", strides=2, padding="same", name="decoder/3")(d2)
+        d4 = layers.Conv2DTranspose(32, 3, activation="relu", strides=2, padding="same", name="decoder/4")(d3)
+        output = layers.Conv2DTranspose(1, 3, activation="sigmoid", padding="same", name="decoder/output")(d4)
         if self.save_activations is True:
             return tf.keras.Model(inputs=inputs, outputs=[d1, d2, d3, d4, output], name="decoder")
         return tf.keras.Model(inputs=inputs, outputs=[output], name="decoder")

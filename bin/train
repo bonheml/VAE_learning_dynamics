@@ -17,7 +17,7 @@ def train(cfg):
     np.random.seed(cfg.hyperparameters.seed)
     tf.random.set_seed(cfg.hyperparameters.seed)
     steps_per_epochs = cfg.dataset.data_size // cfg.hyperparameters.batch_size
-    epochs = cfg.hyperparameters.training_steps // steps_per_epochs
+    epochs = max(cfg.hyperparameters.training_steps // steps_per_epochs, 1)
     model_params = {"reconstruction_loss_fn": instantiate(cfg.reconstruction_loss)}
 
     logger.info("Creating the encoder...")

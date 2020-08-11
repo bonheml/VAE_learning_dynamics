@@ -5,6 +5,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import sigmoid
 from tensorflow.python.distribute import multi_worker_util
+import h5py
 
 
 class FileSaverCallback(tf.keras.callbacks.Callback):
@@ -26,10 +27,11 @@ class FileSaverCallback(tf.keras.callbacks.Callback):
 
 
 class SvccaCallback(FileSaverCallback):
-    def __init__(self, *, filepath, data_path):
+    def __init__(self, *, filepath, data_path, epoch_steps):
         """ Initialisation of svcca callback
         :param filepath: the path used for saving the activations
         :param data_path: the path of the dataset used for retrieving the activation values
+        :param epoch_steps: the number of epochs to skip between to save (eg: epoch_steps=5 will save every 5 epochs)
         The dataset is expected to be a npz file containing a data key where the data is stored
         """
         super(SvccaCallback, self).__init__()
@@ -38,12 +40,16 @@ class SvccaCallback(FileSaverCallback):
         self.data = np.load(data_path)["data"]
         self.data_size = len(self.data)
         self.layer_names = []
+        self.epoch_steps = epoch_steps
 
     def init_layer_names(self):
         self.layer_names = [layer.name for layer in self.model.encoder.layers[1:]]
         self.layer_names += [layer.name for layer in self.model.decoder.layers[1:]]
 
     def on_epoch_end(self, epoch, logs=None):
+        if epoch % self.epoch_steps != 0:
+            return
+
         logs = logs if logs else {}
         logs["data_size"] = self.data_size
         file_path = self._get_file_path(logs, epoch)
@@ -51,13 +57,13 @@ class SvccaCallback(FileSaverCallback):
         if epoch == 0:
             self.init_layer_names()
 
-        layers_activations = {}
-        encoder_layers = self.model.encoder(self.data, training=False)
-        decoder_layers = self.model.decoder(encoder_layers[-1], training=False)
-        activations = encoder_layers + decoder_layers
-        for i, k in enumerate(self.layer_names):
-            layers_activations[k] = activations[i].numpy()
-        np.savez_compressed(file_path, **layers_activations)
+        encoder_activations = self.model.encoder(self.data, training=False)
+        decoder_activations = self.model.decoder(encoder_activations[-1], training=False)
+        activations = encoder_activations + decoder_activations
+        with h5py.File(file_path, "w") as f:
+            for name, act in zip(self.layer_names, activations):
+                act = act.numpy()
+                f.create_dataset(name, data=act, dtype=act.dtype, compression="gzip")
 
 
 class ImageGeneratorCallback(FileSaverCallback):
