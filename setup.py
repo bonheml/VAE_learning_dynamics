@@ -31,7 +31,7 @@ setup(
         "scipy==1.4.1",
         "tensorflow_hub>=0.8.0",
         "tensorflow_probability==0.10.1",
-        "tensorflow==2.2.0",
+        "tensorflow==2.5.0",
         "tensorboard==2.2.2"
     ],
     classifiers=[
