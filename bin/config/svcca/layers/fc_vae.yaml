@@ -1,5 +1,0 @@
-layers:
-  # Skip flatten layer (encoder/1)
-  encoder: ["encoder/2", "encoder/3", "encoder/z_mean", "encoder/z_log_var", "encoder/z"]
-  # Skip product layer with no activation (decoder/4) and reshape layer (decoder/output)
-  decoder: ["decoder/1", "decoder/2", "decoder/3"]

@@ -1,0 +1,1 @@
+_target_: vae_ld.models.losses.BernoulliLoss

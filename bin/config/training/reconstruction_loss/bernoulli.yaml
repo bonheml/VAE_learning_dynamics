@@ -1,2 +1,0 @@
-reconstruction_loss:
-  class: src.models.losses.BernoulliLoss

@@ -1,0 +1,3 @@
+tensorboard:
+  _target_: tensorflow.keras.callbacks.TensorBoard
+  log_dir: tensorboard/

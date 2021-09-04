@@ -1,0 +1,4 @@
+_target_: vae_ld.models.encoders.ConvolutionalEncoder
+input_shape: ${dataset.observation_shape}
+output_shape: ${hyperparameters.latent_shape}
+save_activations: ${hyperparameters.save_activations}

@@ -7,62 +7,35 @@ import numpy as np
 from hydra.utils import instantiate
 from omegaconf import OmegaConf
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("train")
 
 
-@hydra.main(config_path="config/training/config.yaml")
+@hydra.main(config_path="config/training", config_name="config")
 def train(cfg):
-    print("\n{0}\n{2:^80}\n{1}\n{3}{1}\n".format("-" * 80, "=" * 80, "Current model config", cfg.pretty()))
+    logger.info("Model config:\n{}".format(OmegaConf.to_yaml(cfg)))
     logger.info("Ensuring Tensorflow and Numpy are seeded...")
     np.random.seed(cfg.hyperparameters.seed)
     tf.random.set_seed(cfg.hyperparameters.seed)
     steps_per_epochs = cfg.dataset.data_size // cfg.hyperparameters.batch_size
     epochs = max(cfg.hyperparameters.training_steps // steps_per_epochs, 1)
-    model_params = {"reconstruction_loss_fn": instantiate(cfg.reconstruction_loss)}
 
-    logger.info("Creating the encoder...")
-    encoder = instantiate(cfg.model.encoder)
-    model_params["encoder"] = encoder.build()
-    model_params["encoder"].summary()
-
-    logger.info("Creating the decoder...")
-    decoder = instantiate(cfg.model.decoder)
-    model_params["decoder"] = decoder.build()
-    model_params["decoder"].summary()
-
-    # Enabling creation of new config keys
-    OmegaConf.set_struct(cfg, False)
-    # Create params key if it does not exists
-    if cfg.model.params is None:
-        cfg.model.params = {}
-
-    # Create a discriminator the VAE architecture requires it (e.g. factorVAE)
-    if cfg.model.discriminator is not None:
-        logger.info("Creating the discriminator...")
-        discriminator = instantiate(cfg.model.discriminator)
-        model_params["discriminator"] = discriminator.build()
-        model_params["discriminator"].summary()
-        model_params["discriminator_optimizer"] = instantiate(cfg.model.discriminator.optimizer)
-
-    # Disabling creation of new config keys
-    OmegaConf.set_struct(cfg, True)
-
-    logger.info("Creating the optimiser and callbacks...")
+    logger.info("Creating the optimiser...")
     optimizer = instantiate(cfg.optimizer)
-    callbacks = [instantiate(callback) for callback in cfg.callbacks.cls]
 
-    logger.info("Creating subdirectories for callback logs...")
-    for folder in cfg.callbacks.subdirs:
-        path = Path(folder)
-        path.mkdir(parents=True, exist_ok=True)
+    logger.info("Instantiating callbacks and creating subdirectories for callback logs...")
+    callbacks = []
+    for k, v in cfg.callbacks.items():
+        callbacks.append(instantiate(v))
+        if ("filepath" or "logdir") in v.keys():
+            path = Path(k)
+            path.mkdir(parents=True, exist_ok=True)
 
     logger.info("Retrieving the data...")
     data_loader = instantiate(cfg.dataset)
     data = data_loader.load_data()
 
     logger.info("Creating the model...")
-    model_cls = hydra.utils.get_class(cfg.model["class"])
-    model = model_cls(**cfg.model.params, **model_params)
+    model = instantiate(cfg.model)
     model.compile(optimizer=optimizer, run_eagerly=cfg.hyperparameters.save_activations)
 
     logger.info("Starting model training...")

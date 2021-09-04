@@ -1,7 +1,17 @@
 defaults:
+  - _self_
   - dataset: cars
   - hyperparameters: locatello
   - optimizer: adam
-  - reconstruction_loss: bernoulli
-  - callbacks: svcca
-  - model: fc_beta_vae
+  - callbacks:
+      - activations
+      - model_checkpoint
+      - tensorboard
+  - model: beta_vae
+
+hydra:
+  run:
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${now:%Y-%m-%d_%H-%M-%S}/${hydra.job.override_dirname}
+  sweep:
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${now:%Y-%m-%d_%H-%M-%S}
+    subdir: ${hydra.job.override_dirname}

@@ -1,5 +1,0 @@
-visualiser:
-  class: src.learning_dynamics.visualisation.SingleModelVisualiser
-  files_paths: ["/home/bonheml/Projects/VAE_learning_dynamics/multirun/2020-08-10/15-34-14/0/layers_outputs/*.hdf5"]
-  image_path: images
-  gif_file: ${visualiser.image_path}/fc_vae_seed_0.gif
