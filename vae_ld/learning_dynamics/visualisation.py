@@ -3,7 +3,6 @@ from pathlib import Path
 
 import imageio
 import pandas as pd
-
 from vae_ld.learning_dynamics.cka import CKA
 from vae_ld.learning_dynamics.utils import load_layers_from_file
 from itertools import combinations_with_replacement
@@ -17,11 +16,14 @@ class Visualiser:
     def __init__(self, input_dir):
         self._files = glob.glob(str(Path(input_dir) / "*.hdf5"))
         self.cka = CKA()
-        self.activations = {}
 
     @property
     def files(self):
         return self._files
+
+    @files.setter
+    def files(self, files):
+        self._files = files
 
     def _compute_model_cka(self, model_1, model_2):
         """ Compute cka between two models activations.
@@ -52,20 +54,28 @@ class Visualiser:
         plt.savefig(png_file, bbox_inches='tight')
         return imageio.imread(png_file)
 
+    def compute_and_plot_cka(self, f1, act1, f2, act2):
+        res = self._compute_model_cka(act1, act2).astype("float64")
+        res.to_csv("{}_{}.tsv".format(f1, f2), sep="\t")
+        logger.info("Generating graph...")
+        png_file = "{}_{}.png".format(f1, f2)
+        self.compute_heatmap(f1, f2, res, png_file)
+
     def visualise(self):
-        files = list(combinations_with_replacement(self._files, 2))
-        num_files = len(files)
-        for i, (fp1, fp2) in enumerate(files):
-            f1 = fp1.split("/")[-1].replace(".hdf5", "")
+        fp1 = sorted(self.files)[0]
+        f1 = fp1.split("/")[-1].replace(".hdf5", "")
+        logger.info("Loading activations from {}".format(f1))
+        act1 = load_layers_from_file(fp1)
+        logger.info("Computing self CKA of {}".format(f1))
+        self.compute_and_plot_cka(f1, act1, f1, act1)
+        num_files = len(self._files)
+        for i, fp2 in enumerate(self._files):
+            if fp2 == fp1:
+                continue
             f2 = fp2.split("/")[-1].replace(".hdf5", "")
-            logger.info("Loading activations from files")
-            if f1 not in self.activations.keys():
-                self.activations[f1] = load_layers_from_file(fp1)
-            if f2 not in self.activations.keys():
-                self.activations[f2] = load_layers_from_file(fp2)
+            logger.info("Loading activations from {}".format(f2))
+            act2 = load_layers_from_file(fp2)
             logger.info("({}/{}) Computing CKAs between {} and {}".format(i + 1, num_files, f1, f2))
-            res = self._compute_model_cka(self.activations[f1], self.activations[f2]).astype("float64")
-            res.to_csv("{}_{}.tsv".format(f1, f2, i + 1), sep="\t")
-            logger.info("Generating graph...")
-            png_file = "{}_{}.png".format(f1, f2, i + 1)
-            self.compute_heatmap(f1, f2, res, png_file)
+            self.compute_and_plot_cka(f1, act1, f2, act2)
+            logger.info("Computing self CKA of {}".format(f2))
+            self.compute_and_plot_cka(f2, act2, f2, act2)

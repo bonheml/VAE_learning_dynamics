@@ -2,7 +2,7 @@ import numpy as np
 
 
 def linear_kernel(x):
-    return np.dot(x, x.T)
+    return x.dot(x.T)
 
 
 def rbf_kernel(x, threshold=1.0):
@@ -47,20 +47,24 @@ class CKA:
         self._debiased = debiased
 
     def center(self, x):
-        n = x.shape[0]
+
+        x = x.copy()
         if self.debiased:
             # Unbiased version proposed by Szekely, G. J., & Rizzo, M. L. in
             # Partial distance correlation with methods for dissimilarities (2014) and implemented in
             # https://colab.research.google.com/github/google-research/google-research/blob/master/representation_similarity/Demo.ipynb
+            n = x.shape[0]
             np.fill_diagonal(x, 0)
             means = np.sum(x, 0, dtype=np.float64) / (n - 2)
             means -= np.sum(means) / (2 * (n - 1))
-            x = x - means[None, :] - means[:, None]
+            x -= means[None, :]
+            x -= means[:, None]
             np.fill_diagonal(x, 0)
         else:
-            means = np.sum(x, 0, dtype=np.float64) / n
-            means -= np.sum(means) / (2 * n)
-            x = x - means[None, :] - means[:, None]
+            means = np.mean(x, 0, dtype=np.float64)
+            means -= np.mean(means) / 2
+            x -= means[:, None]
+            x -= means[None, :]
         return x
 
     def cka(self, x, y):

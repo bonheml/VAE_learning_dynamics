@@ -30,7 +30,8 @@ class GenericEncoder:
 
 class ConvolutionalEncoder(GenericEncoder):
     """ Convolutional encoder initially used in beta-VAE [1]. Based on Locatello et al. [2] implementation
-    (https://github.com/google-research/disentanglement_lib)
+    (https://github.com/google-research/disentanglement_lib). Note that here the weights of z_logvar are initialized to 0 to
+    prevent Nan values during training.
 
     [1] Higgins, I. et al. (2017). β-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework.
     In 5th International Conference on Learning Representations, ICLR 2017, Toulon, France.
@@ -53,7 +54,7 @@ class ConvolutionalEncoder(GenericEncoder):
         e5 = layers.Flatten(name="encoder/5")(e4)
         e6 = layers.Dense(256, activation="relu", name="encoder/6")(e5)
         z_mean = layers.Dense(self.output_shape, name="encoder/z_mean")(e6)
-        z_log_var = layers.Dense(self.output_shape, name="encoder/z_log_var")(e6)
+        z_log_var = layers.Dense(self.output_shape, name="encoder/z_log_var", kernel_initializer="zeros", bias_initializer="zeros")(e6)
         z = Sampling(name="encoder/z")([z_mean, z_log_var])
         if self.save_activations is True:
             return tf.keras.Model(inputs=inputs, outputs=[e1, e2, e3, e4, e5, e6, z_mean, z_log_var, z], name="encoder")
@@ -62,7 +63,8 @@ class ConvolutionalEncoder(GenericEncoder):
 
 class FullyConnectedEncoder(GenericEncoder):
     """ Fully connected encoder initially used in beta-VAE [1]. Based on Locatello et al. [2] implementation
-    (https://github.com/google-research/disentanglement_lib)
+    (https://github.com/google-research/disentanglement_lib). Note that here the weights of z_logvar are initialized to 0 to
+    prevent Nan values during training.
 
     [1] Higgins, I. et al. (2017). β-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework.
     In 5th International Conference on Learning Representations, ICLR 2017, Toulon, France.
@@ -78,7 +80,7 @@ class FullyConnectedEncoder(GenericEncoder):
         e2 = layers.Dense(1200, activation="relu", name="encoder/2")(e1)
         e3 = layers.Dense(1200, activation="relu", name="encoder/3")(e2)
         z_mean = layers.Dense(self.output_shape, activation=None, name="encoder/z_mean")(e3)
-        z_log_var = layers.Dense(self.output_shape, activation=None, name="encoder/z_log_var")(e3)
+        z_log_var = layers.Dense(self.output_shape, activation=None, name="encoder/z_log_var", kernel_initializer="zeros", bias_initializer="zeros")(e3)
         z = Sampling(name="encoder/z")([z_mean, z_log_var])
         if self.save_activations is True:
             return tf.keras.Model(inputs=inputs, outputs=[e1, e2, e3, z_mean, z_log_var, z], name="encoder")
@@ -87,7 +89,8 @@ class FullyConnectedEncoder(GenericEncoder):
 
 class MnistEncoder(GenericEncoder):
     """ Convolutional encoder initially used in Keras VAE tutorial for mnist data.
-    (https://keras.io/examples/generative/vae/#define-the-vae-as-a-model-with-a-custom-trainstep)
+    (https://keras.io/examples/generative/vae/#define-the-vae-as-a-model-with-a-custom-trainstep).
+    Note that here the weights of z_logvar are initialized to 0 to prevent Nan values during training.
     """
 
     def build(self):
@@ -97,7 +100,7 @@ class MnistEncoder(GenericEncoder):
         e3 = layers.Flatten(name="encoder/3")(e2)
         e4 = layers.Dense(16, activation="relu", name="encoder/4")(e3)
         z_mean = layers.Dense(self.output_shape, activation=None, name="encoder/z_mean")(e4)
-        z_log_var = layers.Dense(self.output_shape, activation=None, name="encoder/z_log_var")(e4)
+        z_log_var = layers.Dense(self.output_shape, activation=None, name="encoder/z_log_var", kernel_initializer="zeros", bias_initializer="zeros")(e4)
         z = Sampling(name="encoder/z")([z_mean, z_log_var])
         if self.save_activations is True:
             return tf.keras.Model(inputs=inputs, outputs=[e1, e2, e3, e4, z_mean, z_log_var, z], name="encoder")
