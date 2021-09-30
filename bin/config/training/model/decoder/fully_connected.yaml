@@ -1,4 +1,3 @@
 _target_: vae_ld.models.decoders.FullyConnectedDecoder
 input_shape: ${hyperparameters.latent_shape}
 output_shape: ${dataset.observation_shape}
-save_activations: ${hyperparameters.save_activations}

@@ -4,7 +4,6 @@ defaults:
   - hyperparameters: locatello
   - optimizer: adam
   - callbacks:
-      - activations
       - model_checkpoint
       - tensorboard
   - model: beta_vae

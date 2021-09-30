@@ -6,4 +6,5 @@ defaults:
 _target_: vae_ld.models.vaes.BetaVAE
 # Beta tested by Locatello et al.: [1, 2, 4, 6, 8, 10]
 beta: 1
-save_activations: ${hyperparameters.save_activations}
+input_shape: ${dataset.observation_shape}
+latent_shape: ${hyperparameters.latent_shape}

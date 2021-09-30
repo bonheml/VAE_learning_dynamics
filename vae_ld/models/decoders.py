@@ -16,7 +16,7 @@ class DeconvolutionalDecoder(tf.keras.Model):
     """
     def __init__(self, input_shape, output_shape):
         super(DeconvolutionalDecoder, self).__init__()
-        self.d1 = layers.Dense(256, activation="relu", name="decoder/1", input_shape=input_shape)
+        self.d1 = layers.Dense(256, activation="relu", name="decoder/1", input_shape=(input_shape,))
         self.d2 = layers.Dense(1024, activation="relu", name="decoder/2")
         self.d3 = layers.Reshape((4, 4, 64), name="decoder/reshape")
         self.d4 = layers.Conv2DTranspose(filters=64, kernel_size=4, strides=2, activation="relu", padding="same",
@@ -54,7 +54,7 @@ class FullyConnectedDecoder(tf.keras.Model):
     """
     def __init__(self, input_shape, output_shape):
         super(FullyConnectedDecoder, self).__init__()
-        self.d1 = layers.Dense(1200, activation="tanh", name="decoder/1", input_shape=input_shape)
+        self.d1 = layers.Dense(1200, activation="tanh", name="decoder/1", input_shape=(input_shape,))
         self.d2 = layers.Dense(1200, activation="tanh", name="decoder/2")
         self.d3 = layers.Dense(1200, activation="tanh", name="decoder/3")
         self.d4 = layers.Dense(np.prod(output_shape), activation=None, name="decoder/4")
@@ -75,7 +75,7 @@ class MnistDecoder(tf.keras.Model):
     """
     def __init__(self, input_shape, output_shape):
         super(MnistDecoder, self).__init__()
-        self.d1 = layers.Dense(7 * 7 * 64, activation="relu", name="decoder/1", input_shape=input_shape)
+        self.d1 = layers.Dense(7 * 7 * 64, activation="relu", name="decoder/1", input_shape=(input_shape,))
         self.d2 = layers.Reshape((7, 7, 64), name="decoder/2")
         self.d3 = layers.Conv2DTranspose(64, 3, activation="relu", strides=2, padding="same", name="decoder/3")
         self.d4 = layers.Conv2DTranspose(32, 3, activation="relu", strides=2, padding="same", name="decoder/4")

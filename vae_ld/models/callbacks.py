@@ -5,7 +5,6 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import sigmoid
 from tensorflow.python.distribute import multi_worker_util
-import h5py
 
 
 class FileSaverCallback(tf.keras.callbacks.Callback):
@@ -24,58 +23,6 @@ class FileSaverCallback(tf.keras.callbacks.Callback):
             self._temp_file_dir = tempfile.mkdtemp()
             extension = os.path.splitext(self.filepath)[1]
             return os.path.join(self._temp_file_dir, "temp" + extension)
-
-
-class ActivationCallback(FileSaverCallback):
-    def __init__(self, *, filepath, dataset, seed, batch_size, epoch_steps):
-        """ Initialisation of CKA callback
-        :param filepath: the path used for saving the activations
-        :param dataset: the Data object used to generate the data
-        :param seed: the seed used to generate the data
-        :param batch_size: the batch size of the data to generate
-        :param epoch_steps: the number of epochs to skip between to save (eg: epoch_steps=5 will save every 5 epochs)
-        The dataset is expected to be a npz file containing a data key where the data is stored
-        """
-        super(ActivationCallback, self).__init__()
-        self.filepath = filepath
-        self.seed = seed
-        self.batch_size = batch_size
-        self.dataset = dataset
-        self.layer_names = []
-        self.epoch_steps = epoch_steps
-        self.data = None
-
-    def init_layer_names(self):
-        self.layer_names = [layer.name for layer in self.model.encoder.layers[1:]]
-        self.layer_names += [layer.name for layer in self.model.decoder.layers[1:]]
-
-    def init_data(self):
-        self.data = self.dataset.sample_observations(self.batch_size, self.seed)
-        self.dataset = None
-
-    def on_epoch_end(self, epoch, logs=None):
-        if epoch % self.epoch_steps != 0:
-            return
-
-        logs = logs if logs else {}
-        logs["data_size"] = self.batch_size
-        file_path = self._get_file_path(logs, epoch)
-        logs.pop("data_size")
-        if epoch == 0:
-            self.init_layer_names()
-            self.init_data()
-
-        encoder_activations = self.model.encoder(self.data, training=False)
-        decoder_activations = self.model.decoder(encoder_activations[-1], training=False)
-        activations = encoder_activations + decoder_activations
-        with h5py.File(file_path, "w") as f:
-            for name, act in zip(self.layer_names, activations):
-                if name == "reshape":
-                    continue
-                act = act.numpy()
-                if len(act.shape) > 2:
-                    act = act.reshape(act.shape[0], np.prod(act.shape[1:]))
-                f.create_dataset(name, data=act, dtype=act.dtype)
 
 
 class ImageGeneratorCallback(FileSaverCallback):
@@ -114,5 +61,5 @@ class ImageGeneratorCallback(FileSaverCallback):
         random_latent_vectors = tf.random.normal(shape=(self.nb_samples, self.latent_shape))
         self.generate_images(random_latent_vectors, "{}.from_random_latents".format(file_path))
         out = self.model.encoder(self.data, training=False)
-        _, _, z = out[-3:] if self.model.save_activations else out
+        _, _, z = out[-3:]
         self.generate_images(z, "{}.from_real_data".format(file_path))

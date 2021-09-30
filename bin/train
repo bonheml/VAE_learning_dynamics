@@ -37,7 +37,7 @@ def train(cfg):
 
     logger.info("Creating the model...")
     model = instantiate(cfg.model)
-    model.compile(optimizer=optimizer, run_eagerly=cfg.hyperparameters.save_activations)
+    model.compile(optimizer=optimizer)
 
     logger.info("Starting model training...")
     model.fit(data, epochs=epochs, batch_size=cfg.hyperparameters.batch_size, callbacks=callbacks)

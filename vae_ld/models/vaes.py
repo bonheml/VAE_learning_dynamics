@@ -11,7 +11,7 @@ class VAE(tf.keras.Model):
     Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
     """
 
-    def __init__(self, *, encoder, decoder, reconstruction_loss_fn, **kwargs):
+    def __init__(self, *, encoder, decoder, reconstruction_loss_fn, input_shape, latent_shape, **kwargs):
         """ Model initialisation
 
         :param encoder: the encoder to use (must be initialised beforehand). It is expected to return a sampled z,
@@ -23,8 +23,12 @@ class VAE(tf.keras.Model):
         :param optimizer: The optimizer to use (e.g., adam). It must be initialised beforehand
         """
         super(VAE, self).__init__(**kwargs)
-        self.encoder = encoder.build()
-        self.decoder = decoder.build()
+        self.encoder = encoder
+        self.encoder.build((None, *input_shape))
+        self.encoder.summary()
+        self.decoder = decoder
+        self.decoder.build((None, latent_shape))
+        self.decoder.summary()
         self.reconstruction_loss_fn = reconstruction_loss_fn
         self.kl_loss_tracker = tf.keras.metrics.Mean(name="kl_loss")
         self.elbo_loss_tracker = tf.keras.metrics.Mean(name="elbo_loss")

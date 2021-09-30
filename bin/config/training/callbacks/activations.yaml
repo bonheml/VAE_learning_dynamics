@@ -1,7 +1,0 @@
-activations:
-  _target_: vae_ld.models.callbacks.ActivationCallback
-  filepath: activations/layers_activations-{data_size}_samples-epoch_{epoch:02d}.hdf5
-  dataset:  ${dataset}
-  seed: 1
-  batch_size: 5000
-  epoch_steps: 100
