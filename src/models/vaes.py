@@ -10,7 +10,8 @@ class VAE(tf.keras.Model):
     [1] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
     Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
     """
-    def __init__(self, *, encoder, decoder, reconstruction_loss_fn, save_activations, **kwargs):
+
+    def __init__(self, *, encoder, decoder, reconstruction_loss_fn, **kwargs):
         """ Model initialisation
 
         :param encoder: the encoder to use (must be initialised beforehand). It is expected to return a sampled z,
@@ -25,9 +26,23 @@ class VAE(tf.keras.Model):
         self.encoder = encoder
         self.decoder = decoder
         self.reconstruction_loss_fn = reconstruction_loss_fn
-        self.save_activations = save_activations
+        self.kl_loss_tracker = tf.keras.metrics.Mean(name="kl_loss")
+        self.elbo_loss_tracker = tf.keras.metrics.Mean(name="elbo_loss")
+        self.reconstruction_loss_tracker = tf.keras.metrics.Mean(name="reconstruction_loss")
+        self.model_loss_tracker = tf.keras.metrics.Mean(name="model_loss")
+        # This is needed to save the model properly
+        self.built = True
 
-    # noinspection PyMethodMayBeStatic
+    # This decorator is needed to prevent input shape errors
+    @tf.function(input_signature=[tf.TensorSpec([None, None, None, 3], tf.float32)])
+    def call(self, inputs):
+        z = self.encoder(inputs)[-1]
+        return self.decoder(z)[-1]
+
+    @property
+    def metrics(self):
+        return [self.model_loss_tracker, self.elbo_loss_tracker, self.kl_loss_tracker, self.reconstruction_loss_tracker]
+
     def compute_model_loss(self, reconstruction_loss, kl_loss, z_mean, z_log_var, z):
         """ Compute the model custom loss.
 
@@ -38,35 +53,32 @@ class VAE(tf.keras.Model):
         :param z: the sampled latent representations
         :return: the model loss
         """
-        return tf.add(reconstruction_loss, kl_loss, name="model_loss")
+        return tf.add(reconstruction_loss, kl_loss)
 
     def get_train_step_output(self, data):
-        out = self.encoder(data, training=True)
-        z_mean, z_log_var, z = out[-3:] if self.save_activations else out
-        rec = self.decoder(z, training=True)
-        reconstruction = rec[-1] if self.save_activations is True else rec
-
+        z_mean, z_log_var, z = self.encoder(data, training=True)[-3:]
+        reconstruction = self.decoder(z, training=True)[-1]
         return z_mean, z_log_var, z, reconstruction
 
     def train_step(self, data):
-        if isinstance(data, tuple):
-            data = data[0]
-
         with tf.GradientTape() as tape:
             z_mean, z_log_var, z, reconstruction = self.get_train_step_output(data)
-            reconstruction_loss = tf.reduce_mean(self.reconstruction_loss_fn(data, reconstruction),
-                                                 name="reconstruction_loss")
-            kl_loss = tfm.reduce_mean(compute_gaussian_kl(z_log_var, z_mean), name="kl_loss")
-            elbo = tf.add(reconstruction_loss, kl_loss, name="elbo")
+            reconstruction_loss = tf.reduce_mean(self.reconstruction_loss_fn(data, reconstruction))
+            kl_loss = tf.reduce_mean(compute_gaussian_kl(z_log_var, z_mean))
+            elbo = -tf.add(reconstruction_loss, kl_loss)
             model_loss = self.compute_model_loss(reconstruction_loss, kl_loss, z_mean, z_log_var, z)
 
         grads = tape.gradient(model_loss, self.trainable_weights)
         self.optimizer.apply_gradients(zip(grads, self.trainable_weights))
+        self.kl_loss_tracker.update_state(kl_loss)
+        self.reconstruction_loss_tracker.update_state(reconstruction_loss)
+        self.elbo_loss_tracker.update_state(elbo)
+        self.model_loss_tracker.update_state(model_loss)
         return {
-            "model_loss": model_loss,
-            "elbo": -elbo,
-            "reconstruction_loss": reconstruction_loss,
-            "kl_loss": kl_loss,
+            "model_loss": self.model_loss_tracker.result(),
+            "elbo": self.elbo_loss_tracker.result(),
+            "reconstruction_loss": self.reconstruction_loss_tracker.result(),
+            "kl_loss": self.kl_loss_tracker.result(),
         }
 
 
@@ -89,7 +101,7 @@ class BetaVAE(VAE):
 
     def compute_model_loss(self, reconstruction_loss, kl_loss, z_mean, z_log_var, z):
         reg_kl_loss = self.beta * kl_loss
-        return tf.add(reconstruction_loss, reg_kl_loss, name="model_loss")
+        return tf.add(reconstruction_loss, reg_kl_loss)
 
 
 class AnnealedVAE(VAE):
@@ -115,7 +127,7 @@ class AnnealedVAE(VAE):
         current_capacity = self.max_capacity * current_step / self.iteration_threshold
         c = tf.minimum(self.max_capacity, current_capacity)
         reg_kl_loss = self.gamma * tf.abs(kl_loss - c)
-        return tf.add(reconstruction_loss, reg_kl_loss, name="model_loss")
+        return tf.add(reconstruction_loss, reg_kl_loss)
 
 
 class BetaTCVAE(VAE):
@@ -137,7 +149,7 @@ class BetaTCVAE(VAE):
     def compute_model_loss(self, reconstruction_loss, kl_loss, z_mean, z_log_var, z):
         tc = (self.beta - 1.) * compute_batch_tc(z, z_mean, z_log_var)
         reg_kl_loss = tc + kl_loss
-        return tf.add(reconstruction_loss, reg_kl_loss, name="model_loss")
+        return tf.add(reconstruction_loss, reg_kl_loss)
 
 
 class FactorVAE(VAE):
@@ -159,6 +171,12 @@ class FactorVAE(VAE):
         self.gamma = gamma
         self.discriminator = discriminator
         self.discriminator_optimizer = discriminator_optimizer
+        self.discriminator_loss_tracker = tf.keras.metrics.Mean(name="discriminator_loss")
+
+    @property
+    def metrics(self):
+        return [self.model_loss_tracker, self.elbo_loss_tracker, self.kl_loss_tracker, self.reconstruction_loss_tracker,
+                self.discriminator_loss_tracker]
 
     def compute_tc_and_discriminator_loss(self, z):
         """ Compute the loss of the discriminator and the tc loss based on Locatello et al. implementation
@@ -168,17 +186,15 @@ class FactorVAE(VAE):
         :return: tuple containing tc_loss and discriminator_loss
         """
         z_shuffled = shuffle_z(z)
-        discr_output = self.discriminator(z, training=True)
-        logits_z, p_z = discr_output[-2:] if self.save_activations else discr_output
-        discr_shuffled = self.discriminator(z_shuffled, training=True)
-        _, p_z_shuffled = discr_shuffled[-2:] if self.save_activations else discr_shuffled
+        logits_z, p_z = self.discriminator(z, training=True)[-2:]
+        p_z_shuffled = self.discriminator(z_shuffled, training=True)[-1]
         # tc_loss = E[log(p_z_real) - log(p_z_fake)] = E[logits_z_real - logits_z_fake]
         tc_loss = tf.reduce_mean(logits_z[:, 0] - logits_z[:, 1], axis=0)
 
         # discriminator_loss = -0.5 * (E[log(p_z_real)] + E[log(p_z_shuffled_fake)])
         e_log_p_z_real = tf.reduce_mean(tfm.log(p_z[:, 0]))
         e_log_p_z_shuffled_fake = tf.reduce_mean(tfm.log(p_z_shuffled[:, 1]))
-        discriminator_loss = -tf.add(0.5 * e_log_p_z_real, 0.5 * e_log_p_z_shuffled_fake, name="discriminator_loss")
+        discriminator_loss = -tf.add(0.5 * e_log_p_z_real, 0.5 * e_log_p_z_shuffled_fake)
 
         return tc_loss, discriminator_loss
 
@@ -189,11 +205,10 @@ class FactorVAE(VAE):
         with tf.GradientTape(persistent=True) as tape:
             z_mean, z_log_var, z, reconstruction = self.get_train_step_output(data)
             tc_loss, discriminator_loss = self.compute_tc_and_discriminator_loss(z)
-            reconstruction_loss = tf.reduce_mean(self.reconstruction_loss_fn(data, reconstruction),
-                                                 name="reconstruction_loss")
+            reconstruction_loss = tf.reduce_mean(self.reconstruction_loss_fn(data, reconstruction))
             kl_loss = compute_gaussian_kl(z_log_var, z_mean)
-            elbo = tf.add(reconstruction_loss, kl_loss, name="elbo")
-            model_loss = tf.add(elbo, self.gamma * tc_loss, name="model_loss")
+            elbo = -tf.add(reconstruction_loss, kl_loss)
+            model_loss = tf.add(elbo, self.gamma * tc_loss)
 
         vae_trainable_weights = self.encoder.trainable_weights + self.decoder.trainable_weights
         grads_vae = tape.gradient(model_loss, vae_trainable_weights)
@@ -201,13 +216,18 @@ class FactorVAE(VAE):
 
         grads_discriminator = tape.gradient(discriminator_loss, self.discriminator.trainable_weights)
         self.discriminator_optimizer.apply_gradients(zip(grads_discriminator, self.discriminator.trainable_weights))
+
+        self.kl_loss_tracker.update_state(kl_loss)
+        self.reconstruction_loss_tracker.update_state(reconstruction_loss)
+        self.elbo_loss_tracker.update_state(elbo)
+        self.model_loss_tracker.update_state(model_loss)
+        self.discriminator_loss_tracker.update_state(discriminator_loss)
         return {
-            "model_loss": model_loss,
-            "elbo": -elbo,
-            "reconstruction_loss": reconstruction_loss,
-            "kl_loss": kl_loss,
-            "tc_loss": tc_loss,
-            "discriminator_loss": discriminator_loss,
+            "model_loss": self.model_loss_tracker.result(),
+            "discriminator_loss": self.discriminator_loss_tracker.result(),
+            "elbo": self.elbo_loss_tracker.result(),
+            "reconstruction_loss": self.reconstruction_loss_tracker.result(),
+            "kl_loss": self.kl_loss_tracker.result(),
         }
 
 
@@ -240,9 +260,9 @@ class DIPVAE(VAE):
 
     def compute_model_loss(self, reconstruction_loss, kl_loss, z_mean, z_log_var, z):
         if self.dip_type not in ["i", "ii"]:
-            raise NotImplementedError("DIP dip_type not implemented")
+            raise NotImplementedError("DIP VAE {} does not exist".format(self.dip_type))
         cov = compute_covariance(z_mean)
         if self.dip_type == "ii":
             cov += tf.reduce_mean(tf.linalg.diag(tf.exp(z_log_var)), axis=0)
         reg_kl_loss = self.compute_dip_reg(cov) + kl_loss
-        return tf.add(reconstruction_loss, reg_kl_loss, name="model_loss")
+        return tf.add(reconstruction_loss, reg_kl_loss)
