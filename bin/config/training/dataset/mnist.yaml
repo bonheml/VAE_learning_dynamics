@@ -1,6 +1,3 @@
-dataset:
-  class: src.data.dataset.Mnist
-  params:
-    observation_shape: [28, 28, 1]
-  sample_file: ${env:DATA_PATH}/mnist/svcca_medium.npz
-  data_size: 70000
+_target_: vae_ld.data.dataset.Mnist
+observation_shape: [28, 28, 1]
+data_size: 70000

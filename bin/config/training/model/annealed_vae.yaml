@@ -1,0 +1,11 @@
+defaults:
+  - encoder: convolutional
+  - decoder: convolutional
+  - reconstruction_loss_fn: bernoulli
+
+_target_: vae_ld.models.vaes.AnnealedVAE
+gamma: 1000
+# Max capacity tested by Locatello et al. : [5, 10, 25, 50, 75, 100]
+max_capacity: 5
+iteration_threshold: 100000
+save_activations: ${hyperparameters.save_activations}

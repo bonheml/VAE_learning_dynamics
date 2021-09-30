@@ -1,8 +1,5 @@
-dataset:
-  class: src.data.dataset.Cars3D
-  params:
-    path: ${env:DATA_PATH}/cars
-    observation_shape: [64,64,3]
-    url: http://www.scottreed.info/files/nips2015-analogy-data.tar.gz
-  sample_file: ${env:DATA_PATH}/cars/svcca_medium.npz
-  data_size: 17600
+_target_: vae_ld.data.dataset.Cars3D
+path: ${oc.env:DATA_PATH}/cars
+observation_shape: [64,64,3]
+url: http://www.scottreed.info/files/nips2015-analogy-data.tar.gz
+data_size: 17600

@@ -1,3 +1,0 @@
-defaults:
-  - visualiser: single_model
-  - layers: fc_vae

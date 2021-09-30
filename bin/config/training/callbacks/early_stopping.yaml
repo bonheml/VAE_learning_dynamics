@@ -1,0 +1,4 @@
+early_stopping:
+  _target_: tensorflow.keras.callbacks.EarlyStopping
+  monitor: model_loss
+  patience: 50

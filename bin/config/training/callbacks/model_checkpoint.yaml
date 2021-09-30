@@ -1,0 +1,6 @@
+checkpoint:
+  _target_: tensorflow.keras.callbacks.ModelCheckpoint
+  filepath: checkpoint/{epoch:02d}-{model_loss:.2f}-{reconstruction_loss:.2f}-{kl_loss:.2f}.hdf5
+  save_best_only: true
+  monitor: model_loss
+  save_weights_only: true
