@@ -1,4 +1,0 @@
-batch_size: 64
-training_steps: 300000
-latent_shape: 10
-seed: 1

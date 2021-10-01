@@ -6,6 +6,7 @@ import tensorflow as tf
 import numpy as np
 from hydra.utils import instantiate
 from omegaconf import OmegaConf
+from sklearn.model_selection import train_test_split
 
 logger = logging.getLogger("train")
 
@@ -15,32 +16,35 @@ def train(cfg):
     tf.config.set_visible_devices([], 'GPU')
     logger.info("Model config:\n{}".format(OmegaConf.to_yaml(cfg)))
     logger.info("Ensuring Tensorflow and Numpy are seeded...")
-    np.random.seed(cfg.hyperparameters.seed)
-    tf.random.set_seed(cfg.hyperparameters.seed)
-    steps_per_epochs = cfg.dataset.data_size // cfg.hyperparameters.batch_size
-    epochs = max(cfg.hyperparameters.training_steps // steps_per_epochs, 1)
+    np.random.seed(cfg.seed)
+    tf.random.set_seed(cfg.seed)
+    steps_per_epochs = cfg.dataset.data_size // cfg.batch_size
+    epochs = max(cfg.training_steps // steps_per_epochs, 1)
 
     logger.info("Creating the optimiser...")
     optimizer = instantiate(cfg.optimizer)
 
+    logger.info("Retrieving the data...")
+    data_loader = instantiate(cfg.dataset)
+    data_train, data_test = train_test_split(data_loader.load_data())
+
     logger.info("Instantiating callbacks and creating subdirectories for callback logs...")
     callbacks = []
     for k, v in cfg.callbacks.items():
-        callbacks.append(instantiate(v))
+        if k == "image_generator":
+            callbacks.append(instantiate(v, data=data_test))
+        else:
+            callbacks.append(instantiate(v))
         if ("filepath" or "logdir") in v.keys():
             path = Path(k)
             path.mkdir(parents=True, exist_ok=True)
-
-    logger.info("Retrieving the data...")
-    data_loader = instantiate(cfg.dataset)
-    data = data_loader.load_data()
 
     logger.info("Creating the model...")
     model = instantiate(cfg.model)
     model.compile(optimizer=optimizer)
 
     logger.info("Starting model training...")
-    model.fit(data, epochs=epochs, batch_size=cfg.hyperparameters.batch_size, callbacks=callbacks)
+    model.fit(data_train, epochs=epochs, batch_size=cfg.batch_size, callbacks=callbacks, validation_data=(data_test,))
 
 
 if __name__ == "__main__":

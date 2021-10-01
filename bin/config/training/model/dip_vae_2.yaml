@@ -3,6 +3,7 @@ defaults:
   - decoder: convolutional
   - reconstruction_loss_fn: bernoulli
 
+name: dip_vae_ii
 _target_: vae_ld.models.vaes.DIPVAE
 # lambda_off_diag tested by locatello et al.: [1, 2, 5, 10, 20, 50]
 lambda_off_diag: 1
@@ -10,4 +11,4 @@ lambda_off_diag: 1
 lambda_diag: 1
 dip_type: ii
 input_shape: ${dataset.observation_shape}
-latent_shape: ${hyperparameters.latent_shape}
+latent_shape: ${latent_shape}

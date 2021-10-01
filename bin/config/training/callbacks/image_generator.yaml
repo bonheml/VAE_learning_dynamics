@@ -1,0 +1,6 @@
+image_generator:
+  _target_: vae_ld.models.callbacks.ImageGeneratorCallback
+  filepath: image_generator
+  nb_samples: 3
+  data: null
+  latent_shape: ${latent_shape}

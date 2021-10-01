@@ -1,16 +1,26 @@
+batch_size: 64
+training_steps: 300000
+latent_shape: 10
+seed: 1
+
 defaults:
   - _self_
   - dataset: cars
-  - hyperparameters: locatello
   - optimizer: adam
+  - model: beta_vae
   - callbacks:
       - model_checkpoint
       - tensorboard
-  - model: beta_vae
+      - image_generator
 
 hydra:
   run:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${now:%Y-%m-%d_%H-%M-%S}/${hydra.job.override_dirname}
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${now:%Y-%m-%d_%H-%M-%S}/${model.name}/${dataset.name}/${hydra.job.override_dirname}
   sweep:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${now:%Y-%m-%d_%H-%M-%S}
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${now:%Y-%m-%d_%H-%M-%S}/${model.name}/${dataset.name}
     subdir: ${hydra.job.override_dirname}
+  job:
+    config:
+      override_dirname:
+        kv_sep: _
+        item_sep: /
