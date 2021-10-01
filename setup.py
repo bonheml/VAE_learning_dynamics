@@ -16,6 +16,11 @@ setup(
         "bin/visualise"
     ],
     install_requires=[
+        "pillow>=7.2.0",
+        "pandas>=1.0.5",
+        "tensorflow_hub~=0.12",
+        "tensorflow~=2.6",
+        "tensorboard~=2.6",
         "imageio",
         "hydra-core",
         "scikit-learn",
@@ -26,13 +31,8 @@ setup(
         "requests",
         "matplotlib",
         "seaborn",
-        "pillow>=7.2.0",
-        "pandas>=1.0.5",
-        "scipy",
-        "tensorflow_hub~=0.12",
         "tensorflow_probability",
-        "tensorflow~=2.6",
-        "tensorboard~=2.6"
+        "scipy"
     ],
     classifiers=[
         "Intended Audience :: Science/Research",
