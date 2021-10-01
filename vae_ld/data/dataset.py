@@ -98,6 +98,8 @@ class Cars3D(Data):
             self.download()
 
         all_files = [x for x in gfile.ListDirectory(str(self.path)) if ".mat" in x]
+        if len(all_files) == 0:
+            raise FileNotFoundError("The given data directory is empty. Remove it to download the dataset properly during next call.")
         dataset = np.zeros(self.factors_shape + self.observation_shape)
         for i, filename in enumerate(all_files):
             data_mesh = self._load_mesh(filename)
@@ -131,8 +133,9 @@ class Cars3D(Data):
 
         tfile = tarfile.open(str(fname))
         tfile.extractall(path=str(self.path / "tmp"))
-        for x in gfile.ListDirectory(str(self.path / "tmp" / "data" / "cars")):
-            shutil.copy(x, str(self.path.parent))
+        extraction_path = str(self.path / "tmp" / "data" / "cars")
+        for x in gfile.ListDirectory(extraction_path):
+            shutil.copy("{}/{}".format(extraction_path, x), str(self.path))
 
         shutil.rmtree(str(self.path / "tmp"), ignore_errors=True)
 
