@@ -59,31 +59,37 @@ class VAE(tf.keras.Model):
         """
         return tf.add(reconstruction_loss, kl_loss)
 
-    def get_train_step_output(self, data):
-        z_mean, z_log_var, z = self.encoder(data, training=True)[-3:]
-        reconstruction = self.decoder(z, training=True)[-1]
-        return z_mean, z_log_var, z, reconstruction
+    def get_gradient_step_output(self, data, training=True):
+        losses = {}
+        z_mean, z_log_var, z = self.encoder(data, training=training)[-3:]
+        reconstruction = self.decoder(z, training=training)[-1]
+        losses["reconstruction_loss"] = tf.reduce_mean(self.reconstruction_loss_fn(data, reconstruction))
+        losses["kl_loss"] = tf.reduce_mean(compute_gaussian_kl(z_log_var, z_mean))
+        losses["elbo_loss"] = -tf.add(losses["reconstruction_loss"], losses["kl_loss"])
+        losses["model_loss"] = self.compute_model_loss(losses["reconstruction_loss"], losses["kl_loss"], z_mean, z_log_var, z)
+        return losses
+
+    def update_metrics(self, losses, is_training=True):
+        for m in self.metrics:
+            m.update_state(losses[m.name])
+        loss_res = {m.name: m.result() for m in self.metrics}
+        return loss_res
 
     def train_step(self, data):
+        if isinstance(data, tuple):
+            data = data[0]
         with tf.GradientTape() as tape:
-            z_mean, z_log_var, z, reconstruction = self.get_train_step_output(data)
-            reconstruction_loss = tf.reduce_mean(self.reconstruction_loss_fn(data, reconstruction))
-            kl_loss = tf.reduce_mean(compute_gaussian_kl(z_log_var, z_mean))
-            elbo = -tf.add(reconstruction_loss, kl_loss)
-            model_loss = self.compute_model_loss(reconstruction_loss, kl_loss, z_mean, z_log_var, z)
+            losses = self.get_gradient_step_output(data)
 
-        grads = tape.gradient(model_loss, self.trainable_weights)
+        grads = tape.gradient(losses["model_loss"], self.trainable_weights)
         self.optimizer.apply_gradients(zip(grads, self.trainable_weights))
-        self.kl_loss_tracker.update_state(kl_loss)
-        self.reconstruction_loss_tracker.update_state(reconstruction_loss)
-        self.elbo_loss_tracker.update_state(elbo)
-        self.model_loss_tracker.update_state(model_loss)
-        return {
-            "model_loss": self.model_loss_tracker.result(),
-            "elbo": self.elbo_loss_tracker.result(),
-            "reconstruction_loss": self.reconstruction_loss_tracker.result(),
-            "kl_loss": self.kl_loss_tracker.result(),
-        }
+        return self.update_metrics(losses)
+
+    def test_step(self, data):
+        if isinstance(data, tuple):
+            data = data[0]
+        losses = self.get_gradient_step_output(data, training=False)
+        return self.update_metrics(losses, is_training=False)
 
 
 class BetaVAE(VAE):
@@ -176,11 +182,12 @@ class FactorVAE(VAE):
         self.discriminator = discriminator
         self.discriminator_optimizer = discriminator_optimizer
         self.discriminator_loss_tracker = tf.keras.metrics.Mean(name="discriminator_loss")
+        self.tc_loss_tracker = tf.keras.metrics.Mean(name="tc_loss")
 
     @property
     def metrics(self):
         return [self.model_loss_tracker, self.elbo_loss_tracker, self.kl_loss_tracker, self.reconstruction_loss_tracker,
-                self.discriminator_loss_tracker]
+                self.discriminator_loss_tracker, self.tc_loss_tracker]
 
     def compute_tc_and_discriminator_loss(self, z):
         """ Compute the loss of the discriminator and the tc loss based on Locatello et al. implementation
@@ -189,50 +196,48 @@ class FactorVAE(VAE):
         :param z: the sampled latent representation
         :return: tuple containing tc_loss and discriminator_loss
         """
+        losses = {}
         z_shuffled = shuffle_z(z)
         logits_z, p_z = self.discriminator(z, training=True)[-2:]
         p_z_shuffled = self.discriminator(z_shuffled, training=True)[-1]
         # tc_loss = E[log(p_z_real) - log(p_z_fake)] = E[logits_z_real - logits_z_fake]
-        tc_loss = tf.reduce_mean(logits_z[:, 0] - logits_z[:, 1], axis=0)
+        losses["tc_loss"] = tf.reduce_mean(logits_z[:, 0] - logits_z[:, 1], axis=0)
 
         # discriminator_loss = -0.5 * (E[log(p_z_real)] + E[log(p_z_shuffled_fake)])
         e_log_p_z_real = tf.reduce_mean(tfm.log(p_z[:, 0]))
         e_log_p_z_shuffled_fake = tf.reduce_mean(tfm.log(p_z_shuffled[:, 1]))
-        discriminator_loss = -tf.add(0.5 * e_log_p_z_real, 0.5 * e_log_p_z_shuffled_fake)
+        losses["discriminator_loss"] = -tf.add(0.5 * e_log_p_z_real, 0.5 * e_log_p_z_shuffled_fake)
 
-        return tc_loss, discriminator_loss
+        return losses["tc_loss"], losses["discriminator_loss"]
+
+    def get_gradient_step_output(self, data):
+        losses = {}
+        z_mean, z_log_var, z = self.encoder(data, training=True)[-3:]
+        reconstruction = self.decoder(z, training=True)[-1]
+        losses["reconstruction_loss"] = tf.reduce_mean(self.reconstruction_loss_fn(data, reconstruction))
+        losses["kl_loss"] = tf.reduce_mean(compute_gaussian_kl(z_log_var, z_mean))
+        losses["elbo_loss"] = -tf.add(losses["reconstruction_loss"], losses["kl_loss"])
+        losses.update(self.compute_tc_and_discriminator_loss(z))
+        losses["model_loss"] = tf.add(losses["elbo_loss"], self.gamma * losses["tc_loss"])
+        return losses
 
     def train_step(self, data):
         if isinstance(data, tuple):
             data = data[0]
 
         with tf.GradientTape(persistent=True) as tape:
-            z_mean, z_log_var, z, reconstruction = self.get_train_step_output(data)
-            tc_loss, discriminator_loss = self.compute_tc_and_discriminator_loss(z)
-            reconstruction_loss = tf.reduce_mean(self.reconstruction_loss_fn(data, reconstruction))
-            kl_loss = compute_gaussian_kl(z_log_var, z_mean)
-            elbo = -tf.add(reconstruction_loss, kl_loss)
-            model_loss = tf.add(elbo, self.gamma * tc_loss)
+            losses = self.get_gradient_step_output(data)
 
+        # Backprop model loss to encoder and decoder
         vae_trainable_weights = self.encoder.trainable_weights + self.decoder.trainable_weights
-        grads_vae = tape.gradient(model_loss, vae_trainable_weights)
+        grads_vae = tape.gradient(losses["model_loss"], vae_trainable_weights)
         self.optimizer.apply_gradients(zip(grads_vae, vae_trainable_weights))
 
-        grads_discriminator = tape.gradient(discriminator_loss, self.discriminator.trainable_weights)
+        # Backprop discriminator loss separately to the discriminator only
+        grads_discriminator = tape.gradient(losses["discriminator_loss"], self.discriminator.trainable_weights)
         self.discriminator_optimizer.apply_gradients(zip(grads_discriminator, self.discriminator.trainable_weights))
 
-        self.kl_loss_tracker.update_state(kl_loss)
-        self.reconstruction_loss_tracker.update_state(reconstruction_loss)
-        self.elbo_loss_tracker.update_state(elbo)
-        self.model_loss_tracker.update_state(model_loss)
-        self.discriminator_loss_tracker.update_state(discriminator_loss)
-        return {
-            "model_loss": self.model_loss_tracker.result(),
-            "discriminator_loss": self.discriminator_loss_tracker.result(),
-            "elbo": self.elbo_loss_tracker.result(),
-            "reconstruction_loss": self.reconstruction_loss_tracker.result(),
-            "kl_loss": self.kl_loss_tracker.result(),
-        }
+        return self.update_metrics(losses)
 
 
 class DIPVAE(VAE):
