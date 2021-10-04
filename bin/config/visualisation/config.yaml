@@ -1,6 +1,4 @@
-visualiser:
-  _target_: vae_ld.learning_dynamics.visualisation.Visualiser
-  input_dir: ???
+input_dir: ???
 
 hydra:
   run:

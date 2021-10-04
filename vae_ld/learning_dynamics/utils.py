@@ -1,16 +1,9 @@
-import h5py
+import matplotlib.pyplot as plt
 
 
-def load_layers_from_file(file_path):
-    """ Load layers activation from a given file.
-
-    :param file_path: the path of the file to load
-    :type file_path: str
-    :return: A dictionary of the layer activations
-    :rtype: dict
-    """
-    with h5py.File(file_path, "r") as f:
-        layers = {"{}/{}".format(grp_name, ds_name): ds[()] for (grp_name, grp) in f.items()
-                  for (ds_name, ds) in grp.items()}
-    return layers
-
+def save_figure(out_fname, dpi=300):
+    plt.tight_layout()
+    plt.savefig(out_fname, dpi=dpi)
+    plt.clf()
+    plt.cla()
+    plt.close()
