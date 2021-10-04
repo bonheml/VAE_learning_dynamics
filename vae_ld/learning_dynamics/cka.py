@@ -1,4 +1,6 @@
 import numpy as np
+import tensorflow as tf
+import pandas as pd
 
 
 def linear_kernel(x):
@@ -77,3 +79,27 @@ class CKA:
 
     def __call__(self, x, y):
         return self.cka(x, y)
+
+
+def get_activations(data, model_path):
+    model = tf.keras.load_model(model_path)
+    acts = model.encoder.predict(data)
+    acts += model.decoder.predict(acts[-1])
+    layer_names = [l.name for l in model.encoder.layers]
+    layer_names += [l.name for l in model.decoder.layers]
+    return model, acts, layer_names
+
+
+def compute_models_cka(cka, data, m1_path, m2_path, save_path):
+    m1, acts1, layers1 = get_activations(data, m1_path)
+    m2, acts2, layers2 = get_activations(data, m2_path)
+    res = {}
+    for i, l1 in enumerate(layers1):
+        x = acts1[i]
+        res[l1] = {}
+        for j, l2 in enumerate(layers2):
+            y = acts2[j]
+            res[l1][l2] = cka(x, y)
+    res = pd.DataFrame(res).T
+    res.to_csv(save_path, sep="\t")
+

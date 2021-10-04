@@ -1,0 +1,20 @@
+#!/usr/bin/env python
+import logging
+import hydra
+from hydra.utils import instantiate
+from glob import glob
+from vae_ld.learning_dynamics.cka import compute_models_cka
+
+logger = logging.getLogger("CKA")
+
+
+@hydra.main(config_path="config/cka", config_name="config")
+def compute_cka(cfg):
+    cka = instantiate(cfg.cka)
+    data = instantiate(cfg.data).load_data()[cfg.nb_samples]
+    model_files = glob(cfg.models_path)
+    for i, m1 in enumerate(model_files):
+        for j, m2 in enumerate(model_files[i:]):
+            logger.info("Computing CKA of {} and {}".format(m1, m2))
+            save_path = "{}_{}".format(i, j)
+            compute_models_cka(cka, data, m1, m2, "{}.tsv".format(save_path))
