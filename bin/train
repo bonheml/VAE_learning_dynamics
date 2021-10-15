@@ -47,7 +47,7 @@ def train(cfg):
     epochs = max(cfg.training_steps // steps_per_epochs, 1)
 
     logger.info("Starting model training...")
-    model.fit(train_sampler, epochs=3, batch_size=cfg.batch_size, callbacks=callbacks, validation_data=test_sampler)
+    model.fit(train_sampler, epochs=epochs, batch_size=cfg.batch_size, callbacks=callbacks, validation_data=test_sampler)
 
 
 if __name__ == "__main__":
