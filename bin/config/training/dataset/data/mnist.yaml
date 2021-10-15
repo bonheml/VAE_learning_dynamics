@@ -1,4 +1,4 @@
-name: mnist
 _target_: vae_ld.data.mnist.Mnist
 observation_shape: [28, 28, 1]
 data_size: 70000
+name: mnist

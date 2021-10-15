@@ -1,3 +1,3 @@
 _target_: vae_ld.models.encoders.FullyConnectedEncoder
-input_shape: ${dataset.observation_shape}
+input_shape: ${dataset.data.observation_shape}
 output_shape: ${latent_shape}

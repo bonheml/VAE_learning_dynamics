@@ -3,9 +3,10 @@ training_steps: 300000
 latent_shape: 10
 seed: 1
 
+
 defaults:
   - _self_
-  - dataset: cars
+  - dataset: sampler
   - optimizer: adam
   - model: beta_vae
   - callbacks:
@@ -15,9 +16,9 @@ defaults:
 
 hydra:
   run:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${now:%Y-%m-%d_%H-%M-%S}/${model.name}/${dataset.name}/${hydra.job.override_dirname}
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${now:%Y-%m-%d_%H-%M-%S}/${model.name}/${dataset.data.name}/${hydra.job.override_dirname}
   sweep:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${now:%Y-%m-%d_%H-%M-%S}/${model.name}/${dataset.name}
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${now:%Y-%m-%d_%H-%M-%S}/${model.name}/${dataset.data.name}
     subdir: ${hydra.job.override_dirname}
   job:
     config:

@@ -1,6 +1,6 @@
-name: scream_dsprites
-_target_: vae_ld.data.dsprites.ScreamDSprites
-path: ${oc.env:DATA_PATH}/scream_dsprites
+_target_: vae_ld.data.dsprites.NoisyDSprites
+path: ${oc.env:DATA_PATH}/noisy_dsprites
 observation_shape: [64,64,3]
 url: https://github.com/deepmind/dsprites-dataset/raw/master/dsprites_ndarray_co1sh3sc6or40x32y32_64x64.npz
 data_size: 737280
+name: noisy_dsprites

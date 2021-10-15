@@ -7,5 +7,5 @@ name: beta_tc_vae
 _target_: vae_ld.models.vaes.BetaVAE
 # Beta tested by Locatello et al.: [1, 2, 4, 6, 8, 10]
 beta: 1
-input_shape: ${dataset.observation_shape}
+input_shape: ${dataset.data.observation_shape}
 latent_shape: ${latent_shape}

@@ -1,5 +1,10 @@
+import math
 from pathlib import Path
 import requests
+from keras.utils.data_utils import Sequence
+import numpy as np
+
+from vae_ld.data import logger
 
 
 class Data:
@@ -10,9 +15,10 @@ class Data:
     Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
     """
 
-    def __init__(self, *, url, path, observation_shape, **kwargs):
+    def __init__(self, *, url, path, observation_shape, data_size, **kwargs):
         self._path = Path(path).expanduser()
         self._observation_shape = tuple(observation_shape)
+        self._data_size = data_size
         self._factors_shape = None
         self._factors_nb = None
         self._data = None
@@ -21,6 +27,10 @@ class Data:
     @property
     def observation_shape(self):
         return self._observation_shape
+
+    @property
+    def data_size(self):
+        return self._data_size
 
     @property
     def factors_shape(self):
@@ -63,6 +73,46 @@ class Data:
             f.write(response.raw.read())
 
 
+class DataSampler(Sequence):
 
+    def __init__(self, *, data, batch_size, validation_split=0.2, validation=False, **kwargs):
+        self._data = data
+        self._batch_size = batch_size
+        self._validation_size = validation_split * self.data.data_size
+        self._validation = validation
+        self._full_len = math.ceil(self.data.data_size / self.batch_size)
+        self._val_len = math.ceil(self._validation_size / self._batch_size)
 
+    @property
+    def data(self):
+        return self._data
 
+    @property
+    def batch_size(self):
+        return self._batch_size
+
+    @batch_size.setter
+    def batch_size(self, batch_size):
+        self._batch_size = batch_size
+
+    @property
+    def validation(self):
+        return self._validation
+
+    @validation.setter
+    def validation(self, validation):
+        self._validation = validation
+
+    def __len__(self):
+        if self._validation_size is None:
+            return self._full_len
+        elif self._validation is True:
+            return self._val_len
+        else:
+            return self._full_len - self._val_len
+
+    def __getitem__(self, idx):
+        if self._validation is True:
+            idx += self._full_len - self._val_len
+        data = self.data.data[idx * self.batch_size:(idx + 1) * self.batch_size]
+        return (data,)

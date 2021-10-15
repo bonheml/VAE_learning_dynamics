@@ -1,5 +1,7 @@
 import tensorflow as tf
 from tensorflow import math as tfm
+
+from vae_ld.models import logger
 from vae_ld.models.vae_utils import compute_gaussian_kl, compute_batch_tc, compute_covariance, shuffle_z
 
 
@@ -69,7 +71,7 @@ class VAE(tf.keras.Model):
         losses["model_loss"] = self.compute_model_loss(losses["reconstruction_loss"], losses["kl_loss"], z_mean, z_log_var, z)
         return losses
 
-    def update_metrics(self, losses, is_training=True):
+    def update_metrics(self, losses):
         for m in self.metrics:
             m.update_state(losses[m.name])
         loss_res = {m.name: m.result() for m in self.metrics}
@@ -89,7 +91,7 @@ class VAE(tf.keras.Model):
         if isinstance(data, tuple):
             data = data[0]
         losses = self.get_gradient_step_output(data, training=False)
-        return self.update_metrics(losses, is_training=False)
+        return self.update_metrics(losses)
 
 
 class BetaVAE(VAE):
