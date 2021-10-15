@@ -191,7 +191,7 @@ class FactorVAE(VAE):
         return [self.model_loss_tracker, self.elbo_loss_tracker, self.kl_loss_tracker, self.reconstruction_loss_tracker,
                 self.discriminator_loss_tracker, self.tc_loss_tracker]
 
-    def compute_tc_and_discriminator_loss(self, z):
+    def compute_tc_and_discriminator_loss(self, z, training=True):
         """ Compute the loss of the discriminator and the tc loss based on Locatello et al. implementation
         (https://github.com/google-research/disentanglement_lib)
 
@@ -200,8 +200,8 @@ class FactorVAE(VAE):
         """
         losses = {}
         z_shuffled = shuffle_z(z)
-        logits_z, p_z = self.discriminator(z, training=True)[-2:]
-        p_z_shuffled = self.discriminator(z_shuffled, training=True)[-1]
+        logits_z, p_z = self.discriminator(z, training=training)[-2:]
+        p_z_shuffled = self.discriminator(z_shuffled, training=training)[-1]
         # tc_loss = E[log(p_z_real) - log(p_z_fake)] = E[logits_z_real - logits_z_fake]
         losses["tc_loss"] = tf.reduce_mean(logits_z[:, 0] - logits_z[:, 1], axis=0)
 
@@ -212,14 +212,14 @@ class FactorVAE(VAE):
 
         return losses["tc_loss"], losses["discriminator_loss"]
 
-    def get_gradient_step_output(self, data):
+    def get_gradient_step_output(self, data, training=True):
         losses = {}
-        z_mean, z_log_var, z = self.encoder(data, training=True)[-3:]
-        reconstruction = self.decoder(z, training=True)[-1]
+        z_mean, z_log_var, z = self.encoder(data, training=training)[-3:]
+        reconstruction = self.decoder(z, training=training)[-1]
         losses["reconstruction_loss"] = tf.reduce_mean(self.reconstruction_loss_fn(data, reconstruction))
         losses["kl_loss"] = tf.reduce_mean(compute_gaussian_kl(z_log_var, z_mean))
         losses["elbo_loss"] = -tf.add(losses["reconstruction_loss"], losses["kl_loss"])
-        losses.update(self.compute_tc_and_discriminator_loss(z))
+        losses.update(self.compute_tc_and_discriminator_loss(z, training=training))
         losses["model_loss"] = tf.add(losses["elbo_loss"], self.gamma * losses["tc_loss"])
         return losses
 
@@ -243,7 +243,7 @@ class FactorVAE(VAE):
 
 
 class DIPVAE(VAE):
-    def __init__(self, *, lambda_diag, lambda_off_diag, dip_type, **kwargs):
+    def __init__(self, *, lambda_off_diag, lambda_factor, dip_type, **kwargs):
         """ Creates a DIPVAE model [1] based on Locatello et al. [2] implementation
         (https://github.com/google-research/disentanglement_lib)
 
@@ -253,20 +253,19 @@ class DIPVAE(VAE):
         Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
 
         :param lambda_diag: the regularisation term for diagonal values of covariance matrix
-        :param lambda_off_diag: the regularisation term for off-diagonal values of covariance matrix
+        :param lambda_factor: the regularisation term for off-diagonal values of covariance matrix
         :param dip_type: the type of model. Can be "i" or "ii"
         """
         super(DIPVAE, self).__init__(**kwargs)
-        self.lambda_diag = lambda_diag
         self.lambda_off_diag = lambda_off_diag
-        self.lambda_factor = lambda_diag * lambda_off_diag
+        self.lambda_diag = lambda_factor * self.lambda_off_diag
         self.dip_type = dip_type
 
     def compute_dip_reg(self, cov):
         cov_diag = tf.linalg.diag_part(cov)
         cov_off_diag = cov - tf.linalg.diag(cov_diag)
         off_diag_reg = self.lambda_off_diag * tf.reduce_sum(cov_off_diag ** 2)
-        diag_reg = self.lambda_factor * tf.reduce_sum((cov_diag - 1) ** 2)
+        diag_reg = self.lambda_diag * tf.reduce_sum((cov_diag - 1) ** 2)
         return tf.add(off_diag_reg, diag_reg)
 
     def compute_model_loss(self, reconstruction_loss, kl_loss, z_mean, z_log_var, z):
