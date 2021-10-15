@@ -1,6 +1,4 @@
-defaults:
-  - data: cars
-
 _target_: vae_ld.data.dataset.DataSampler
 batch_size: ${batch_size}
 validation_split: 0.1
+data: ${dataset}

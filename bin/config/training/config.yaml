@@ -6,7 +6,8 @@ seed: 1
 
 defaults:
   - _self_
-  - dataset: sampler
+  - dataset: cars
+  - sampling: sampler
   - optimizer: adam
   - model: beta_vae
   - callbacks:
@@ -16,9 +17,9 @@ defaults:
 
 hydra:
   run:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${now:%Y-%m-%d_%H-%M-%S}/${model.name}/${dataset.data.name}/${hydra.job.override_dirname}
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${now:%Y-%m-%d_%H-%M-%S}/${model.name}/${dataset.name}/${hydra.job.override_dirname}
   sweep:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${now:%Y-%m-%d_%H-%M-%S}/${model.name}/${dataset.data.name}
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${now:%Y-%m-%d_%H-%M-%S}/${model.name}/${dataset.name}
     subdir: ${hydra.job.override_dirname}
   job:
     config:

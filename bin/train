@@ -22,15 +22,15 @@ def train(cfg):
     optimizer = instantiate(cfg.optimizer)
 
     logger.info("Retrieving the data...")
-    train_sampler = instantiate(cfg.dataset)
-    test_sampler = instantiate(cfg.dataset)
+    train_sampler = instantiate(cfg.sampling)
+    test_sampler = instantiate(cfg.sampling)
     test_sampler.validation = True
 
     logger.info("Instantiating callbacks and creating subdirectories for callback logs...")
     callbacks = []
     for k, v in cfg.callbacks.items():
         if k == "image_generator":
-            data_callback = train_sampler.data.data[0:v.nb_samples]
+            data_callback = train_sampler.data[0:v.nb_samples]
             callbacks.append(instantiate(v, data=data_callback))
         else:
             callbacks.append(instantiate(v))

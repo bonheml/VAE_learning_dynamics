@@ -76,6 +76,7 @@ class Cars3D(Data):
         """Parses a single source file and rescales contained images."""
         file_path = str(self.path / filename)
         with gfile.Open(file_path, "rb") as f:
+            logger.debug("loading {}".format(file_path))
             mesh = np.einsum("abcde->deabc", loadmat(f)["im"])
 
         flattened_mesh = mesh.reshape((-1,) + mesh.shape[2:])

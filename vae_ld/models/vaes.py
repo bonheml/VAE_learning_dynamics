@@ -80,6 +80,7 @@ class VAE(tf.keras.Model):
     def train_step(self, data):
         if isinstance(data, tuple):
             data = data[0]
+        logger.debug("Receive batch of size {} for training".format(data.shape))
         with tf.GradientTape() as tape:
             losses = self.get_gradient_step_output(data)
 
@@ -90,6 +91,7 @@ class VAE(tf.keras.Model):
     def test_step(self, data):
         if isinstance(data, tuple):
             data = data[0]
+        logger.debug("Receive batch of size {} for testing".format(data.shape))
         losses = self.get_gradient_step_output(data, training=False)
         return self.update_metrics(losses)
 

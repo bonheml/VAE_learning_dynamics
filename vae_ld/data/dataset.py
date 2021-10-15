@@ -2,8 +2,6 @@ import math
 from pathlib import Path
 import requests
 from keras.utils.data_utils import Sequence
-import numpy as np
-
 from vae_ld.data import logger
 
 
@@ -21,8 +19,11 @@ class Data:
         self._data_size = data_size
         self._factors_shape = None
         self._factors_nb = None
-        self._data = None
+        self._data = []
         self._url = url
+
+    def __getitem__(self, key):
+        return self._data[key]
 
     @property
     def observation_shape(self):
@@ -114,5 +115,6 @@ class DataSampler(Sequence):
     def __getitem__(self, idx):
         if self._validation is True:
             idx += self._full_len - self._val_len
-        data = self.data.data[idx * self.batch_size:(idx + 1) * self.batch_size]
+        data = self.data[idx * self.batch_size:(idx + 1) * self.batch_size]
+        logger.debug("Return batch of size {}".format(data.shape))
         return (data,)

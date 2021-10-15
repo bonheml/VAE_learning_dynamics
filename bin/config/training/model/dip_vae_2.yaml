@@ -9,5 +9,5 @@ _target_: vae_ld.models.vaes.DIPVAE
 lambda_off_diag: 1
 lambda_factor: 1
 dip_type: ii
-input_shape: ${dataset.data.observation_shape}
+input_shape: ${dataset.observation_shape}
 latent_shape: ${latent_shape}
