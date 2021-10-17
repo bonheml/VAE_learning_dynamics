@@ -3,4 +3,5 @@ checkpoint:
   filepath: checkpoint/epoch_{epoch:02d}_model_loss_{model_loss:.2f}
   save_best_only: false
   monitor: model_loss
+  save_freq: 6000
   save_weights_only: false
