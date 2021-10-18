@@ -1,0 +1,6 @@
+_target_: vae_ld.data.dsprites.DSprites
+path: ${oc.env:DATA_PATH}/dsprites
+observation_shape: [64,64,1]
+url: https://github.com/deepmind/dsprites-dataset/raw/master/dsprites_ndarray_co1sh3sc6or40x32y32_64x64.npz
+data_size: 737280
+name: dsprites

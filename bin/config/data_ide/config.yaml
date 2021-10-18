@@ -1,0 +1,16 @@
+defaults:
+  - _self_
+  - data:
+      - cars
+
+hydra:
+  run:
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${data.name}
+  sweep:
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/
+    subdir: ${data.name}
+  job:
+    config:
+      override_dirname:
+        kv_sep: _
+        item_sep: /

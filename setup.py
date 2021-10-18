@@ -13,7 +13,8 @@ setup(
     include_package_data=True,
     scripts=[
         "bin/train",
-        "bin/visualise"
+        "bin/visualise",
+        "bin/get_data_ide"
     ],
     install_requires=[
         "pillow>=7.2.0",
