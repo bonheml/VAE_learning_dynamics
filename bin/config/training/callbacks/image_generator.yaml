@@ -4,3 +4,4 @@ image_generator:
   nb_samples: 3
   data: null
   latent_shape: ${latent_shape}
+  save_freq: 100
