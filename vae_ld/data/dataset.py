@@ -13,7 +13,7 @@ class Data:
     Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
     """
 
-    def __init__(self, *, url, path, observation_shape, data_size, **kwargs):
+    def __init__(self, *, url, path, observation_shape, data_size, name, **kwargs):
         self._path = Path(path).expanduser()
         self._observation_shape = tuple(observation_shape)
         self._data_size = data_size
@@ -21,6 +21,7 @@ class Data:
         self._factors_nb = None
         self._data = []
         self._url = url
+        self.name = name
 
     def __getitem__(self, key):
         return self._data[key]
