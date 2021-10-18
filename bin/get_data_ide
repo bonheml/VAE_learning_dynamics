@@ -11,20 +11,14 @@ from vae_ld.learning_dynamics.intrinsic_dimension_estimators import TwoNN
 logger = logging.getLogger("get_data_ide")
 
 
-def estimate_id(data, ide, pca):
-    res = {"twonn": [],
-           #"pca": []
-           }
-    X = data[:100000]
-    X = X.reshape((X.shape[0], np.prod(X.shape[1:])))
-    for i in [100, 1000, 10000, 100000]:
-        logger.info("Computing TwoNN ID estimate for {} with i={}".format(data.name, i))
-        res["twonn"].append(ide.get_id_estimate(X[:i]))
-        logger.info("TwoNN ID estimate is {}".format(res["twonn"][-1]))
-        #logger.info("Computing PCA ID estimate for {} with i={}".format(data.name, i))
-        #pca.fit(X[:i])
-        #res["pca"].append(pca.n_components_)
-        #logger.info("PCA ID estimate is {}".format(res["pca"][-1]))
+def estimate_id(data, ide, seed, n_samples=10000):
+    res = {data.name: []}
+    for i in range(20):
+        X = data.sample(n_samples, seed)[1]
+        X = X.reshape(X.shape[0], np.prod(X.shape[1:]))
+        logger.info("Computing TwoNN ID estimate for {} and seed {}".format(data.name, i))
+        res[data.name].append(ide.get_id_estimate(X))
+        logger.info("TwoNN ID estimate is {}".format(res[data.name][-1]))
     return res
 
 
@@ -32,12 +26,11 @@ def estimate_id(data, ide, pca):
 def get_all_ides(cfg):
     logger.info("Model config:\n{}".format(OmegaConf.to_yaml(cfg)))
     twonn = TwoNN()
-    seed = np.random.RandomState(0)
-    pca = PCA(n_components=0.9, random_state=seed)
+    seed = np.random.RandomState(cfg.seed)
     logger.info("Retrieving the data...")
     dataset = instantiate(cfg.data)
     logger.info("Computing the ID estimates")
-    ides = estimate_id(dataset, twonn, pca)
+    ides = estimate_id(dataset, twonn, seed, cfg.n_samples)
     df = pd.DataFrame(ides)
     df.to_csv(cfg.save_file, sep="\t")
 
