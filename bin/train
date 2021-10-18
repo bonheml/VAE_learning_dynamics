@@ -30,7 +30,7 @@ def train(cfg):
     callbacks = []
     for k, v in cfg.callbacks.items():
         if k == "image_generator":
-            data_callback = train_sampler.data[0:v.nb_samples]
+            data_callback = train_sampler.data.sample(v.nb_samples, random_state)
             callbacks.append(instantiate(v, data=data_callback))
         else:
             callbacks.append(instantiate(v))
