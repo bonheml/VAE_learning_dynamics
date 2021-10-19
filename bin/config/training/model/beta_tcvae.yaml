@@ -3,9 +3,10 @@ defaults:
   - decoder: convolutional
   - reconstruction_loss_fn: bernoulli
 
-name: beta_tc_vae
+name: beta_vae
+
 _target_: vae_ld.models.vaes.BetaVAE
 # Beta tested by Locatello et al.: [1, 2, 4, 6, 8, 10]
-beta: 1
+beta: ${param_value}
 input_shape: ${dataset.observation_shape}
 latent_shape: ${latent_shape}

@@ -1,7 +1,8 @@
 batch_size: 64
 training_steps: 300000
 latent_shape: 10
-seed: 1
+seed: 0
+param_value: 1
 
 
 defaults:
@@ -17,10 +18,10 @@ defaults:
 
 hydra:
   run:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${hydra.job.override_dirname}
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${model.name}/${dataset.name}/${param_value}/${seed}
   sweep:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}
-    subdir: ${hydra.job.override_dirname}
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${model.name}/${dataset.name}/${param_value}
+    subdir: ${seed}
   job:
     config:
       override_dirname:

@@ -4,9 +4,10 @@ defaults:
   - reconstruction_loss_fn: bernoulli
 
 name: factor_vae
+
 _target_: vae_ld.models.vaes.FactorVAE
  # Gamma tested by Locatello et al.: [10, 20, 30, 40, 50, 100]
-gamma: 10
+gamma: ${param_value}
 input_shape: ${dataset.observation_shape}
 latent_shape: ${latent_shape}
 discriminator:
