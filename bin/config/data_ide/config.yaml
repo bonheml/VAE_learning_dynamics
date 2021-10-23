@@ -1,19 +1,20 @@
-n_samples: 10000
+n_samples: 100000
 seed: 0
+n_iter: 10
+save_file: IDE_${n_samples}.tsv
+mle_anchor: 0.8
 
 defaults:
   - _self_
-  - data:
-      - cars
+  - dataset:
+    - dsprites
+    - color_dsprites
+    - noisy_dsprites
+    - scream_dsprites
+    - shapes3d
+    - smallnorb
+    - cars
 
 hydra:
   run:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${data.name}
-  sweep:
     dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/
-    subdir: ${data.name}
-  job:
-    config:
-      override_dirname:
-        kv_sep: _
-        item_sep: /

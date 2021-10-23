@@ -1,6 +1,7 @@
-_target_: vae_ld.data.cars3d.Cars3D
-path: ${oc.env:DATA_PATH}/cars
-observation_shape: [64,64,3]
-url: http://www.scottreed.info/files/nips2015-analogy-data.tar.gz
-data_size: 17600
-name: cars3d
+cars:
+  _target_: vae_ld.data.cars3d.Cars3D
+  path: /media/bonheml/phd_data/Datasets/cars
+  observation_shape: [64,64,3]
+  url: http://www.scottreed.info/files/nips2015-analogy-data.tar.gz
+  data_size: 17600
+  name: cars3d
