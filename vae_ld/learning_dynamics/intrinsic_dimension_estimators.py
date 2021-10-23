@@ -1,5 +1,9 @@
+import random
+
 from scipy.spatial.distance import squareform, pdist
 import numpy as np
+from sklearn import linear_model
+from sklearn.neighbors import NearestNeighbors
 
 from vae_ld.learning_dynamics import logger
 
@@ -12,6 +16,7 @@ class TwoNN:
     """
     def __init__(self):
         self._to_keep = 0.9
+        self._knn = NearestNeighbors(n_neighbors=3)
 
     @property
     def to_keep(self):
@@ -25,7 +30,7 @@ class TwoNN:
             raise ValueError("The fraction to keep must be between 0 (excluded) and 1.")
         self._to_keep = to_keep
 
-    def get_id_estimate(self, X):
+    def fit_transform(self, X):
         """ Compute the intrinsic dimension estimation, based on the implementation of [1] and [2].
         The steps described in [3] (p.3) are outlined in the code comments.
 
@@ -36,22 +41,26 @@ class TwoNN:
         [4] Intrinsic dimension of data representations in deep neural networks
             Alessio Ansuini, Alessandro Laio, Jakob H. Macke, and Davide Zoccolan, 2019
         """
+        self._knn.fit(X)
         # 1. Compute the pairwise distances for each point in the dataset
         logger.info("Computing the pairwise distance between each point of the dataset")
-        x_dist = np.sort(squareform(pdist(X)), axis=1, kind="heapsort")
+        # x_dist = np.sort(squareform(pdist(X)), axis=1, kind="heapsort")
+        x_dist = self._knn.kneighbors(X)[0]
 
         # 2. Get two shortest distances
         logger.info("Getting the two shortest distances")
         r1 = x_dist[:, 1]
         r2 = x_dist[:, 2]
 
-        logger.info("Removing zero values and degeneracies")
-        zeros = np.where(r1 == 0)[0]
-        degeneracies = np.where(r1 == r2)[0]
-        good = np.setdiff1d(np.arange(x_dist.shape[0]), np.array(zeros))
-        good = np.setdiff1d(good, np.array(degeneracies))
-        r1 = r1[good]
-        r2 = r2[good]
+        # This step was added in Ansuini et al. implementation
+        # logger.info("Removing zero values and degeneracies")
+        # zeros = np.where(r1 == 0)[0]
+        # degeneracies = np.where(r1 == r2)[0]
+        # good = np.setdiff1d(np.arange(x_dist.shape[0]), np.array(zeros))
+        # good = np.setdiff1d(good, np.array(degeneracies))
+        # logger.info(good.shape)
+        # r1 = r1[good]
+        # r2 = r2[good]
 
         # 3. For each point i compute mu_i
         logger.info("Computing mu_i for each point i")
@@ -70,5 +79,65 @@ class TwoNN:
         x = np.log(mu)[:n_to_keep]
         y = -np.log(1 - Femp)[:n_to_keep]
         d = np.dot(x, y) / np.dot(x, x)
-
         return d
+
+
+class MLE:
+    def __init__(self, k, seed, runs=5, anchor=0.9):
+        self._anchor = anchor
+        self._k = k
+        self._seed = seed
+        self._n_runs = runs
+        self._knn = NearestNeighbors(n_neighbors=k+1)
+
+    @property
+    def anchor(self):
+        return self._anchor
+
+    @anchor.setter
+    def anchor(self, anchor):
+        """ Set the fraction of data points to keep during the ID estimate
+        """
+        if anchor <= 0 or anchor > 1:
+            raise ValueError("The anchor fraction must be between 0 (excluded) and 1.")
+        self._anchor = anchor
+
+    @property
+    def k(self):
+        return self._k
+
+    @k.setter
+    def anchor(self, k):
+        """ Set the fraction of data points to keep during the ID estimate
+        """
+        if k <= 0:
+            raise ValueError("The number of neighbours must be greater than 0.")
+        self._k = k
+
+    def fit_transform(self, X):
+        anchor_samples = int(self.anchor * X.shape[0])
+        res = np.zeros((self._n_runs,))
+        data_idxs = np.arange(X.shape[0])
+        self._knn.fit(X)
+
+        for i in range(self._n_runs):
+            logger.info("Computing iteration {} of MLE with k={}".format(i, self._k))
+            np.random.shuffle(data_idxs)
+            anchor_idxs = data_idxs[:anchor_samples]
+            res[i] = self._compute_mle(X[anchor_idxs])
+
+        return res.mean()
+
+    def _compute_mle(self, X):
+        dist = self._knn.kneighbors(X)[0][:, 1:]
+
+        if not np.all(dist > 0.):
+            logger.info(np.argwhere(dist <= 0.))
+            logger.info(dist[np.argwhere(dist <= 0.)])
+
+        assert np.all(dist > 0.)
+
+        d = np.log(dist[:, self._k - 1: self._k] / dist[:, 0:self._k - 1])
+        d = d.sum(axis=1) / (self.k - 2)
+
+        return 1. / d.mean()
