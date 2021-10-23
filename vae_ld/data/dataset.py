@@ -69,7 +69,7 @@ class Data:
 
     def download(self):
         fname = self.path / self._url.split("/")[-1]
-        response = requests.get(self._url, stream=True, allow_redirect=True)
+        response = requests.get(self._url, stream=True, allow_redirects=True)
         response.raise_for_status()
         with open(str(fname), 'wb') as f:
             f.write(response.raw.read())
