@@ -31,7 +31,6 @@ class Cars3D(Data):
         self._factors_shape = (4, 24, 183)
         self.latent_factor_indices = [0, 1, 2]
         self._factors_nb = len(self._factors_shape)
-        self._observation_shape = (64, 64, 3)
         features = extmath.cartesian([np.array(list(range(i))) for i in self.factors_shape])
         self.index = util.StateSpaceAtomIndex(self.factors_shape, features)
         self.state_space = util.SplitDiscreteStateSpace(self._factors_shape,
@@ -57,7 +56,7 @@ class Cars3D(Data):
         if len(all_files) == 0:
             raise FileNotFoundError("The given data directory is empty. Remove it to download the dataset properly "
                                     "during next call.")
-        dataset = np.zeros((24 * 4 * 183, 64, 64, 3))
+        dataset = np.zeros((24 * 4 * 183, *self.observation_shape))
         for i, filename in enumerate(all_files):
             data_mesh = self._load_mesh(filename)
             factor1 = np.array(list(range(4)))
