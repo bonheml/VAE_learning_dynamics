@@ -1,5 +1,5 @@
 import requests
-import PIL.Image
+import PIL
 from tensorflow.python.platform import gfile
 
 from vae_ld.data import util, logger
@@ -43,7 +43,24 @@ class DSprites(Data):
         with gfile.Open(file_path, "rb") as data_file:
             # Data was saved originally using python2, so we need to set the encoding.
             data = np.load(data_file, encoding="latin1", allow_pickle=True)
-        return np.array(data["imgs"]), np.array(data["metadata"][()]["latents_sizes"], dtype=np.int64)
+        imgs = data["imgs"]
+        if imgs[0].shape != self.observation_shape:
+            imgs = self._resize_images(imgs)
+        logger.info(imgs.shape)
+        return imgs, np.array(data["metadata"][()]["latents_sizes"], dtype=np.int64)
+
+    def _resize_images(self, integer_images):
+        resize_dim = self.observation_shape[:2]
+        integer_images = integer_images.astype(np.uint8) * 255
+        resized_images = np.zeros((integer_images.shape[0], *resize_dim))
+        for i in range(integer_images.shape[0]):
+            image = PIL.Image.fromarray(integer_images[i, :, :])
+            image.thumbnail(resize_dim)
+            resized_images[i, :, :] = np.asarray(image)
+        resized_images = resized_images.astype(np.float32) / 255.
+        # Prevent any non-zero value to be lower than 1 after rescaling the image
+        resized_images[resized_images > 0] = 1.
+        return resized_images
 
     def sample_factors(self, num, random_state):
         """Sample a batch of factors Y."""
@@ -121,7 +138,7 @@ class NoisyDSprites(DSprites):
     def sample_observations_from_factors(self, factors, random_state):
         no_color_observations = self.sample_observations_from_factors_no_color(factors, random_state)
         observations = np.repeat(no_color_observations, 3, axis=3)
-        color = random_state.uniform(0, 1, [observations.shape[0], 64, 64, 3])
+        color = random_state.uniform(0, 1, [observations.shape[0], *self.observation_shape])
         return np.minimum(observations + color, 1.)
 
 
@@ -158,7 +175,7 @@ class ScreamDSprites(DSprites):
         with gfile.Open(file, "rb") as f:
             scream = PIL.Image.open(f)
         scream.thumbnail((350, 274))
-        return np.array(scream) * 1. / 255.
+        return np.asarray(scream) * 1. / 255.
 
     def download_scream(self):
         logger.info("Downloading The Scream image. This will happen only once.")
@@ -173,9 +190,10 @@ class ScreamDSprites(DSprites):
         observations = np.repeat(no_color_observations, 3, axis=3)
 
         for i in range(observations.shape[0]):
-            x_crop = random_state.randint(0, self._scream.shape[0] - 64)
-            y_crop = random_state.randint(0, self._scream.shape[1] - 64)
-            cropped_scream = self._scream[x_crop:x_crop + 64, y_crop:y_crop + 64]
+            crop_shape_x, crop_shape_y = self.observation_shape[0], self.observation_shape[1]
+            x_crop = random_state.randint(0, self._scream.shape[0] - crop_shape_x)
+            y_crop = random_state.randint(0, self._scream.shape[1] - crop_shape_y)
+            cropped_scream = self._scream[x_crop:x_crop + crop_shape_x, y_crop:y_crop + crop_shape_y]
             background = (cropped_scream + random_state.uniform(0, 1, size=3)) / 2.
             mask = (observations[i] == 1)
             background[mask] = 1 - background[mask]
