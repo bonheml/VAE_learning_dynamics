@@ -1,3 +1,4 @@
+import PIL
 import h5py
 import numpy as np
 
@@ -37,7 +38,9 @@ class Shapes3D(Data):
 
     def __getitem__(self, key):
         # Beware, because of the limitations of h5py, this will only work for indexes and contiguous slicing.
-        return self._data[key].astype(np.float32) / 255.
+        data = self._data[key].astype(np.float32) / 255.
+        imgs = np.array(np.asarray(PIL.Image.fromarray(x).resize(self.observation_shape[:2])) for x in data)
+        return imgs
 
     def load_data(self):
         if not self.path.exists():
@@ -58,12 +61,14 @@ class Shapes3D(Data):
         return self.state_space.sample_latent_factors(num, seed)
 
     def sample_observations_from_factors(self, factors, seed):
-        data = []
         all_factors = self.state_space.sample_all_factors(factors, seed)
         indices = np.array(np.dot(all_factors, self.factor_bases), dtype=np.int64)
-        for i in indices:
-            data.append(self._data[i].astype(np.float32) / 255.)
+        data = [np.asarray(PIL.Image.fromarray(self._data[i]).resize(self.observation_shape[:2])).astype(np.float32) / 255.
+                for i in indices]
         return np.array(data)
 
     def __del__(self):
-        self._h5py_dataset.close()
+        try:
+            self._h5py_dataset.close()
+        except Exception as e:
+            pass
