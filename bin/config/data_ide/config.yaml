@@ -1,20 +1,13 @@
+defaults:
+  - dataset: dsprites
+  - _self_
+
 n_samples: 100000
 seed: 0
 n_iter: 10
-save_file: IDE_${n_samples}.tsv
 mle_anchor: 0.8
-
-defaults:
-  - _self_
-  - dataset:
-    - dsprites
-    - color_dsprites
-    - noisy_dsprites
-    - scream_dsprites
-    - shapes3d
-    - smallnorb
-    - cars
+save_file: IDE_${dataset.name}_${n_samples}_samples.tsv
 
 hydra:
   run:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${dataset.name}/seed_${seed}/${n_samples}_samples
