@@ -71,7 +71,7 @@ class SmallNORB(Data):
         for chunk in self._chunk_names:
             for fe in self._file_ext:
                 fname = self._file_template.format(chunk, fe)
-                url = str(self._url / "{}.gz".format(fname))
+                url = "{}/{}.gz".format(self._url, fname)
                 file = str(self.path / fname)
                 response = requests.get(url, stream=True)
                 response.raise_for_status()
