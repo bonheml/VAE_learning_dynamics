@@ -55,7 +55,7 @@ class SmallNORB(Data):
 
         for chunk_name in self._chunk_names:
             norb = _read_binary_matrix(file_path.format(chunk_name, "dat"))
-            list_of_images.append(_resize_images(norb[:, 0]))
+            list_of_images.append(self._resize_images(norb[:, 0]))
             norb_class = _read_binary_matrix(file_path.format(chunk_name, "cat"))
             norb_info = _read_binary_matrix(file_path.format(chunk_name, "info"))
             list_of_features.append(np.column_stack((norb_class, norb_info)))
@@ -87,6 +87,15 @@ class SmallNORB(Data):
         indices = self.index.features_to_index(all_factors)
         return np.expand_dims(self._data[indices].astype(np.float32), axis=3)
 
+    def _resize_images(self, integer_images):
+        resize_dim = self.observation_shape[:2]
+        resized_images = np.zeros((integer_images.shape[0], *resize_dim))
+        for i in range(integer_images.shape[0]):
+            image = Image.fromarray(integer_images[i, :, :])
+            image = image.resize(resize_dim)
+            resized_images[i, :, :] = image
+        return resized_images / 255.
+
 
 def _read_binary_matrix(filename):
     """Reads and returns binary formatted matrix stored in filename."""
@@ -111,10 +120,4 @@ def _read_binary_matrix(filename):
     return data
 
 
-def _resize_images(integer_images):
-    resized_images = np.zeros((integer_images.shape[0], 64, 64))
-    for i in range(integer_images.shape[0]):
-        image = Image.fromarray(integer_images[i, :, :])
-        image = image.resize((64, 64), Image.ANTIALIAS)
-        resized_images[i, :, :] = image
-    return resized_images / 255.
+
