@@ -1,5 +1,6 @@
 import logging
 
+import PIL
 import hydra
 import numpy as np
 import pandas as pd
@@ -11,15 +12,16 @@ from vae_ld.learning_dynamics.intrinsic_dimension_estimators import TwoNN, MLE
 logger = logging.getLogger("get_data_ide")
 
 
-def estimate_id(dataset, ides, n_batches, n_samples):
+def estimate_id(dataset, ides, n_batches, n_samples, seed):
     res = {k: [] for k in ides.keys()}
 
     for i in range(0, n_batches * n_samples, n_samples):
         logger.info("Retrieving data examples from index {} to {}".format(i, i + n_samples))
-        X = dataset[i:i + n_samples]
+        X = dataset.sample(n_samples, seed)[1]
+        logger.info(X.shape)
         X = np.unique(X.reshape(X.shape[0], np.prod(X.shape[1:])), axis=0)
+        X *= 255.
         logger.info("Discarding duplicate examples. Final size is {}".format(len(X)))
-
         for name, ide in ides.items():
             res[name].append(ide.fit_transform(X))
             logger.info("{} estimate is {}".format(name, res[name][-1]))
@@ -39,7 +41,7 @@ def get_all_ides(cfg):
         logger.info("Loading {}".format(k))
         dataset = instantiate(v)
         n_batches = min(dataset.data_size // cfg.n_samples, cfg.n_iter)
-        res[k] = estimate_id(dataset, ides, n_batches, cfg.n_samples)
+        res[k] = estimate_id(dataset, ides, n_batches, cfg.n_samples, seed)
     reform = {(k1, k2): v2 for k1, v1 in res.items() for k2, v2 in v1.items()}
 
     logger.info("Saving the results to {}".format(cfg.save_file))

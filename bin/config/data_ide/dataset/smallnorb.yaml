@@ -1,7 +1,7 @@
 smallnorb:
   _target_: vae_ld.data.norb.SmallNORB
   path: ${oc.env:DATA_PATH}/small_norb
-  observation_shape: [64,64,1]
+  observation_shape: [32,32,1]
   url: https://cs.nyu.edu/~ylclab/data/norb-v1.0-small/
   data_size: 46789
   name: smallnorb

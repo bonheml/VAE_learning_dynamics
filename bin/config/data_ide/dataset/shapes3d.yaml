@@ -1,7 +1,7 @@
 shapes3d:
   _target_: vae_ld.data.shapes3d.Shapes3D
   path: ${oc.env:DATA_PATH}/shapes3d
-  observation_shape: [64,64,3]
+  observation_shape: [32,32,3]
   url: https://storage.cloud.google.com/3d-shapes/3dshapes.h5
   data_size: 480000
   name: shapes3d
