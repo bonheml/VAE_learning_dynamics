@@ -6,8 +6,9 @@ n_samples: 100000
 seed: 0
 n_iter: 10
 mle_anchor: 0.8
+normalized: no
 save_file: IDE_${dataset.name}_${n_samples}_samples.tsv
 
 hydra:
   run:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${dataset.name}/seed_${seed}/${n_samples}_samples
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${dataset.name}/normalized_${normalized}/${n_samples}_samples
