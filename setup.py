@@ -14,7 +14,8 @@ setup(
     scripts=[
         "bin/train",
         "bin/visualise",
-        "bin/get_data_ide"
+        "bin/get_data_ide",
+        "bin/compute_cka",
     ],
     install_requires=[
         "pillow>=7.2.0",
