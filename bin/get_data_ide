@@ -17,7 +17,7 @@ def estimate_id(dataset, ides, n_batches, n_samples, seed, normalized=True):
         logger.info("Iteration {}/{}: sampling {} images".format(i+1, n_batches, n_samples))
         X = dataset.sample(n_samples, seed)[1]
         X = np.unique(X.reshape(X.shape[0], np.prod(X.shape[1:])), axis=0)
-        if normalized is True:
+        if normalized is False:
             X *= 255.
         logger.info("Discarding duplicate examples. Final size is {}".format(len(X)))
         for name, ide in ides.items():
