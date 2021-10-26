@@ -44,8 +44,12 @@ class DSprites(Data):
             # Data was saved originally using python2, so we need to set the encoding.
             data = np.load(data_file, encoding="latin1", allow_pickle=True)
         imgs = data["imgs"]
-        if imgs[0].shape != self.observation_shape:
+
+        if imgs[0].shape[:2] != self.observation_shape[:2]:
+            logger.info("resizing images")
             imgs = self._resize_images(imgs)
+        else:
+            logger.info("no resize needed")
         logger.info(imgs.shape)
         return imgs, np.array(data["metadata"][()]["latents_sizes"], dtype=np.int64)
 
@@ -140,6 +144,30 @@ class NoisyDSprites(DSprites):
         observations = np.repeat(no_color_observations, 3, axis=3)
         color = random_state.uniform(0, 1, [observations.shape[0], *self.observation_shape])
         return np.minimum(observations + color, 1.)
+
+
+class GreyDSprites(DSprites):
+    """Grey DSprites.
+
+    This data set is the same as the original DSprites data set except that when
+    sampling the observations X, the background pixels are turned to a configurable uniform shade of grey.
+
+    The ground-truth factors of variation are (in the default setting):
+    0 - shape (3 different values)
+    1 - scale (6 different values)
+    2 - orientation (40 different values)
+    3 - position x (32 different values)
+    4 - position y (32 different values)
+    """
+
+    def __init__(self, grey_shade=0.8, **kwargs):
+        super().__init__(**kwargs)
+        self._grey_shade = grey_shade
+
+    def sample_observations_from_factors(self, factors, random_state):
+        black_and_white_observations = self.sample_observations_from_factors_no_color(factors, random_state)
+        black_and_white_observations[black_and_white_observations == 0.] = self._grey_shade
+        return black_and_white_observations
 
 
 class ScreamDSprites(DSprites):
