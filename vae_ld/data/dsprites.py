@@ -43,7 +43,7 @@ class DSprites(Data):
         with gfile.Open(file_path, "rb") as data_file:
             # Data was saved originally using python2, so we need to set the encoding.
             data = np.load(data_file, encoding="latin1", allow_pickle=True)
-        imgs = data["imgs"]
+        imgs = np.array(data["imgs"])
 
         if imgs[0].shape[:2] != self.observation_shape[:2]:
             logger.info("resizing images")
