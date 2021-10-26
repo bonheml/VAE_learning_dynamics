@@ -3,6 +3,9 @@ import logging
 import hydra
 from hydra.utils import instantiate
 from glob import glob
+import numpy as np
+from omegaconf import OmegaConf
+
 from vae_ld.learning_dynamics.cka import compute_models_cka
 
 logger = logging.getLogger("CKA")
@@ -10,11 +13,18 @@ logger = logging.getLogger("CKA")
 
 @hydra.main(config_path="config/cka", config_name="config")
 def compute_cka(cfg):
+    logger.info("Experiment config:\n{}".format(OmegaConf.to_yaml(cfg)))
+    random_state = np.random.RandomState(cfg.seed)
+    logger.info("Instantiating CKA...")
     cka = instantiate(cfg.cka)
-    data = instantiate(cfg.data).load_data()[cfg.nb_samples]
+    logger.info("Instantiating {} dataset".format(cfg.data.name))
+    dataset = instantiate(cfg.data)
+    samples = dataset.sample(cfg.n_samples, random_state)
+    logger.info("Looking for model folders in {}".format(cfg.models_path))
     model_files = glob(cfg.models_path)
+    logger.info("Found models in {}".format(model_files))
     for i, m1 in enumerate(model_files):
         for j, m2 in enumerate(model_files[i:]):
             logger.info("Computing CKA of {} and {}".format(m1, m2))
             save_path = "{}_{}".format(i, j)
-            compute_models_cka(cka, data, m1, m2, "{}.tsv".format(save_path))
+            compute_models_cka(cka, samples, m1, m2, "{}.tsv".format(save_path))

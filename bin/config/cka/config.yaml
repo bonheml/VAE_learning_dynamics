@@ -1,5 +1,6 @@
 models_path: ???
-nb_sampled: 10000
+n_samples: 10000
+seed: 0
 data: ${training.dataset.cars}
 cka:
   _target_: vae_ld.learning_dynamics.cka.CKA
