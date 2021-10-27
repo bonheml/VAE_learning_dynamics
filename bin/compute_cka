@@ -28,3 +28,7 @@ def compute_cka(cfg):
             logger.info("Computing CKA of {} and {}".format(m1, m2))
             save_path = "{}_{}".format(i, j)
             compute_models_cka(cka, samples, m1, m2, "{}.tsv".format(save_path))
+
+
+if __name__ == "__main__":
+    compute_cka()
