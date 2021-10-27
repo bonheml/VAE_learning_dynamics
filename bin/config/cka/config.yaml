@@ -1,10 +1,10 @@
 models_path: ???
 n_samples: 10000
 seed: 0
-model_names:
-  - beta_vae
-param_values:
-  - 1
+m1_name: beta_vae
+m2_name: beta_vae
+p1_value: 1
+p2_value: 1
 
 defaults:
   - _self_
@@ -16,10 +16,10 @@ cka:
 
 hydra:
   run:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${model_names}/${dataset.name}/${param_values}/${n_samples}
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${dataset.name}/m1_${m1_name}/${p1_value}/${m2_name}/${p2_value}
   sweep:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${model_names}/${dataset.name}/${param_values}
-    subdir: ${n_samples}
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${dataset.name}/m1_${m1_name}/${p1_value}/${m2_name}
+    subdir: ${p2_value}
   job:
     config:
       override_dirname:
