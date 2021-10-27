@@ -48,8 +48,7 @@ class CKA:
     def debiased(self, debiased):
         self._debiased = debiased
 
-    def center(self, x):
-
+    def center(self, x, debiased=False):
         x = x.copy()
         if self.debiased:
             # Unbiased version proposed by Szekely, G. J., & Rizzo, M. L. in
@@ -69,9 +68,9 @@ class CKA:
             x -= means[None, :]
         return x
 
-    def cka(self, x, y):
-        kc = self.center(self.kernel(x))
-        lc = self.center(self.kernel(y))
+    def cka(self, kc, lc):
+        # Note: this method assumes that kc and lc are the centered kernel values given by cka.center(cka.kernel(.))
+
         # Compute tr(KcLc) = vec(kc)^T vec(lc), omitting the term (m-1)**2, which is canceled by CKA
         hsic = np.dot(kc.ravel(), lc.ravel())
         # Divide by the product of the Frobenius norms of kc and lc to get CKA
@@ -97,10 +96,16 @@ def compute_models_cka(cka, data, m1_path, m2_path, save_path):
     res = {}
     for i, l1 in enumerate(layers1):
         x = acts1[i]
+        if len(x.shape) > 2:
+            x = x.reshape(x.shape[0], np.prod(x.shape[1:]))
+        kc = cka.center(cka.kernel(x))
         res[l1] = {}
         for j, l2 in enumerate(layers2):
             y = acts2[j]
-            res[l1][l2] = cka(x, y)
+            if len(y.shape) > 2:
+                y = y.reshape(y.shape[0], np.prod(y.shape[1:]))
+            lc = cka.center(cka.kernel(y))
+            res[l1][l2] = cka(kc, lc)
     res = pd.DataFrame(res).T
     res.to_csv(save_path, sep="\t")
 
