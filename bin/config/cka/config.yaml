@@ -16,10 +16,10 @@ cka:
 
 hydra:
   run:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${dataset.name}/${m1_name}/${p1_value}/${m2_name}/${p2_value}
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${dataset.name}/${m1_name}_${p1_value}/${m2_name}_${p2_value}
   sweep:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${dataset.name}/${m1_name}/${p1_value}/${m2_name}
-    subdir: ${p2_value}
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${dataset.name}/${m1_name}_${p1_value}
+    subdir: ${m2_name}_${p2_value}
   job:
     config:
       override_dirname:
