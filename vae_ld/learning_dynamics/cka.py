@@ -2,6 +2,8 @@ import numpy as np
 import tensorflow as tf
 import pandas as pd
 
+from vae_ld.learning_dynamics import logger
+
 
 def linear_kernel(x):
     return x.dot(x.T)
@@ -90,21 +92,25 @@ def get_activations(data, model_path):
     return model, acts, layer_names
 
 
+def prepare_activations(cka, x):
+    if len(x.shape) > 2:
+        x = x.reshape(x.shape[0], np.prod(x.shape[1:]))
+    kc = cka.center(cka.kernel(x))
+    return kc
+
+
 def compute_models_cka(cka, data, m1_path, m2_path, save_path):
     m1, acts1, layers1 = get_activations(data, m1_path)
     m2, acts2, layers2 = get_activations(data, m2_path)
     res = {}
     for i, l1 in enumerate(layers1):
-        x = acts1[i]
-        if len(x.shape) > 2:
-            x = x.reshape(x.shape[0], np.prod(x.shape[1:]))
-        kc = cka.center(cka.kernel(x))
+        logger.info("Preparing layer {} of {}".format(l1, m1_path))
+        kc = prepare_activations(cka, acts1[i])
         res[l1] = {}
         for j, l2 in enumerate(layers2):
-            y = acts2[j]
-            if len(y.shape) > 2:
-                y = y.reshape(y.shape[0], np.prod(y.shape[1:]))
-            lc = cka.center(cka.kernel(y))
+            logger.info("Preparing layer {} of {}".format(l2, m2_path))
+            lc = prepare_activations(cka, acts2[j])
+            logger.info("Computing CKA({}, {})".format(l1, l2))
             res[l1][l2] = cka(kc, lc)
     res = pd.DataFrame(res).T
     res.to_csv(save_path, sep="\t")

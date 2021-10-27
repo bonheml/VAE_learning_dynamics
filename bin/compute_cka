@@ -22,7 +22,6 @@ def compute_cka(cfg):
     samples = dataset.sample(cfg.n_samples, random_state)[1]
     logger.info("Looking for model folders in {}".format(cfg.models_path))
     model_files = glob(cfg.models_path)
-    logger.info("Found models in {}".format(model_files))
     for i, m1 in enumerate(model_files):
         for j, m2 in enumerate(model_files[i:]):
             logger.info("Computing CKA of {} and {}".format(m1, m2))
