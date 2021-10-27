@@ -7,5 +7,4 @@ defaults:
 
 cka:
   _target_: vae_ld.learning_dynamics.cka.CKA
-  kernel: vae_ld.learning_dynamics.cka.linear_kernel
   debiased: false
