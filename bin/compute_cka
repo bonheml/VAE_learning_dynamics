@@ -25,8 +25,13 @@ def compute_cka(cfg):
     for i, m1 in enumerate(model_files):
         for j, m2 in enumerate(model_files[i:]):
             logger.info("Computing CKA of {} and {}".format(m1, m2))
-            save_path = "{}_{}".format(i, j)
-            compute_models_cka(cka, samples, m1, m2, "{}.tsv".format(save_path))
+            m1_short = m1.partition("train")[2].strip("/")
+            m2_short = m2.partition("train")[2].strip("/")
+            if m1_short is None or m2_short is None:
+                save_path = "{}_{}.tsv".format(m1, m2)
+            else:
+                save_path = "{}_{}.tsv".format(m1_short, m2_short)
+            compute_models_cka(cka, samples, m1, m2, save_path)
 
 
 if __name__ == "__main__":
