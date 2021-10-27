@@ -19,7 +19,7 @@ def compute_cka(cfg):
     cka = instantiate(cfg.cka)
     logger.info("Instantiating {} dataset".format(cfg.dataset.name))
     dataset = instantiate(cfg.dataset)
-    samples = dataset.sample(cfg.n_samples, random_state)
+    samples = dataset.sample(cfg.n_samples, random_state)[1]
     logger.info("Looking for model folders in {}".format(cfg.models_path))
     model_files = glob(cfg.models_path)
     logger.info("Found models in {}".format(model_files))
