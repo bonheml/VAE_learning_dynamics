@@ -1,11 +1,11 @@
-m1_path: ???
-m2_path: ???
 n_samples: 10000
 seed: 0
 m1_name: beta_vae
 m2_name: beta_vae
 p1_value: 1
 p2_value: 1
+m1_path: ${oc.env:XP_PATH}/VAE_ld/train/${m1_name}/${dataset.name}/${p1_name}/*/checkpoint/*
+m2_path: ${oc.env:XP_PATH}/VAE_ld/train/${m2_name}/${dataset.name}/${p2_name}/*/checkpoint/*
 
 defaults:
   - _self_
