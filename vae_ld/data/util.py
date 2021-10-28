@@ -1,3 +1,4 @@
+import re
 import numpy as np
 
 
@@ -97,3 +98,19 @@ class StateSpaceAtomIndex(object):
                 np.any(features < 0)):
             raise ValueError("Feature indices have to be within [0, factor_size-1]!")
         return np.array(np.dot(features, self.factor_bases), dtype=np.int64)
+
+
+# Natural sort implementation taken from https://nedbatchelder.com/blog/200712/human_sorting.html
+def tryint(s):
+    try:
+        return int(s)
+    except ValueError:
+        return s
+
+
+def natural_sort(s):
+    """ Turn a string into a list of string and number chunks.
+        "z23a" -> ["z", 23, "a"]
+    """
+    return [tryint(c) for c in re.split('([0-9]+)', s)]
+

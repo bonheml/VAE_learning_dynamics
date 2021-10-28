@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 import logging
+from pathlib import Path
+
 import hydra
 from hydra.utils import instantiate
 from glob import glob
 import numpy as np
 from omegaconf import OmegaConf
 
+from vae_ld.data.util import natural_sort
 from vae_ld.learning_dynamics.cka import compute_models_cka
 
 logger = logging.getLogger("CKA")
@@ -21,16 +24,13 @@ def compute_cka(cfg):
     dataset = instantiate(cfg.dataset)
     samples = dataset.sample(cfg.n_samples, random_state)[1]
     logger.info("Looking for model folders in {}".format(cfg.models_path))
-    model_files = glob(cfg.models_path)
+    model_files = glob(cfg.models_path).sort(key=natural_sort)
     for i, m1 in enumerate(model_files):
         for j, m2 in enumerate(model_files[i:]):
             logger.info("Computing CKA of {} and {}".format(m1, m2))
-            m1_short = m1.partition("train")[2].strip("/")
-            m2_short = m2.partition("train")[2].strip("/")
-            if m1_short is None or m2_short is None:
-                save_path = "{}_{}.tsv".format(m1, m2)
-            else:
-                save_path = "{}_{}.tsv".format(m1_short, m2_short)
+            m1_short = Path(m1).name
+            m2_short = Path(m2).name
+            save_path = "{}_{}.tsv".format(m1_short, m2_short)
             compute_models_cka(cka, samples, m1, m2, save_path)
 
 
