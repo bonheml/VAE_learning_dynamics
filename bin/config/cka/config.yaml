@@ -4,8 +4,8 @@ m1_name: beta_vae
 m2_name: beta_vae
 p1_value: 1
 p2_value: 1
-m1_path: ${oc.env:XP_PATH}/VAE_ld/train/${m1_name}/${dataset.name}/${p1_name}/*/checkpoint/*
-m2_path: ${oc.env:XP_PATH}/VAE_ld/train/${m2_name}/${dataset.name}/${p2_name}/*/checkpoint/*
+m1_path: ${oc.env:XP_PATH}/VAE_ld/train/${m1_name}/${dataset.name}/${p1_value}/*/checkpoint/*
+m2_path: ${oc.env:XP_PATH}/VAE_ld/train/${m2_name}/${dataset.name}/${p2_value}/*/checkpoint/*
 
 defaults:
   - _self_
