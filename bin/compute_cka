@@ -14,6 +14,12 @@ from vae_ld.learning_dynamics.cka import compute_models_cka
 logger = logging.getLogger("CKA")
 
 
+def get_model_filename(model, model_name, param_value):
+    m1_seed = model.partition("checkpoint")[0].strip("/").split("/")[-1]
+    m1_short = Path(model).name
+    return "{}_{}_seed_{}_{}".format(model_name, param_value, m1_seed, m1_short)
+
+
 @hydra.main(config_path="config/cka", config_name="config")
 def compute_cka(cfg):
     logger.info("Experiment config:\n{}".format(OmegaConf.to_yaml(cfg)))
@@ -24,14 +30,14 @@ def compute_cka(cfg):
     dataset = instantiate(cfg.dataset)
     samples = dataset.sample(cfg.n_samples, random_state)[1]
     logger.info("Looking for model folders in {}".format(cfg.models_path))
-    model_files = glob(cfg.models_path)
-    model_files.sort(key=natural_sort)
-    for i, m1 in enumerate(model_files):
-        for j, m2 in enumerate(model_files[i:]):
+    m1_files = glob(cfg.m1_path)
+    m2_files = glob(cfg.m2_path)
+    for i, m1 in enumerate(m1_files):
+        m1_fname = get_model_filename(m1, cfg.m1_name, cfg.p1_value)
+        for j, m2 in enumerate(m1_files[i:] if m1_files == m2_files else m2_files):
+            m2_fname = get_model_filename(m2, cfg.m2_name, cfg.p2_value)
             logger.info("Computing CKA of {} and {}".format(m1, m2))
-            m1_short = Path(m1).name
-            m2_short = Path(m2).name
-            save_path = "{}_{}.tsv".format(m1_short, m2_short)
+            save_path = "{}_{}.tsv".format(m1_fname, m2_fname)
             compute_models_cka(cka, samples, m1, m2, save_path)
 
 

@@ -1,4 +1,5 @@
-models_path: ???
+m1_path: ???
+m2_path: ???
 n_samples: 10000
 seed: 0
 m1_name: beta_vae
