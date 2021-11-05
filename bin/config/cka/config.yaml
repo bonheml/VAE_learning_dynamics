@@ -2,13 +2,13 @@ n_samples: 10000
 seed: 0
 m1_name: beta_vae
 p1_value: 1
-p1_seed: 0
+m1_seed: 0
 m2_name: beta_vae
 p2_value: 1
-p2_seed: 0
+m2_seed: 0
 
-m1_path: ${oc.env:XP_PATH}/VAE_ld/train/${m1_name}/${dataset.name}/${p1_value}/${p1_seed}/checkpoint/*
-m2_path: ${oc.env:XP_PATH}/VAE_ld/train/${m2_name}/${dataset.name}/${p2_value}/${p2_seed}/checkpoint/*
+m1_path: ${oc.env:XP_PATH}/VAE_ld/train/${m1_name}/${dataset.name}/${p1_value}/${m1_seed}/checkpoint/*
+m2_path: ${oc.env:XP_PATH}/VAE_ld/train/${m2_name}/${dataset.name}/${p2_value}/${m2_seed}/checkpoint/*
 
 overwrite: false
 
@@ -22,10 +22,10 @@ cka:
 
 hydra:
   run:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${dataset.name}/${m1_name}/param_${p1_value}/seed_${p1_seed}/${m2_name}/param_${p2_value}/seed_${p2_seed}
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${dataset.name}/${m1_name}/param_${p1_value}/seed_${m1_seed}/${m2_name}/param_${p2_value}/seed_${m2_seed}
   sweep:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${dataset.name}/${m1_name}/param_${p1_value}/seed_${p1_seed}/${m2_name}/param_${p2_value}
-    subdir: seed_${p2_seed}
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${dataset.name}/${m1_name}/param_${p1_value}/seed_${m1_seed}/${m2_name}/param_${p2_value}
+    subdir: seed_${m2_seed}
   job:
     config:
       override_dirname:
