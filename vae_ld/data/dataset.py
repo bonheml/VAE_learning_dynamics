@@ -116,6 +116,7 @@ class DataSampler(Sequence):
     def __getitem__(self, idx):
         if self._validation is True:
             idx += self._full_len - self._val_len
+        logger.debug("Getting data from index {} to {}".format(idx * self.batch_size, (idx + 1) * self.batch_size))
         data = self.data[idx * self.batch_size:(idx + 1) * self.batch_size]
         logger.debug("Return batch of size {}".format(data.shape))
         return (data,)
