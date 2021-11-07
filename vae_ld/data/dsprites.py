@@ -44,6 +44,7 @@ class DSprites(Data):
             # Data was saved originally using python2, so we need to set the encoding.
             data = np.load(data_file, encoding="latin1", allow_pickle=True)
         imgs = np.array(data["imgs"]).astype(np.float32)
+        logger.info("shape is {}".format(imgs.shape))
 
         if imgs[0].shape[:2] != self.observation_shape[:2]:
             logger.info("resizing images")
@@ -171,8 +172,8 @@ class GreyDSprites(DSprites):
     """
 
     def __init__(self, grey_shade=0.8, **kwargs):
-        super().__init__(**kwargs)
         self._grey_shade = grey_shade
+        super().__init__(**kwargs)
 
     def greyify(self, no_color_observations):
         no_color_observations[no_color_observations == 0.] = self._grey_shade
@@ -205,9 +206,9 @@ class ScreamDSprites(DSprites):
     """
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
         self._scream_url = "https://upload.wikimedia.org/wikipedia/commons/f/f4/The_Scream.jpg"
-        self._scream = self.load_scream()
+        self._scream = None
+        super().__init__(**kwargs)
 
     def load_scream(self):
         file = self.path / self._scream_url.split("/")[-1]
@@ -245,6 +246,7 @@ class ScreamDSprites(DSprites):
         return observations
 
     def load_data(self):
+        self._scream = self.load_scream()
         no_color_observations, features = super().load_data()
         images = self.add_scream(no_color_observations)
         return images, features
