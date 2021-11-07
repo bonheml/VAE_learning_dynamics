@@ -1,5 +1,6 @@
 import gzip
 
+import PIL
 import numpy as np
 import requests
 from PIL import Image
@@ -85,15 +86,16 @@ class SmallNORB(Data):
     def sample_observations_from_factors(self, factors, seed):
         all_factors = self.state_space.sample_all_factors(factors, seed)
         indices = self.index.features_to_index(all_factors)
-        return np.expand_dims(self._data[indices].astype(np.float32), axis=3)
+        return self._data[indices]
 
     def _resize_images(self, integer_images):
         resize_dim = self.observation_shape[:2]
-        resized_images = np.zeros((integer_images.shape[0], *resize_dim))
+        resized_images = np.zeros((integer_images.shape[0], *self.observation_shape))
         for i in range(integer_images.shape[0]):
             image = Image.fromarray(integer_images[i, :, :])
-            image = image.resize(resize_dim)
-            resized_images[i, :, :] = image
+            image = image.resize(resize_dim,  PIL.Image.ANTIALIAS)
+            resized_images[i] = image
+        resized_images = np.expand_dims(resized_images.astype(np.float32), axis=3)
         return resized_images / 255.
 
 
