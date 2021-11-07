@@ -90,7 +90,7 @@ class SmallNORB(Data):
 
     def _resize_images(self, integer_images):
         resize_dim = self.observation_shape[:2]
-        resized_images = np.zeros((integer_images.shape[0], *self.observation_shape))
+        resized_images = np.zeros((integer_images.shape[0], *resize_dim))
         for i in range(integer_images.shape[0]):
             image = Image.fromarray(integer_images[i, :, :])
             image = image.resize(resize_dim,  PIL.Image.ANTIALIAS)
