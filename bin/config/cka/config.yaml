@@ -1,8 +1,12 @@
 n_samples: 10000
 seed: 0
+keep_n: 5
+overwrite: false
+
 m1_name: beta_vae
 p1_value: 1
 m1_seed: 0
+
 m2_name: beta_vae
 p2_value: 1
 m2_seed: 0
@@ -10,7 +14,6 @@ m2_seed: 0
 m1_path: ${oc.env:XP_PATH}/VAE_ld/train/${m1_name}/${dataset.name}/${p1_value}/${m1_seed}/checkpoint/*
 m2_path: ${oc.env:XP_PATH}/VAE_ld/train/${m2_name}/${dataset.name}/${p2_value}/${m2_seed}/checkpoint/*
 
-overwrite: false
 
 defaults:
   - _self_
