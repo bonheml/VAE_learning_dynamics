@@ -94,7 +94,7 @@ class SmallNORB(Data):
         for i in range(integer_images.shape[0]):
             image = Image.fromarray(integer_images[i, :, :])
             image = image.resize(resize_dim,  PIL.Image.ANTIALIAS)
-            resized_images[i] = image
+            resized_images[i, :, :] = image
         resized_images = np.expand_dims(resized_images.astype(np.float32), axis=3)
         return resized_images / 255.
 
