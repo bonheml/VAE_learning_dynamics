@@ -40,7 +40,7 @@ class VAE(tf.keras.Model):
         self.built = True
 
     # This decorator is needed to prevent input shape errors
-    @tf.function(input_signature=[tf.TensorSpec([None, None, None, 3], tf.float32)])
+    @tf.function(input_signature=[tf.TensorSpec([None, None, None, None], tf.float32)])
     def call(self, inputs):
         z = self.encoder(inputs)[-1]
         return self.decoder(z)[-1]
