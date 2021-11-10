@@ -16,9 +16,9 @@ logger = logging.getLogger("CKA")
 
 
 def get_model_filename(model, model_name, param_value):
-    m1_seed = model.partition("checkpoint")[0].strip("/").split("/")[-1]
-    m1_short = Path(model).name
-    return "{}_{}_seed_{}_{}".format(model_name, param_value, m1_seed, m1_short)
+    m_seed = model.partition("checkpoint")[0].strip("/").split("/")[-1]
+    m_short = Path(model).name
+    return "{}_{}_seed_{}_{}".format(model_name, param_value, m_seed, m_short)
 
 
 def get_file_list(model_path, keep_n):
@@ -41,8 +41,8 @@ def compute_cka(cfg):
     samples = dataset.sample(cfg.n_samples, random_state)[1]
     logger.info("Looking for model folders in {}".format(cfg.m1_path))
     m1_files = get_file_list(cfg.m1_path, cfg.keep_n)
-    logger.info("Looking for model folders in {}".format(cfg.m1_path))
-    m2_files = get_file_list(cfg.m1_path, cfg.keep_n)
+    logger.info("Looking for model folders in {}".format(cfg.m2_path))
+    m2_files = get_file_list(cfg.m2_path, cfg.keep_n)
     for i, m1 in enumerate(m1_files):
         m1_fname = get_model_filename(m1, cfg.m1_name, cfg.p1_value)
         for j, m2 in enumerate(m1_files[i:] if m1_files == m2_files else m2_files):
