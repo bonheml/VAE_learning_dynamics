@@ -43,7 +43,6 @@ def train(cfg):
             path = Path(k)
             path.mkdir(parents=True, exist_ok=True)
             if k == "checkpoint":
-                logger.info("path : {}".format(path))
                 checkpoint = glob.glob("{}/*".format(path))
                 checkpoint.sort(key=natural_sort)
                 checkpoint = checkpoint[-1] if checkpoint != [] else None
