@@ -3,6 +3,7 @@ training_steps: 300000
 latent_shape: 10
 seed: 0
 param_value: 1
+restart_from_last_checkpoint: true
 
 
 defaults:
