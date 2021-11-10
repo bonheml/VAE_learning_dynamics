@@ -44,8 +44,9 @@ def train(cfg):
             path.mkdir(parents=True, exist_ok=True)
             if k == "checkpoint":
                 checkpoint = glob.glob("{}/*".format(path.parent))
-                if checkpoint is not None:
-                    checkpoint = checkpoint.sort(key=natural_sort)[-1]
+                checkpoint.sort(key=natural_sort)
+                checkpoint = checkpoint[-1] if checkpoint != [] else None
+
 
     steps_per_epochs = train_sampler.data.data_size // cfg.batch_size
     epochs = max(cfg.training_steps // steps_per_epochs, 1)
