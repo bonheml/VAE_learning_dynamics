@@ -44,7 +44,8 @@ def train(cfg):
             path.mkdir(parents=True, exist_ok=True)
             if k == "checkpoint":
                 checkpoint = glob.glob("{}/*".format(path.parent))
-                checkpoint = checkpoint.sort(key=natural_sort)[-1] if checkpoint != [] else None
+                if checkpoint is not None:
+                    checkpoint = checkpoint.sort(key=natural_sort)[-1]
 
     steps_per_epochs = train_sampler.data.data_size // cfg.batch_size
     epochs = max(cfg.training_steps // steps_per_epochs, 1)
@@ -57,7 +58,7 @@ def train(cfg):
     else:
         logger.info("Loading model from last checkpoint {}...".format(checkpoint))
         model = tf.keras.models.load_model(checkpoint)
-        last_epoch = re.match(r"epoch_(\d+)")
+        last_epoch = re.match(r"epoch_(\d+)", str(checkpoint))
         last_epoch = 0 if last_epoch is None else int(last_epoch.group(1))
         logger.info("Restarting at epoch {}/{}...".format(last_epoch, epochs))
         epochs -= last_epoch
