@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import glob
 import logging
-import re
 from pathlib import Path
 import hydra
 import tensorflow as tf
@@ -32,7 +31,6 @@ def train(cfg):
 
     logger.info("Instantiating callbacks and creating subdirectories for callback logs...")
     callbacks = []
-    checkpoint = None
     for k, v in cfg.callbacks.items():
         if k == "image_generator":
             data_callback = train_sampler.data.sample(v.nb_samples, random_state)[1]
@@ -47,26 +45,18 @@ def train(cfg):
                 checkpoint.sort(key=natural_sort)
                 checkpoint = checkpoint[-1] if checkpoint != [] else None
 
-
     steps_per_epochs = train_sampler.data.data_size // cfg.batch_size
     epochs = max(cfg.training_steps // steps_per_epochs, 1)
 
-    if checkpoint is None:
-        logger.info("Creating the model...")
-        model = instantiate(cfg.model)
-        # Note that run_eagerly must be set to true to allow data generator on custom models
-        model.compile(optimizer=optimizer, run_eagerly=True)
-    else:
-        logger.info("Loading model from last checkpoint {}...".format(checkpoint))
-        model = tf.keras.models.load_model(checkpoint)
-        last_epoch = re.match(r"epoch_(\d+)", str(checkpoint))
-        last_epoch = 0 if last_epoch is None else int(last_epoch.group(1))
-        logger.info("Restarting at epoch {}/{}...".format(last_epoch, epochs))
-        epochs -= last_epoch
+    logger.info("Creating the model...")
+    model = instantiate(cfg.model)
+    # Note that run_eagerly must be set to true to allow data generator on custom models
+    model.compile(optimizer=optimizer, run_eagerly=True)
 
     logger.info("Starting model training...")
     model.fit(train_sampler, epochs=epochs, batch_size=cfg.batch_size, callbacks=callbacks, validation_data=test_sampler)
     model.save("checkpoint/final_model")
+
 
 if __name__ == "__main__":
     train()
