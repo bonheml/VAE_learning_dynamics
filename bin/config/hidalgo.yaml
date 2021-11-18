@@ -1,0 +1,13 @@
+defaults:
+  - dataset: dsprites
+  - _self_
+
+n_samples: 10000
+seed: 0
+n_manifolds: 2
+normalized: yes
+save_file: hidalgo_${dataset.name}_${n_samples}_samples_k_${n_manifolds}.tsv
+
+hydra:
+  run:
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${dataset.name}/normalized_${normalized}/${n_samples}_samples/k_${n_manifolds}

@@ -1,5 +1,9 @@
+from distutils.extension import Extension
+import numpy as np
 from setuptools import find_packages
 from setuptools import setup
+
+hidalgo = Extension("gibbs", sources=["vae_ld/ext/gibbs.c"], include_dirs=[np.get_include()])
 
 setup(
     name="vae_ld",
@@ -9,12 +13,14 @@ setup(
     author_email="lb732@kent.ac.uk",
     url="https://github.com/bonheml/VAE_learning_dynamics",
     license="Apache 2.0",
+    ext_modules=[hidalgo],
     packages=find_packages(),
     include_package_data=True,
     scripts=[
         "bin/train",
         "bin/visualise",
         "bin/get_data_ide",
+        "bin/hidalgo",
         "bin/compute_cka",
     ],
     install_requires=[
@@ -26,7 +32,6 @@ setup(
         "imageio",
         "hydra-core",
         "scikit-learn",
-        "numpy",
         "pandas",
         "simplejson",
         "six",

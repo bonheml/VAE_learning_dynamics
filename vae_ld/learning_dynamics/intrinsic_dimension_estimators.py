@@ -3,8 +3,8 @@ import random
 from scipy.spatial.distance import squareform, pdist
 import numpy as np
 from sklearn import linear_model
+import gibbs
 from sklearn.neighbors import NearestNeighbors
-
 from vae_ld.learning_dynamics import logger
 
 
@@ -141,3 +141,124 @@ class MLE:
         d = d.sum(axis=1) / (self.k - 2)
 
         return 1. / d.mean()
+
+
+class Hidalgo:
+    """ Compute Hidalgo, an algorithm initially proposed in [1].
+    The implementation is from https://github.com/micheleallegra/Hidalgo/tree/master/python,
+    the code released with [1].
+
+    [1] Data segmentation based on the local intrinsic dimension, Allegra et al., 2020
+    """
+    def __init__(self, metric='euclidean', k=2, zeta=0.8, q=3, iters=10000, replicas=10, burn_in=0.9):
+        """
+        :param metric: The metric to use for KNN, if predefined, then a distance matrix will be given when calling fit
+        :param k: The number of manifolds
+        :param zeta: The probability to sample the neighbour of a point from the same manifold (in the paper's formula,
+        this is xsi)
+        :param q: number of closest neighbours from each points to keep
+        :param iters: number of iterations of the Gibbs sampling
+        :param replicas: number of times the sampling should be replicated
+        :param burn_in: percentage of points to exclude of the estimation
+        """
+        self.metric = metric
+        self.k = k
+        self.zeta = zeta
+        self.q = q
+        self.iters = iters
+        self.burn_in = burn_in
+        self.replicas = replicas
+
+        # Setting prior parameters of d to 1
+        self.a = np.ones(k)
+        self.b = np.ones(k)
+
+        # Setting prior parameter of p to 1
+        self.c = np.ones(k)
+
+        # Setting prior parameter of zeta to 1
+        self.f = np.ones(k)
+
+        # Setting the save samples every 10 sampling and compute the total number of samples
+        self.sampling_rate = 10
+        self.n_samples = np.floor((self.iters - np.ceil(self.burn_in * self.iters)) / self.sampling_rate).astype(int)
+
+        # z will not be fixed
+        self.fixed_z = 0
+
+        # Local interaction between z are used
+        self.use_local_z_interaction = 1
+
+        # z will not be updated during the training
+        self.update_z = 0
+
+    def _fit(self, X):
+        assert isinstance(X, np.ndarray), "X should be a numpy array"
+        assert len(np.shape(X)) == 2, "X should be a two-dimensional numpy array"
+        n, d = np.shape(X)
+        nns_mat = np.zeros((n, n))
+
+        logger.info("Getting the {} nearest neighbours from each point".format(self.q))
+        if self.metric == "predefined":
+            distances = np.sort(X)[:, :self.q + 1]
+            indices_in = np.argsort(X)[:, :self.q + 1]
+        else:
+            nns = NearestNeighbors(n_neighbors=self.q + 1, algorithm="ball_tree", metric=self.metric).fit(X)
+            distances, indices_in = nns.kneighbors(X)
+
+        for i in range(self.q):
+            nns_mat[indices_in[:, 0], indices_in[:, i + 1]] = 1
+
+        nns_count = np.sum(nns_mat, axis=0)
+        indices_out = np.where(nns_mat.T)[1]
+        indices_track = np.cumsum(nns_count)
+        indices_track = np.append(0, indices_track[:-1])
+        mu = np.divide(distances[:, 2], distances[:, 1])
+        n_par = n + 2 * self.k + 2
+        best_sampling = np.zeros((self.n_samples, n_par))
+        indices_in = indices_in[:, 1:]
+        indices_in = np.reshape(indices_in, (n * self.q,))
+
+        threshold = -1.E10
+        for i in range(self.replicas):
+            logger.info("Doing Gibbs sampling {}/{}".format(i + 1, self.replicas))
+            sampling = 2 * np.ones(self.n_samples * n_par)
+            gibbs.GibbsSampling(self.iters, self.k, self.fixed_z, self.use_local_z_interaction, self.update_z, self.q,
+                                self.zeta, self.sampling_rate, self.burn_in, i, mu, indices_in.astype(float),
+                                indices_out.astype(float), nns_count, indices_track, self.a, self.b, self.c, self.f,
+                                sampling)
+            sampling = np.reshape(sampling, (self.n_samples, n_par))
+            lik = np.mean(sampling[:, -1], axis=0)
+            if lik > threshold:
+                logger.info("Better likelihood obtained with replica {}".format(i + 1))
+                best_sampling = sampling
+                threshold = lik
+
+        return best_sampling, self.n_samples
+
+    def fit(self, X):
+        n = np.shape(X)[0]
+        sampling, n_samples = self._fit(X)
+        p_i = np.zeros((self.k, n))
+
+        for i in range(self.k):
+            p_i[i, :] = np.sum(sampling[:, 2 * self.k:2 * self.k + n] == i, axis=0)
+
+        z = np.argmax(p_i, axis=0)
+        p_z = np.max(p_i, axis=0)
+        z = z + 1
+        z[np.where(p_z < 0.8)] = 0
+
+        res = dict()
+        res["k"] = self.k
+        res["samples"] = n_samples
+        res["z"] = z.tolist()
+        res["p_i"] = (p_i / n_samples).tolist()
+        res["d"] = np.mean(sampling[:, :self.k], axis=0).tolist()
+        res["d_err"] = np.std(sampling[:, :self.k], axis=0).tolist()
+        res["p"] = np.mean(sampling[:, self.k:2 * self.k], axis=0).tolist()
+        res["p_err"] = np.std(sampling[:, self.k:2 * self.k], axis=0).tolist()
+        res["likelihood"] = np.mean(sampling[:, -1], axis=0).tolist()
+        res["likelihood_err"] = np.std(sampling[:, -1], axis=0).tolist()
+
+        return res
