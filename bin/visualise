@@ -11,7 +11,7 @@ logger = logging.getLogger("visualise")
 @hydra.main(config_path="config", config_name="visualisation")
 def visualise(cfg):
     logger.info("Visualisation config:\n{}".format(OmegaConf.to_yaml(cfg)))
-    cka_heatmap(cfg.input_dir)
+    cka_heatmap(cfg)
 
 
 if __name__ == "__main__":

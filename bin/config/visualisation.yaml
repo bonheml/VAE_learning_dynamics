@@ -1,8 +1,25 @@
-input_dir: ???
+dataset_name: cars3d
+
+m1_name: beta_vae
+p1_name: beta
+p1_value: 1
+m1_seed: 0
+
+m2_name: beta_vae
+p2_name: beta
+p2_value: 1
+m2_seed: 0
+
+input_dir: ${oc.env:XP_PATH}/VAE_ld/compute_cka/${dataset_name}/${m1_name}/param_${p1_value}/seed_${m1_seed}/${m2_name}/param_${p2_value}/seed_${m2_seed}
 
 hydra:
   run:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${now:%Y-%m-%d_%H-%M-%S}
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${dataset_name}/${m1_name}/param_${p1_value}/seed_${m1_seed}/${m2_name}/param_${p2_value}/seed_${m2_seed}
   sweep:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${now:%Y-%m-%d_%H-%M-%S}
-    subdir: ${hydra.job.num}
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${dataset_name}/${m1_name}/param_${p1_value}/seed_${m1_seed}/${m2_name}/param_${p2_value}
+    subdir: seed_${m2_seed}
+  job:
+    config:
+      override_dirname:
+        kv_sep: _
+        item_sep: /
