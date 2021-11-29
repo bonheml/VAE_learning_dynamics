@@ -113,5 +113,6 @@ def compute_models_cka(cka, data, m1_path, m2_path, save_path):
             logger.info("Computing CKA({}, {})".format(l1, l2))
             res[l1][l2] = cka(kc, lc)
     res = pd.DataFrame(res).T
+    # Save csv with m1 layers as header, m2 layers as indexes
     res.to_csv(save_path, sep="\t")
 
