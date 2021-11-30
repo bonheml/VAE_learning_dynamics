@@ -1,6 +1,7 @@
 n_samples: 10000
 seed: 0
 keep_n: 5
+selection_type: even
 overwrite: false
 
 m1_name: beta_vae

@@ -21,12 +21,14 @@ def get_model_filename(model, model_name, param_value):
     return "{}_{}_seed_{}_{}".format(model_name, param_value, m_seed, m_short)
 
 
-def get_file_list(model_path, keep_n):
+def get_file_list(model_path, keep_n, selection_type="even"):
     m_files = glob(model_path)
     m_files.sort(key=natural_sort)
-    if keep_n > 0:
+    if keep_n > 0 and selection_type == "even":
         to_keep = np.linspace(0, len(m_files) - 1, num=keep_n, dtype=np.int32)
         m_files = [m_files[i] for i in to_keep]
+    elif keep_n > 0 and selection_type == "first":
+        return m_files[:keep_n]
     return m_files
 
 
@@ -40,9 +42,9 @@ def compute_cka(cfg):
     dataset = instantiate(cfg.dataset)
     samples = dataset.sample(cfg.n_samples, random_state)[1]
     logger.info("Looking for model folders in {}".format(cfg.m1_path))
-    m1_files = get_file_list(cfg.m1_path, cfg.keep_n)
+    m1_files = get_file_list(cfg.m1_path, cfg.keep_n, cfg.selection_type)
     logger.info("Looking for model folders in {}".format(cfg.m2_path))
-    m2_files = get_file_list(cfg.m2_path, cfg.keep_n)
+    m2_files = get_file_list(cfg.m2_path, cfg.keep_n, cfg.selection_type)
     for i, m1 in enumerate(m1_files):
         m1_fname = get_model_filename(m1, cfg.m1_name, cfg.p1_value)
         for j, m2 in enumerate(m1_files[i:] if m1_files == m2_files else m2_files):
