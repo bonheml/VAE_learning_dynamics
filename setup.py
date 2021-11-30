@@ -1,7 +1,12 @@
 from distutils.extension import Extension
-import numpy as np
 from setuptools import find_packages
 from setuptools import setup
+from setuptools import dist
+
+# Allows np to be downloaded before import
+dist.Distribution().fetch_build_eggs(["numpy>=1.19"])
+
+import numpy as np
 
 hidalgo = Extension("gibbs", sources=["vae_ld/ext/gibbs.c"], include_dirs=[np.get_include()])
 
