@@ -34,6 +34,17 @@ class DSprites(Data):
         self.factor_bases = np.prod(self._factors_shape) / np.cumprod(self._factors_shape)
         self.state_space = util.SplitDiscreteStateSpace(self._factors_shape, self.latent_factor_indices)
 
+    def __getitem__(self, key):
+        self._postprocess(self._data[key])
+
+    def _postprocess(self, data, random_state=None):
+        imgs = np.array(data).astype(np.float32)
+        imgs = np.expand_dims(imgs, axis=3)
+        if imgs[0].shape[:2] != self.observation_shape[:2]:
+            logger.info("resizing images")
+            imgs = self._resize_images(imgs)
+        return imgs
+
     def load_data(self):
         if not self.path.exists():
             self.path.mkdir(parents=True, exist_ok=True)
@@ -43,14 +54,7 @@ class DSprites(Data):
         with gfile.Open(file_path, "rb") as data_file:
             # Data was saved originally using python2, so we need to set the encoding.
             data = np.load(data_file, encoding="latin1", allow_pickle=True)
-        imgs = np.array(data["imgs"]).astype(np.float32)
-        logger.info("shape is {}".format(imgs.shape))
-
-        if imgs[0].shape[:2] != self.observation_shape[:2]:
-            logger.info("resizing images")
-            imgs = self._resize_images(imgs)
-        imgs = np.expand_dims(imgs, axis=3)
-        return imgs, np.array(data["metadata"][()]["latents_sizes"], dtype=np.int64)
+        return data["imgs"], np.array(data["metadata"][()]["latents_sizes"], dtype=np.int64)
 
     def _resize_images(self, integer_images):
         resize_dim = self.observation_shape[:2]
@@ -70,13 +74,10 @@ class DSprites(Data):
         return self.state_space.sample_latent_factors(num, random_state)
 
     def sample_observations_from_factors(self, factors, random_state):
-        return self.sample_observations_from_factors_no_color(factors, random_state)
-
-    def sample_observations_from_factors_no_color(self, factors, random_state):
         """Sample a batch of observations X given a batch of factors Y."""
         all_factors = self.state_space.sample_all_factors(factors, random_state)
         indices = np.array(np.dot(all_factors, self.factor_bases), dtype=np.int64)
-        return self._data[indices]
+        return self._postprocess(self._data[indices], random_state)
 
     def _sample_factor(self, i, num, random_state):
         return random_state.randint(self.factors_shape[i], size=num)
@@ -107,19 +108,16 @@ class ColorDSprites(DSprites):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self._random_state = np.random.RandomState(0)
 
-    def color_images(self, no_color_observations, random_state=None):
+    def _postprocess(self, data, random_state=None):
+        imgs = super()._postprocess(data, random_state)
         if random_state is None:
-            random_state = np.random.RandomState(0)
-        observations = np.repeat(no_color_observations, 3, axis=3)
+            random_state = self._random_state
+        observations = np.repeat(imgs, 3, axis=3)
         color = np.repeat(random_state.uniform(0.5, 1, [observations.shape[0], 1, 1, 3]), observations.shape[1], axis=1)
         color = np.repeat(color, observations.shape[2], axis=2)
         return observations * color
-
-    def load_data(self):
-        no_color_observations, features = super().load_data()
-        images = self.color_images(no_color_observations)
-        return images, features
 
 
 class NoisyDSprites(DSprites):
@@ -143,18 +141,15 @@ class NoisyDSprites(DSprites):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self._random_state = np.random.RandomState(0)
 
-    def add_noise(self, no_color_observations, random_state=None):
+    def _postprocess(self, data, random_state=None):
+        imgs = super()._postprocess(data, random_state)
         if random_state is None:
-            random_state = np.random.RandomState(0)
-        observations = np.repeat(no_color_observations, 3, axis=3)
+            random_state = self._random_state
+        observations = np.repeat(imgs, 3, axis=3)
         color = random_state.uniform(0, 1, [observations.shape[0], *self.observation_shape])
         return np.minimum(observations + color, 1.)
-
-    def load_data(self):
-        no_color_observations, features = super().load_data()
-        images = self.add_noise(no_color_observations)
-        return images, features
 
 
 class GreyDSprites(DSprites):
@@ -172,17 +167,13 @@ class GreyDSprites(DSprites):
     """
 
     def __init__(self, grey_shade=0.8, **kwargs):
-        self._grey_shade = grey_shade
         super().__init__(**kwargs)
+        self._grey_shade = grey_shade
 
-    def greyify(self, no_color_observations):
-        no_color_observations[no_color_observations == 0.] = self._grey_shade
-        return no_color_observations
-
-    def load_data(self):
-        no_color_observations, features = super().load_data()
-        images = self.greyify(no_color_observations)
-        return images, features
+    def _postprocess(self, data, random_state=None):
+        imgs = super()._postprocess(data, random_state)
+        imgs[imgs == 0.] = self._grey_shade
+        return imgs
 
 
 class ScreamDSprites(DSprites):
@@ -206,9 +197,31 @@ class ScreamDSprites(DSprites):
     """
 
     def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self._scream_url = "https://upload.wikimedia.org/wikipedia/commons/f/f4/The_Scream.jpg"
         self._scream = None
-        super().__init__(**kwargs)
+        self._random_state = np.random.RandomState(0)
+
+    def _postprocess(self, data, random_state=None):
+        imgs = super()._postprocess(data, random_state)
+        if random_state is None:
+            random_state = self._random_state
+        if self._scream is None:
+            self._scream = self.load_scream()
+
+        observations = np.repeat(imgs, 3, axis=3)
+
+        for i in range(observations.shape[0]):
+            crop_shape_x, crop_shape_y = self.observation_shape[0], self.observation_shape[1]
+            x_crop = random_state.randint(0, self._scream.shape[0] - crop_shape_x)
+            y_crop = random_state.randint(0, self._scream.shape[1] - crop_shape_y)
+            cropped_scream = self._scream[x_crop:x_crop + crop_shape_x, y_crop:y_crop + crop_shape_y]
+            background = (cropped_scream + random_state.uniform(0, 1, size=3)) / 2.
+            mask = (observations[i] == 1)
+            background[mask] = 1 - background[mask]
+            observations[i] = background
+
+        return observations
 
     def load_scream(self):
         file = self.path / self._scream_url.split("/")[-1]
@@ -227,26 +240,3 @@ class ScreamDSprites(DSprites):
         response.raise_for_status()
         with open(str(file_path), 'wb') as f:
             f.write(response.content)
-
-    def add_scream(self, no_color_observations, random_state=None):
-        if random_state is None:
-            random_state = np.random.RandomState(0)
-        observations = np.repeat(no_color_observations, 3, axis=3)
-
-        for i in range(observations.shape[0]):
-            crop_shape_x, crop_shape_y = self.observation_shape[0], self.observation_shape[1]
-            x_crop = random_state.randint(0, self._scream.shape[0] - crop_shape_x)
-            y_crop = random_state.randint(0, self._scream.shape[1] - crop_shape_y)
-            cropped_scream = self._scream[x_crop:x_crop + crop_shape_x, y_crop:y_crop + crop_shape_y]
-            background = (cropped_scream + random_state.uniform(0, 1, size=3)) / 2.
-            mask = (observations[i] == 1)
-            background[mask] = 1 - background[mask]
-            observations[i] = background
-
-        return observations
-
-    def load_data(self):
-        self._scream = self.load_scream()
-        no_color_observations, features = super().load_data()
-        images = self.add_scream(no_color_observations)
-        return images, features
