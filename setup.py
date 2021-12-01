@@ -27,6 +27,7 @@ setup(
         "bin/get_data_ide",
         "bin/hidalgo",
         "bin/compute_cka",
+        "bin/compute_ph",
     ],
     install_requires=[
         "pillow>=7.2.0",
@@ -44,7 +45,8 @@ setup(
         "matplotlib",
         "seaborn",
         "tensorflow_probability",
-        "scipy"
+        "scipy",
+        "gudhi"
     ],
     classifiers=[
         "Intended Audience :: Science/Research",

@@ -1,0 +1,33 @@
+#!/usr/bin/env python
+import logging
+import hydra
+from hydra.utils import instantiate
+from omegaconf import OmegaConf
+import numpy as np
+from vae_ld.learning_dynamics.persistent_homology import compute_persistence
+
+logger = logging.getLogger("compute_persistence")
+
+
+@hydra.main(config_path="config", config_name="persistent_homology")
+def compute_ph(cfg):
+    logger.info("Persistent Homology config:\n{}".format(OmegaConf.to_yaml(cfg)))
+    random_state = np.random.RandomState(cfg.seed)
+
+    logger.info("Loading the dataset")
+    dataset = instantiate(cfg.dataset)
+    samples = dataset.sample(cfg.n_samples, random_state)[1]
+    logger.info("Removing duplicates")
+    samples = np.unique(samples.reshape(samples.shape[0], np.prod(samples.shape[1:])), axis=0)
+
+    dim_reductor = None
+    if cfg.dimensionality_reduction is not None:
+        logger.info("Instantiating {}".format(cfg.dimensionality_reduction.name))
+        dim_reductor = instantiate(cfg.dimensionality_reduction.cls)
+
+    logger.info("Computing Persistent Homology")
+    compute_persistence(samples, cfg.fname, dim_reductor)
+
+
+if __name__ == "__main__":
+    compute_ph()

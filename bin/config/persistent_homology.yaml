@@ -1,0 +1,20 @@
+defaults:
+  - _self_
+  - dataset: cars
+  - dimensionality_reduction: PCA
+
+fname: ph_${dataset.name}.pdf
+seed: 0
+n_samples: 100000
+
+hydra:
+  run:
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${dataset.name}/${n_samples}/${dimensionality_reduction.name}/seed_${seed}
+  sweep:
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${dataset.name}/${n_samples}/${dimensionality_reduction.name}/seed_${seed}
+    subdir: seed_${seed}
+  job:
+    config:
+      override_dirname:
+        kv_sep: _
+        item_sep: /
