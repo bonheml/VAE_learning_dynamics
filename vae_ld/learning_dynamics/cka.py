@@ -32,7 +32,7 @@ class CKA:
     """
     def __init__(self, kernel=linear_kernel, debiased=False):
         self.kernel = kernel
-        self.debiased = debiased
+        self._debiased = debiased
 
     @property
     def kernel(self):
@@ -50,9 +50,9 @@ class CKA:
     def debiased(self, debiased):
         self._debiased = debiased
 
-    def center(self, x, debiased=False):
+    def center(self, x):
         x = x.copy()
-        if self.debiased:
+        if self._debiased:
             # Unbiased version proposed by Szekely, G. J., & Rizzo, M. L. in
             # Partial distance correlation with methods for dissimilarities (2014) and implemented in
             # https://colab.research.google.com/github/google-research/google-research/blob/master/representation_similarity/Demo.ipynb
@@ -72,7 +72,6 @@ class CKA:
 
     def cka(self, kc, lc):
         # Note: this method assumes that kc and lc are the centered kernel values given by cka.center(cka.kernel(.))
-
         # Compute tr(KcLc) = vec(kc)^T vec(lc), omitting the term (m-1)**2, which is canceled by CKA
         hsic = np.dot(kc.ravel(), lc.ravel())
         # Divide by the product of the Frobenius norms of kc and lc to get CKA

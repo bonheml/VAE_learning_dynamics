@@ -41,7 +41,7 @@ def compute_cka(cfg):
     logger.info("Instantiating {} dataset".format(cfg.dataset.name))
     dataset = instantiate(cfg.dataset)
     samples = dataset.sample(cfg.n_samples, random_state)[1]
-    samples = np.unique(samples.reshape(samples.shape[0], np.prod(samples.shape[1:])), axis=0)
+    samples = np.unique(samples, axis=0)
     logger.info("Looking for model folders in {}".format(cfg.m1_path))
     m1_files = get_file_list(cfg.m1_path, cfg.keep_n, cfg.selection_type)
     logger.info("Looking for model folders in {}".format(cfg.m2_path))
