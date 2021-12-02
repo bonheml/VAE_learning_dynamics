@@ -35,7 +35,8 @@ class DSprites(Data):
         self.state_space = util.SplitDiscreteStateSpace(self._factors_shape, self.latent_factor_indices)
 
     def __getitem__(self, key):
-        self._postprocess(self._data[key])
+        data = super().__getitem__(key)
+        return self._postprocess(data)
 
     def _postprocess(self, data, random_state=None):
         imgs = np.array(data).astype(np.float32)
