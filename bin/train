@@ -54,8 +54,9 @@ def train(cfg):
     model.compile(optimizer=optimizer, run_eagerly=True)
 
     logger.info("Starting model training...")
-    model.fit(train_sampler, epochs=epochs, batch_size=cfg.batch_size, callbacks=callbacks, validation_data=test_sampler)
-    model.save("checkpoint/final_model")
+    hist = model.fit(train_sampler, epochs=epochs, batch_size=cfg.batch_size, callbacks=callbacks,
+                     validation_data=test_sampler)
+    model.save("checkpoint/epoch_{}_model_loss_{}".format(epochs, hist.history["model_loss"][-1]))
 
 
 if __name__ == "__main__":
