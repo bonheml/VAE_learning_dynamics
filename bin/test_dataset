@@ -1,0 +1,36 @@
+import logging
+
+import PIL
+import hydra
+import numpy as np
+from hydra.utils import instantiate
+
+logger = logging.getLogger("test_dataset")
+
+
+def to_image(dataset, X):
+    for x in X:
+        x = x.reshape(dataset.observation_shape)
+        if x.shape[2] == 1:
+            x = np.repeat(x, 3, axis=2)
+        img = PIL.Image.fromarray(x.astype(np.uint8))
+        img.show()
+
+
+@hydra.main(config_path="config", config_name="data_ide")
+def test_dataset(cfg):
+    seed = np.random.RandomState(cfg.seed)
+    logger.info("Loading {}".format(cfg.dataset.name))
+    dataset = instantiate(cfg.dataset)
+
+    X = dataset.sample(cfg.n_samples, seed)[1]
+    X *= 255.
+    to_image(dataset, X)
+
+    X = dataset[:cfg.n_samples]
+    X *= 255.
+    to_image(dataset, X)
+
+
+if __name__ == "__main__":
+    test_dataset()
