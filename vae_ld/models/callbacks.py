@@ -22,11 +22,11 @@ class ImageGeneratorCallback(tf.keras.callbacks.Callback):
     def plot_and_save(self, imgs, fname):
         n = int(np.sqrt(imgs[0].shape[0]))
         n_sources = len(imgs)
-        fig = plt.figure(figsize=(n, n * n_sources))
+        fig = plt.figure(figsize=(n * n_sources, n))
 
         for i in range(0, imgs[0].shape[0]):
             for j in range(n_sources):
-                plt.subplot(n, n * n_sources, (n_sources * i) + j + 1)
+                plt.subplot(n * n_sources, n, (n_sources * i) + j + 1)
                 plt.imshow(imgs[j][i, :, :, 0], cmap='gray')
                 plt.axis('off')
 
