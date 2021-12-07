@@ -5,7 +5,7 @@ defaults:
 
 fname: ph_${dataset.name}.pdf
 seed: 0
-n_samples: 100000
+n_samples: 10000
 
 hydra:
   run:
