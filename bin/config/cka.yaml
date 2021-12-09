@@ -5,10 +5,12 @@ selection_type: even
 overwrite: false
 
 m1_name: beta_vae
+p1_name: beta
 p1_value: 1
 m1_seed: 0
 
 m2_name: beta_vae
+p2_name: beta
 p2_value: 1
 m2_seed: 0
 

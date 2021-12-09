@@ -2,7 +2,7 @@
 import logging
 import pathlib
 from pathlib import Path
-
+import pandas as pd
 import hydra
 from hydra.utils import instantiate
 from glob import glob
@@ -32,6 +32,23 @@ def get_file_list(model_path, keep_n, selection_type="even"):
     return m_files
 
 
+def get_model_epoch(model, dataset_name):
+    mstem = Path(model).stem
+    i = mstem.find("epoch_")
+    # TODO remove hard-coded epochs
+    last_epoch = 26
+    if dataset_name == "cars3d":
+        last_epoch = 1090
+    elif dataset_name == "smallnorb":
+        last_epoch = 410
+    if i == -1:
+        epoch = last_epoch
+    else:
+    # TODO End remove here
+        epoch = int(mstem[i:].split("_")[1])
+    return epoch
+
+
 @hydra.main(config_path="config", config_name="cka")
 def compute_cka(cfg):
     logger.info("Experiment config:\n{}".format(OmegaConf.to_yaml(cfg)))
@@ -46,16 +63,20 @@ def compute_cka(cfg):
     m1_files = get_file_list(cfg.m1_path, cfg.keep_n, cfg.selection_type)
     logger.info("Looking for model folders in {}".format(cfg.m2_path))
     m2_files = get_file_list(cfg.m2_path, cfg.keep_n, cfg.selection_type)
+    models_info = {"m1_name": cfg.m1_name, "p1_name": cfg.p1_name, "p1_value": cfg.p1_value, "m1_seed": cfg.m1_seed,
+                   "m2_name": cfg.m2_name, "p2_name": cfg.p2_name, "p2_value": cfg.p2_value, "m2_seed": cfg.m2_seed}
     for i, m1 in enumerate(m1_files):
         m1_fname = get_model_filename(m1, cfg.m1_name, cfg.p1_value)
+        models_info["m1_epoch"] = get_model_epoch(m1, cfg.dataset.name)
         for j, m2 in enumerate(m1_files[i:] if m1_files == m2_files else m2_files):
+            models_info["m2_epoch"] = get_model_epoch(m2, cfg.dataset.name)
             m2_fname = get_model_filename(m2, cfg.m2_name, cfg.p2_value)
             logger.info("Computing CKA of {} and {}".format(m1, m2))
             save_path = "{}_{}.tsv".format(m1_fname, m2_fname)
             if pathlib.Path(save_path).exists() and cfg.overwrite is False:
                 logger.info("Skipping already computed CKA for {}".format(save_path))
                 continue
-            compute_models_cka(cka, samples, m1, m2, save_path)
+            compute_models_cka(cka, samples, m1, m2, save_path, models_info)
 
 
 if __name__ == "__main__":

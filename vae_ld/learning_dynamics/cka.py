@@ -98,7 +98,7 @@ def prepare_activations(cka, x):
     return kc
 
 
-def compute_models_cka(cka, data, m1_path, m2_path, save_path):
+def compute_models_cka(cka, data, m1_path, m2_path, save_path, models_info):
     m1, acts1, layers1 = get_activations(data, m1_path)
     m2, acts2, layers2 = get_activations(data, m2_path)
     res = {}
@@ -112,6 +112,10 @@ def compute_models_cka(cka, data, m1_path, m2_path, save_path):
             logger.info("Computing CKA({}, {})".format(l1, l2))
             res[l1][l2] = cka(kc, lc)
     res = pd.DataFrame(res).T
+    for k, v in models_info.items():
+        res[k] = v
     # Save csv with m1 layers as header, m2 layers as indexes
+    res = res.rename_axis("m1", axis="columns")
+    res = res.rename_axis("m2")
     res.to_csv(save_path, sep="\t")
 
