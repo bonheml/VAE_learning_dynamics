@@ -30,6 +30,7 @@ class ImageGeneratorCallback(tf.keras.callbacks.Callback):
                 plt.imshow(imgs[j][i, :, :, 0], cmap='gray')
                 plt.axis('off')
 
+        fig.subplots_adjust(wspace=0, hspace=0)
         save_figure(fname)
 
     def on_epoch_end(self, epoch, logs=None):
