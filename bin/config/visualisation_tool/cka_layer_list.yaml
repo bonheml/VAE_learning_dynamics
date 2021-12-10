@@ -1,0 +1,7 @@
+name: cka_layer_list
+
+fn:
+  _target_: vae_ld.learning_dynamics.visualisation.avg_cka_layer_list
+  regularisation: 1
+  save_file: ${dataset_name}_${m1_name}_${visualisation_tool.fn.regularisation}.pdf
+  input_file: ${oc.env:XP_PATH}/VAE_ld/visualise/aggregate/${dataset_name}/${m1_name}/${dataset_name}_${m1_name}_agg.tsv

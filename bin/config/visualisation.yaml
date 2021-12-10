@@ -1,23 +1,16 @@
 dataset_name: cars3d
-
 m1_name: beta_vae
-p1_name: beta
-p1_value: 1
-m1_seed: 0
 
-m2_name: beta_vae
-p2_name: beta
-p2_value: 1
-m2_seed: 0
-
-input_dir: ${oc.env:XP_PATH}/VAE_ld/compute_cka/${dataset_name}/${m1_name}/param_${p1_value}/seed_${m1_seed}/${m2_name}/param_${p2_value}/seed_${m2_seed}
+defaults:
+  - _self_
+  - visualisation_tool: heatmap
 
 hydra:
   run:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${dataset_name}/${m1_name}/param_${p1_value}/seed_${m1_seed}/${m2_name}/param_${p2_value}/seed_${m2_seed}
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${visualisation_tool.name}/${dataset_name}/${m1_name}
   sweep:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${dataset_name}/${m1_name}/param_${p1_value}/seed_${m1_seed}/${m2_name}/param_${p2_value}
-    subdir: seed_${m2_seed}
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${visualisation_tool.name}/${dataset_name}
+    subdir: ${m1_name}
   job:
     config:
       override_dirname:

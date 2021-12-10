@@ -1,0 +1,5 @@
+name: heatmap
+
+fn:
+  _target_: vae_ld.learning_dynamics.visualisation.cka_heatmap
+  input_file: ${oc.env:XP_PATH}/VAE_ld/visualise/aggregate/${dataset_name}/${m1_name}/${dataset_name}_${m1_name}_agg.tsv
