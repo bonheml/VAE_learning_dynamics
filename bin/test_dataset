@@ -23,8 +23,7 @@ def test_dataset(cfg):
     logger.info("Loading {}".format(cfg.dataset.name))
     dataset = instantiate(cfg.dataset)
 
-    X = dataset.sample(cfg.n_samples, seed)[1]
-    X *= 255.
+    X = dataset.sample(cfg.n_samples, seed, unique=True, normalised=True)[1]
     to_image(dataset, X)
 
     X = dataset[:cfg.n_samples]

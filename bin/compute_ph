@@ -16,9 +16,7 @@ def compute_ph(cfg):
 
     logger.info("Loading the dataset")
     dataset = instantiate(cfg.dataset)
-    samples = dataset.sample(cfg.n_samples, random_state)[1]
-    logger.info("Removing duplicates")
-    samples = np.unique(samples.reshape(samples.shape[0], np.prod(samples.shape[1:])), axis=0)
+    samples = dataset.sample(cfg.n_samples, random_state, unique=True, flatten=True)[1]
 
     dim_reductor = None
     if cfg.dimensionality_reduction is not None:

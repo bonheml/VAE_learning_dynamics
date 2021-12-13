@@ -16,10 +16,7 @@ def compute_hidalgo(cfg):
     ide = Hidalgo(k=cfg.n_manifolds)
     logger.info("Loading {}".format(cfg.dataset.name))
     dataset = instantiate(cfg.dataset)
-    X = dataset.sample(cfg.n_samples, seed)[1]
-    X = np.unique(X.reshape(X.shape[0], np.prod(X.shape[1:])), axis=0)
-    if cfg.normalized is False:
-        X *= 255.
+    X = dataset.sample(cfg.n_samples, seed, unique=True, flatten=True, normalised=cfg.normalized)[1]
     logger.info("Discarding duplicate examples. Final size is {}".format(len(X)))
     logger.info("Computing Hidalgo for {} manifolds".format(cfg.n_manifolds))
     res = ide.fit(X)
