@@ -1,5 +1,7 @@
 import math
 from pathlib import Path
+
+import numpy as np
 import requests
 from keras.utils.data_utils import Sequence
 from vae_ld.data import logger
@@ -58,10 +60,18 @@ class Data:
         """Sample a batch of observations X given a batch of factors Y."""
         raise NotImplementedError()
 
-    def sample(self, batch_size, seed):
+    def sample(self, batch_size, seed, unique=False, flatten=False, normalised=True):
         """Sample a batch of factors Y and observations X."""
         factors = self.sample_factors(batch_size, seed)
-        return factors, self.sample_observations_from_factors(factors, seed)
+        obs = self.sample_observations_from_factors(factors, seed)
+        if unique is True:
+            obs, idxs = np.unique(obs, axis=0, return_index=True)
+            factors = factors[idxs]
+        if flatten is True:
+            obs = obs.reshape(obs.shape[0], np.prod(obs.shape[1:]))
+        if normalised is False:
+            obs *= 255.
+        return factors, obs
 
     def sample_observations(self, batch_size, seed):
         """Sample a batch of observations X."""
