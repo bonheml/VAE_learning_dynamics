@@ -3,7 +3,7 @@ import itertools
 import seaborn as sns
 from glob import glob
 import pandas as pd
-
+import matplotlib.pyplot as plt
 from vae_ld.learning_dynamics import logger
 from vae_ld.learning_dynamics.utils import save_figure
 
@@ -61,7 +61,9 @@ def avg_cka_layer_list(input_file, regularisation, enc_layer, target, save_file)
     df = df[(df["m1"] == "encoder/{}".format(enc_layer)) & (df["m2"].str.contains("{}/[1,2,3,4,5,6]".format(target)))]
     df["m2"] = df["m2"].str.replace("{}/".format(target), "")
     df.rename(columns={"p1_value": param, "m1_epoch": "epoch", "m2": "{} layer".format(target.capitalize())}, inplace=True)
-    sns.lineplot(data=df, x="epoch", y="cka", hue="{} layer".format(target.capitalize()), legend_out=True)
+    sns.lineplot(data=df, x="epoch", y="cka", hue="{} layer".format(target.capitalize()),
+                 style="{} layer".format(target.capitalize()))
+    plt.legend(loc="center right")
     save_figure(save_file)
 
 
