@@ -4,5 +4,6 @@ fn:
   _target_: vae_ld.learning_dynamics.visualisation.avg_cka_layer_list
   regularisation: 1
   enc_layer: z_mean
-  save_file: cka_${dataset_name}_${m1_name}_${visualisation_tool.fn.regularisation}_${visualisation_tool.fn.enc_layer}_decoder.pdf
+  target: decoder
+  save_file: cka_${dataset_name}_${m1_name}_${visualisation_tool.fn.regularisation}_encoder_${visualisation_tool.fn.enc_layer}_${visualisation_tool.fn.target}.pdf
   input_file: ${oc.env:XP_PATH}/VAE_ld/visualise/aggregate/${dataset_name}/${m1_name}/${dataset_name}_${m1_name}_agg.tsv

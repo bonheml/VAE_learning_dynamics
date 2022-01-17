@@ -48,7 +48,7 @@ def avg_cka_layer_pair(input_file, m1_layer, m2_layer, save_file):
     save_figure(save_file)
 
 
-def avg_cka_layer_list(input_file, regularisation, enc_layer, save_file):
+def avg_cka_layer_list(input_file, regularisation, enc_layer, target, save_file):
     """ Returns a lines plot of the average CKA values between the mean layer and each decoder layers
     over different epochs (one line per sampled-decoder similarity score).
     """
@@ -58,10 +58,10 @@ def avg_cka_layer_list(input_file, regularisation, enc_layer, save_file):
             (df["m1_epoch"] == df["m2_epoch"]) & (df["p1_value"] == regularisation)]
     param = df["p1_name"].values[0]
     # Keep only CKA between the given encoder layer and any decoder layer
-    df = df[(df["m1"] == "encoder/{}".format(enc_layer)) & (df["m2"].str.contains("decoder/[1,2,3,4,5,6]"))]
-    df["m2"] = df["m2"].str.replace("decoder/", "")
-    df.rename(columns={"p1_value": param, "m1_epoch": "epoch", "m2": "Decoder layer"}, inplace=True)
-    sns.lineplot(data=df, x="epoch", y="cka", hue="Decoder layer")
+    df = df[(df["m1"] == "encoder/{}".format(enc_layer)) & (df["m2"].str.contains("{}/[1,2,3,4,5,6]".format(target)))]
+    df["m2"] = df["m2"].str.replace("{}/".format(target), "")
+    df.rename(columns={"p1_value": param, "m1_epoch": "epoch", "m2": "{} layer".format(target.capitalize())}, inplace=True)
+    sns.lineplot(data=df, x="epoch", y="cka", hue="{} layer".format(target.capitalize()), legend_out=True)
     save_figure(save_file)
 
 
