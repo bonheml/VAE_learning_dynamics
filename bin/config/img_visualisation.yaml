@@ -3,12 +3,12 @@ model_epoch: 1069
 model_seed: 0
 param_value: 1
 random_z: false
+latent_dim: 10
 model_path: ${oc.env:XP_PATH}/VAE_ld/train/${model_name}/${dataset.name}/${param_value}/${model_seed}/checkpoint/epoch_${model_epoch}_*
-fname: ${dataset.name}_${model_name}_param_${param_value}_seed_${model_seed}_epoch_${model_epoch}_random_z_${random_z}.pdf
+fname: ${dataset.name}_${model_name}_param_${param_value}_seed_${model_seed}_epoch_${model_epoch}_latent_${latent_dim}_random_z_${random_z}.pdf
 
 defaults:
   - _self_
-  - visualisation_tool: heatmap
   - dataset: cars3d
   - random_state: np_random
 
