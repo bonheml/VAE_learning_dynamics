@@ -15,7 +15,7 @@ def visualise_images(cfg):
     model_path = glob(cfg.model_path)[0]
     model = tf.keras.models.load_model(model_path)
     if cfg.random_z is True:
-        random_latent_vectors = tf.random.normal(shape=(cfg.n_samples, cfg.latent_shape))
+        random_latent_vectors = tf.random.normal(shape=(cfg.n_samples, cfg.latent_dim))
         generated_images = sigmoid(model.decoder(random_latent_vectors, training=False)[-1]) * 255.
         plot_and_save([generated_images], cfg.fname)
     else:
