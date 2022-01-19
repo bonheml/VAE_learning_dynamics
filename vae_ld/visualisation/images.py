@@ -4,7 +4,7 @@ from mpl_toolkits.axes_grid1 import ImageGrid
 from vae_ld.visualisation.utils import save_figure
 
 
-def plot_and_save(imgs, fname, samples=None):
+def plot_and_save(imgs, fname, greyscale, samples=None):
     r = int(np.floor(np.sqrt(len(imgs))))
     c = r if samples is None else r * 2
     fig = plt.figure(figsize=(10., 10.))
@@ -21,7 +21,10 @@ def plot_and_save(imgs, fname, samples=None):
             to_process += t
 
     for ax, im in zip(grid, to_process):
-        ax.imshow(im[:, :, 0], cmap="gray")
+        if greyscale is True:
+            ax.imshow(im, cmap="gray")
+        else:
+            ax.imshow(im)
 
     fig.subplots_adjust(wspace=0, hspace=0)
     save_figure(fname)

@@ -34,7 +34,8 @@ def train(cfg):
     for k, v in cfg.callbacks.items():
         if k == "image_generator":
             data_callback = train_sampler.data.sample(v.nb_samples, random_state)[1]
-            callbacks.append(instantiate(v, data=data_callback))
+            greyscale = cfg.dataset.observation_shape[2] == 1
+            callbacks.append(instantiate(v, data=data_callback, greyscale=greyscale))
         else:
             callbacks.append(instantiate(v))
         if ("filepath" or "logdir") in v.keys():
