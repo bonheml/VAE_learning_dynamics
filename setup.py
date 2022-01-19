@@ -29,7 +29,8 @@ setup(
         "bin/hidalgo",
         "bin/compute_cka",
         "bin/compute_ph",
-        "bin/test_dataset"
+        "bin/test_dataset",
+        "bin/filter_variables"
     ],
     install_requires=[
         "pillow>=7.2.0",

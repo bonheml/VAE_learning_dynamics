@@ -1,0 +1,26 @@
+defaults:
+  - _self_
+  - dataset: cars
+
+n_samples: 10000
+seed: 0
+model_name: beta_vae
+model_seed: 0
+model_path: ${oc.env:XP_PATH}/VAE_ld/train/${model_name}/${dataset.name}/${param_value}/${model_seed}/checkpoint/*
+param_value: 1
+param_name: beta
+var_threshold: 0.1
+mean_error_range: 0.1
+batch_size: 4
+
+hydra:
+  run:
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${dataset.name}/${model_name}/param_${param_value}/seed_${model_seed}/
+  sweep:
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${dataset.name}/${model_name}/param_${param_value}
+    subdir: seed_${model_seed}
+  job:
+    config:
+      override_dirname:
+        kv_sep: _
+        item_sep: /
