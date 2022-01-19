@@ -15,9 +15,9 @@ defaults:
 
 hydra:
   run:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${visualisation_tool.name}/${dataset_name}/${model_name}
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${dataset_name}/${model_name}
   sweep:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${visualisation_tool.name}/${dataset_name}
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${dataset_name}
     subdir: ${model_name}
   job:
     config:
