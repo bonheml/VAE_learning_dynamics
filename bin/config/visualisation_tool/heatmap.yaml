@@ -2,4 +2,4 @@ name: heatmap
 
 fn:
   _target_: vae_ld.visualisation.cka.cka_heatmap
-  input_file: ${oc.env:XP_PATH}/VAE_ld/visualise/aggregate/${dataset_name}/${m1_name}/${dataset_name}_${m1_name}_agg.tsv
+  input_file: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/aggregate/${dataset_name}/${m1_name}/${dataset_name}_${m1_name}_agg.tsv

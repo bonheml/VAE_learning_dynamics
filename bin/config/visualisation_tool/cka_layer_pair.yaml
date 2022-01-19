@@ -5,4 +5,4 @@ fn:
   m1_layer: "encoder/z_mean"
   m2_layer: "sampling"
   save_file: ${dataset_name}_${m1_name}_${visualisation_tool.fn.m1_layer}_${visualisation_tool.fn.m2_layer}.pdf
-  input_file: ${oc.env:XP_PATH}/VAE_ld/visualise/aggregate/${dataset_name}/${m1_name}/${dataset_name}_${m1_name}_agg.tsv
+  input_file: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/aggregate/${dataset_name}/${m1_name}/${dataset_name}_${m1_name}_agg.tsv
