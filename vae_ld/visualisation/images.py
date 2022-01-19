@@ -21,7 +21,7 @@ def plot_and_save(imgs, fname, samples=None):
             to_process += t
 
     for ax, im in zip(grid, to_process):
-        ax.imshow(im, cmap="gray")
+        ax.imshow(im[:, :, 0], cmap="gray")
 
     fig.subplots_adjust(wspace=0, hspace=0)
     save_figure(fname)
