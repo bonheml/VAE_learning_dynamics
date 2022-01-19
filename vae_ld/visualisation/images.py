@@ -17,7 +17,7 @@ def plot_and_save(imgs, fname, samples=None):
     if samples is None:
         to_process = imgs
     else:
-        for t in zip(imgs, samples):
+        for t in zip(samples, imgs):
             to_process += t
 
     for ax, im in zip(grid, to_process):
