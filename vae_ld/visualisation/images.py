@@ -10,6 +10,9 @@ def plot_and_save(imgs, fname, samples=None):
     fig = plt.figure(figsize=(10., 10.))
     grid = ImageGrid(fig, 111, nrows_ncols=(r, c), axes_pad=0, share_all=True)
 
+    grid[0].get_yaxis().set_ticks([])
+    grid[0].get_xaxis().set_ticks([])
+
     to_process = []
     if samples is None:
         to_process = imgs
@@ -18,7 +21,7 @@ def plot_and_save(imgs, fname, samples=None):
             to_process += t
 
     for ax, im in zip(grid, to_process):
-        ax.imshow(im)
+        ax.imshow(im, cmap="grey")
 
     fig.subplots_adjust(wspace=0, hspace=0)
     save_figure(fname)
