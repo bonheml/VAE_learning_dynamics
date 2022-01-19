@@ -11,7 +11,7 @@ seed: 0
 
 defaults:
   - _self_
-  - dataset: cars3d
+  - dataset: cars
 
 hydra:
   run:
