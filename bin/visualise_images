@@ -18,14 +18,14 @@ def visualise_images(cfg):
     greyscale = cfg.dataset.observation_shape[2] == 1
     if cfg.random_z is True:
         random_latent_vectors = tf.random.normal(shape=(cfg.n_samples, cfg.latent_dim))
-        generated_images = sigmoid(model.decoder(random_latent_vectors, training=False)[-1]) * 255.
+        generated_images = sigmoid(model.decoder(random_latent_vectors, training=False)[-1])
         plot_and_save(generated_images, cfg.fname, greyscale)
     else:
         dataset = instantiate(cfg.dataset)
         random_state = np.random.RandomState(cfg.seed)
         samples = dataset.sample(cfg.n_samples, random_state, unique=True)[1]
         z = model.encoder(samples, training=False)[-1]
-        generated_images = sigmoid(model.decoder(z, training=False)[-1]) * 255.
+        generated_images = sigmoid(model.decoder(z, training=False)[-1])
         plot_and_save(generated_images, cfg.fname, greyscale, samples)
 
 
