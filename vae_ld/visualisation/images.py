@@ -8,7 +8,7 @@ def plot_and_save(imgs, fname, greyscale, samples=None):
     r = int(np.floor(np.sqrt(len(imgs))))
     c = r if samples is None else r * 2
     fig = plt.figure(figsize=(10., 10.))
-    grid = ImageGrid(fig, 111, nrows_ncols=(r, c), axes_pad=0)
+    grid = ImageGrid(fig, 111, nrows_ncols=(r, c), axes_pad=0, share_all=True)
 
     to_process = []
     if samples is None:
