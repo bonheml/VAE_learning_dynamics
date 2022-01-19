@@ -1,18 +1,24 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import ImageGrid
 from vae_ld.visualisation.utils import save_figure
 
 
-def plot_and_save(imgs, fname):
-    n = int(np.sqrt(imgs[0].shape[0]))
-    n_sources = len(imgs)
-    fig = plt.figure(figsize=(n * n_sources, n))
+def plot_and_save(imgs, fname, samples=None):
+    r = int(np.floor(np.sqrt(len(imgs))))
+    c = r if samples is None else r * 2
+    fig = plt.figure(figsize=(10., 10.))
+    grid = ImageGrid(fig, 111, nrows_ncols=(r, c), axes_pad=0, share_all=True)
 
-    for i in range(0, imgs[0].shape[0]):
-        for j in range(n_sources):
-            plt.subplot(n * n_sources, n, (n_sources * i) + j + 1)
-            plt.imshow(imgs[j][i, :, :, 0], cmap='gray')
-            plt.axis('off')
+    to_process = []
+    if samples is None:
+        to_process = imgs
+    else:
+        for t in zip(imgs, samples):
+            to_process += t
+
+    for ax, im in zip(grid, to_process):
+        ax.imshow(im)
 
     fig.subplots_adjust(wspace=0, hspace=0)
     save_figure(fname)
