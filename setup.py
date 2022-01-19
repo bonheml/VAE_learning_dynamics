@@ -23,7 +23,8 @@ setup(
     include_package_data=True,
     scripts=[
         "bin/train",
-        "bin/visualise",
+        "bin/visualise_cka",
+        "bin/visualise_images",
         "bin/get_data_ide",
         "bin/hidalgo",
         "bin/compute_cka",
