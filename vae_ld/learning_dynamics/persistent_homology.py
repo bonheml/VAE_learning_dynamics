@@ -1,6 +1,6 @@
 import gudhi
 from vae_ld.learning_dynamics import logger
-from vae_ld.learning_dynamics.utils import save_figure
+from vae_ld.visualisation.utils import save_figure
 
 
 def compute_persistence(X, save_path, dim_reductor=None):

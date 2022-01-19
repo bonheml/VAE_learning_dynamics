@@ -1,18 +1,7 @@
 from glob import glob
 from pathlib import Path
-
-import matplotlib.pyplot as plt
 import numpy as np
-
 from vae_ld.data.util import natural_sort
-
-
-def save_figure(out_fname, dpi=300):
-    plt.tight_layout()
-    plt.savefig(out_fname, dpi=dpi)
-    plt.clf()
-    plt.cla()
-    plt.close()
 
 
 def get_model_filename(model, model_name, param_value):
@@ -21,7 +10,7 @@ def get_model_filename(model, model_name, param_value):
     return "{}_{}_seed_{}_{}".format(model_name, param_value, m_seed, m_short)
 
 
-def get_file_list(model_path, keep_n, selection_type="even"):
+def get_file_list(model_path, keep_n=0, selection_type="even"):
     m_files = glob(model_path)
     m_files.sort(key=natural_sort)
     if keep_n > 0 and selection_type == "even":

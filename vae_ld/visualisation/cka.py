@@ -1,11 +1,9 @@
 import itertools
-
 import seaborn as sns
 from glob import glob
 import pandas as pd
-
-from vae_ld.learning_dynamics import logger
-from vae_ld.learning_dynamics.utils import save_figure
+from vae_ld.visualisation import logger
+from vae_ld.visualisation.utils import save_figure
 
 sns.set_style("whitegrid", {'axes.grid': False, 'legend.labelspacing': 1.2})
 

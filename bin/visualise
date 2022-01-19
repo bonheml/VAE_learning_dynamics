@@ -4,8 +4,6 @@ import hydra
 from hydra.utils import call
 from omegaconf import OmegaConf
 
-from vae_ld.learning_dynamics.visualisation import cka_heatmap
-
 logger = logging.getLogger("visualise")
 
 

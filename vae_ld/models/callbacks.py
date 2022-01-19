@@ -3,7 +3,7 @@ from tensorflow import sigmoid
 import numpy as np
 import matplotlib.pyplot as plt
 
-from vae_ld.learning_dynamics.utils import save_figure
+from vae_ld.visualisation.utils import save_figure
 
 
 class ImageGeneratorCallback(tf.keras.callbacks.Callback):
