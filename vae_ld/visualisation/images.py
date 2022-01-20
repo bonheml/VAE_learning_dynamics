@@ -25,4 +25,26 @@ def plot_and_save(imgs, fname, greyscale, samples=None):
             ax.imshow(im)
 
     fig.subplots_adjust(wspace=0, hspace=0)
-    save_figure(fname)
+    save_figure(fname, tight=False)
+
+
+def plot_conv_layers(samples, fname):
+    if len(samples.shape) == 3:
+        return plot_conv_layer(samples, "example_0_{}".format(fname))
+
+    for i, outputs in enumerate(samples):
+        fname = "example_{}_{}".format(i, fname)
+        plot_conv_layer(outputs, fname)
+
+
+def plot_conv_layer(outputs, fname):
+    cols = np.ceil(np.sqrt(outputs.shape[-1]))
+    fig = plt.figure(figsize=(10., 10.))
+    grid = ImageGrid(fig, 111, nrows_ncols=(cols, cols), axes_pad=0)
+
+    for ax, out in zip(grid, outputs):
+        ax.set_axis_off()
+        ax.matshow(out)
+
+    fig.subplots_adjust(wspace=0, hspace=0)
+    save_figure(fname, tight=False)
