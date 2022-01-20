@@ -28,22 +28,22 @@ def plot_and_save(imgs, fname, greyscale, samples=None):
     save_figure(fname, tight=False)
 
 
-def plot_conv_layers(samples, fname):
+def plot_conv_layers(samples, base_fname):
     if len(samples.shape) == 3:
-        return plot_conv_layer(samples, "example_0_{}".format(fname))
+        return plot_conv_layer(samples, "example_0_{}".format(base_fname))
 
     for i, outputs in enumerate(samples):
-        fname = "example_{}_{}".format(i, fname)
+        fname = "example_{}_{}".format(i, base_fname)
         plot_conv_layer(outputs, fname)
 
 
 def plot_conv_layer(outputs, fname):
     cols = int(np.ceil(np.sqrt(outputs.shape[-1])))
     fig = plt.figure(figsize=(10., 10.))
-    grid = ImageGrid(fig, 111, nrows_ncols=(cols, cols), axes_pad=0)
+    grid = ImageGrid(fig, 111, nrows_ncols=(cols, cols))
+    [ax.set_axis_off() for ax in grid]
 
     for ax, out in zip(grid, outputs):
-        ax.set_axis_off()
         ax.matshow(out)
 
     fig.subplots_adjust(wspace=0, hspace=0)
