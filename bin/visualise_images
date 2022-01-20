@@ -8,7 +8,7 @@ from tensorflow import sigmoid
 import numpy as np
 from vae_ld.visualisation.images import plot_and_save
 
-logger = logging.getLogger("visualise_cka")
+logger = logging.getLogger("visualise_image")
 
 
 @hydra.main(config_path="config", config_name="img_visualisation")
@@ -16,17 +16,20 @@ def visualise_images(cfg):
     model_path = glob(cfg.model_path)[0]
     model = tf.keras.models.load_model(model_path)
     greyscale = cfg.dataset.observation_shape[2] == 1
+    samples = None
+
     if cfg.random_z is True:
-        random_latent_vectors = tf.random.normal(shape=(cfg.n_samples, cfg.latent_dim))
-        generated_images = sigmoid(model.decoder(random_latent_vectors, training=False)[-1])
-        plot_and_save(generated_images, cfg.fname, greyscale)
+        z = tf.random.normal(shape=(cfg.n_samples, cfg.latent_dim))
     else:
         dataset = instantiate(cfg.dataset)
         random_state = np.random.RandomState(cfg.seed)
         samples = dataset.sample(cfg.n_samples, random_state, unique=True)[1]
         z = model.encoder(samples, training=False)[-1]
-        generated_images = sigmoid(model.decoder(z, training=False)[-1])
-        plot_and_save(generated_images, cfg.fname, greyscale, samples)
+
+    outputs = model.decoder(z, training=False)
+    generated_images = sigmoid(outputs[cfg.layer_index])
+    print(generated_images.shape)
+    plot_and_save(generated_images, cfg.fname, greyscale, samples)
 
 
 if __name__ == "__main__":
