@@ -38,7 +38,7 @@ def plot_conv_layers(samples, fname):
 
 
 def plot_conv_layer(outputs, fname):
-    cols = np.ceil(np.sqrt(outputs.shape[-1]))
+    cols = int(np.ceil(np.sqrt(outputs.shape[-1])))
     fig = plt.figure(figsize=(10., 10.))
     grid = ImageGrid(fig, 111, nrows_ncols=(cols, cols), axes_pad=0)
 
