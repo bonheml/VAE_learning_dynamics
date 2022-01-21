@@ -29,8 +29,6 @@ def plot_and_save(imgs, fname, greyscale, samples=None):
 
 
 def plot_conv_layers(outputs, base_fname):
-    print(outputs.shape)
-    print(outputs.shape[-1])
     cols = int(np.ceil(np.sqrt(outputs.shape[-1])))
 
     for i, sample in enumerate(outputs):
@@ -39,9 +37,8 @@ def plot_conv_layers(outputs, base_fname):
         grid = ImageGrid(fig, 111, nrows_ncols=(cols, cols))
         [ax.set_axis_off() for ax in grid]
 
-        for i in range(outputs.shape[-1]):
-            print(outputs[:, :, i])
-            grid[i // cols][i % cols].matshow(outputs[:, :, i])
+        for j in range(outputs.shape[-1]):
+            grid[i // cols][i % cols].matshow(outputs[:, :, j])
 
         fig.subplots_adjust(wspace=0, hspace=0)
         save_figure(fname, tight=False)
