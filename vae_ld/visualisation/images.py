@@ -29,17 +29,17 @@ def plot_and_save(imgs, fname, greyscale, samples=None):
 
 
 def plot_conv_layers(outputs, base_fname):
-    cols = int(np.ceil(np.sqrt(outputs.shape[-1])))
 
     for i, sample in enumerate(outputs):
+        cols = int(np.ceil(np.sqrt(sample.shape[-1])))
         fname = "example_{}_{}".format(i, base_fname)
         fig = plt.figure(figsize=(10., 10.))
         grid = ImageGrid(fig, 111, nrows_ncols=(cols, cols))
 
         for j, ax in enumerate(grid):
             ax.set_axis_off()
-            if j < outputs.shape[-1]:
-                ax.matshow(outputs[:, :, j])
+            if j < sample.shape[-1]:
+                ax.matshow(sample[:, :, j])
 
         fig.subplots_adjust(wspace=0, hspace=0)
         save_figure(fname, tight=False)
