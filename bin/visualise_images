@@ -26,13 +26,16 @@ def visualise_images(cfg):
         random_state = np.random.RandomState(cfg.seed)
         samples = dataset.sample(cfg.n_samples, random_state, unique=True)[1]
         enc_out = model.encoder(samples, training=False)
+        logger.info(enc_out.shape())
+        logger.info([l.name for l in model.encoder.layers])
         z = enc_out[-1]
+        logger.info(z.shape())
         for outputs, l in zip(enc_out[:4], model.encoder.layers[:4]):
             fname = "{}_{}".format(l.name.replace("/", "_"), cfg.fname)
             plot_conv_layers(outputs, fname)
 
     dec_out = model.decoder(z, training=False)
-    for outputs, l in zip(dec_out[2:], model.encoder.layers[2:]):
+    for outputs, l in zip(dec_out[2:], model.decoder.layers[2:]):
         fname = "{}_{}".format(l.name.replace("/", "_"), cfg.fname)
         plot_conv_layers(outputs, fname)
 
