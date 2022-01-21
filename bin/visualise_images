@@ -26,7 +26,7 @@ def visualise_images(cfg):
         random_state = np.random.RandomState(cfg.seed)
         samples = dataset.sample(cfg.n_samples, random_state, unique=True)[1]
         enc_out = model.encoder(samples, training=False)
-        logger.info(enc_out.shape())
+        logger.info([e.shape for e in enc_out])
         logger.info([l.name for l in model.encoder.layers])
         z = enc_out[-1]
         logger.info(z.shape())
