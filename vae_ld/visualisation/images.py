@@ -35,6 +35,7 @@ def plot_conv_layers(outputs, base_fname):
         fname = "example_{}_{}".format(i, base_fname)
         fig = plt.figure(figsize=(10., 10.))
         grid = ImageGrid(fig, 111, nrows_ncols=(cols, cols))
+        print(grid)
         [ax.set_axis_off() for ax in grid]
 
         for j in range(outputs.shape[-1]):
