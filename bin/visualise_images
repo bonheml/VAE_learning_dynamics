@@ -32,7 +32,7 @@ def visualise_images(cfg):
             plot_conv_layers(outputs, fname)
 
     dec_out = model.decoder(z, training=False)
-    for outputs, l in zip(dec_out[2:], model.decoder.layers[2:]):
+    for outputs, l in zip(dec_out[3:], model.decoder.layers[3:]):
         fname = "{}_{}".format(l.name.replace("/", "_"), cfg.fname)
         plot_conv_layers(outputs, fname)
 
