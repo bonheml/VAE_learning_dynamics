@@ -51,7 +51,7 @@ def avg_cka_layer_list(input_file, regularisation, layer, target, save_file):
     """ Returns a lines plot of the average CKA values between the mean layer and each decoder layers
     over different epochs (one line per sampled-decoder similarity score).
     """
-    layer = layer.replace("_", "/", 1)
+    save_file = save_file.replace("/", "_")
     df = pd.read_csv(input_file, sep="\t", header=0)
     # Keep only CKA between identical runs, epochs and models
     df = df[(df["m1_name"] == df["m2_name"]) & (df["m1_seed"] == df["m2_seed"]) & (df["p1_value"] == df["p2_value"]) &
