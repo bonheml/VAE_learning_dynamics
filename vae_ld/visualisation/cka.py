@@ -23,6 +23,8 @@ def cka_heatmap(input_file):
         df2 = df[(df["p1_value"] == p1) & (df["p2_value"] == p2) & (df["m1_seed"] == s1) & (df["m2_seed"] == s2)
                  & (df["m1_epoch"] == e1) & (df["m2_epoch"] == e2)]
         if df2.empty:
+            logger.info("Skipping empty config {}, param={}, seed={}, epoch={} and {}, param={}, seed={}, epoch={}"
+                        .format(m1n, p1, s1, e1, m2n, p2, s2, e2))
             continue
         logger.info("Computing heatmap of {}, param={}, seed={}, epoch={} and {}, param={}, seed={}, epoch={}"
                     .format(m1n, p1, s1, e1, m2n, p2, s2, e2))
