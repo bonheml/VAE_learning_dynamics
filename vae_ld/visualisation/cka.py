@@ -20,8 +20,8 @@ def cka_heatmap(input_file):
                                df["m1_seed"].unique().tolist(), df["m2_seed"].unique().tolist(),
                                df["m1_epoch"].unique().tolist(), df["m2_epoch"].unique().tolist())
     for m1n, m2n, p1, p2, s1, s2, e1, e2 in params:
-        df2 = df[(df["p1_value"] == p1) & (df["p2_value"] == p2) & (df["m1_seed"] == s1) & (df["m2_seed"] == s2)
-                 & (df["m1_epoch"] == e1) & (df["m2_epoch"] == e2)]
+        df2 = df[(df["m1_name"] == m1n) & (df["m2_name"] == m2n) & (df["p1_value"] == p1) & (df["p2_value"] == p2)
+                 & (df["m1_seed"] == s1) & (df["m2_seed"] == s2) & (df["m1_epoch"] == e1) & (df["m2_epoch"] == e2)]
         if df2.empty:
             logger.info("Skipping empty config {}, param={}, seed={}, epoch={} and {}, param={}, seed={}, epoch={}"
                         .format(m1n, p1, s1, e1, m2n, p2, s2, e2))
