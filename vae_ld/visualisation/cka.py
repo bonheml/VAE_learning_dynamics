@@ -24,7 +24,8 @@ def cka_heatmap(input_file):
                  & (df["m1_epoch"] == e1) & (df["m2_epoch"] == e2)]
         if df2.empty:
             continue
-        logger.info("Computing heatmap of {}, param={}, seed={} and {}, param={}, seed={}".format(m1n, p1, s1, m2n, p2, s2))
+        logger.info("Computing heatmap of {}, param={}, seed={}, epoch={} and {}, param={}, seed={}, epoch={}"
+                    .format(m1n, p1, s1, e1, m2n, p2, s2, e2))
         ax = sns.heatmap(df2.pivot("m1", "m2", "cka").reindex(index=col_order, columns=col_order))
         ax.set(ylabel="{}, {}={}, seed={}, epoch={}".format(m1n, df2["p1_name"].values[0], p1, s1, e1),
                xlabel="{}, {}={}, seed={}, epoch={}".format(m2n, df2["p2_name"].values[0], p2, s2, e2))
