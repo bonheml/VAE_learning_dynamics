@@ -19,11 +19,13 @@ def cka_heatmap(input_file):
                                df["p1_value"].unique().tolist(), df["p2_value"].unique().tolist(),
                                df["m1_seed"].unique().tolist(), df["m2_seed"].unique().tolist(),
                                df["m1_epoch"].unique().tolist(), df["m2_epoch"].unique().tolist())
+    logger.info(params)
     for m1n, m2n, p1, p2, s1, s2, e1, e2 in params:
         df2 = df[(df["p1_value"] == p1) & (df["p2_value"] == p2) & (df["m1_seed"] == s1) & (df["m2_seed"] == s2)
                  & (df["m1_epoch"] == e1) & (df["m2_epoch"] == e2)]
         if df2.empty:
             continue
+        logger.info("Computing heatmap of {}, param={}, seed={} and {}, param={}, seed={}".format(m1n, p1, s1, m2n, p2, s2))
         ax = sns.heatmap(df2.pivot("m1", "m2", "cka").reindex(index=col_order, columns=col_order))
         ax.set(ylabel="{}, {}={}, seed={}, epoch={}".format(m1n, df2["p1_name"].values[0], p1, s1, e1),
                xlabel="{}, {}={}, seed={}, epoch={}".format(m2n, df2["p2_name"].values[0], p2, s2, e2))
