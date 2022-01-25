@@ -19,7 +19,6 @@ def cka_heatmap(input_file):
                                df["p1_value"].unique().tolist(), df["p2_value"].unique().tolist(),
                                df["m1_seed"].unique().tolist(), df["m2_seed"].unique().tolist(),
                                df["m1_epoch"].unique().tolist(), df["m2_epoch"].unique().tolist())
-    logger.info(params)
     for m1n, m2n, p1, p2, s1, s2, e1, e2 in params:
         df2 = df[(df["p1_value"] == p1) & (df["p2_value"] == p2) & (df["m1_seed"] == s1) & (df["m2_seed"] == s2)
                  & (df["m1_epoch"] == e1) & (df["m2_epoch"] == e2)]
