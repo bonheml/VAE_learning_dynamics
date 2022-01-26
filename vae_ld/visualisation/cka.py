@@ -1,4 +1,6 @@
 import itertools
+import pathlib
+
 import seaborn as sns
 from glob import glob
 import pandas as pd
@@ -9,7 +11,7 @@ import matplotlib.pyplot as plt
 sns.set_style("whitegrid", {'axes.grid': False, 'legend.labelspacing': 1.2})
 
 
-def cka_heatmap(input_file):
+def cka_heatmap(input_file, overwrite):
     df = pd.read_csv(input_file, sep="\t", header=0)
     col_order = (["encoder/{}".format(i) for i in range(1, 7)] + ["encoder/z_mean", "encoder/z_log_var", "sampling"] +
                  ["decoder/{}".format(i) for i in range(1, 7)])
@@ -19,26 +21,38 @@ def cka_heatmap(input_file):
                                df["p1_value"].unique().tolist(), df["p2_value"].unique().tolist(),
                                df["m1_seed"].unique().tolist(), df["m2_seed"].unique().tolist(),
                                df["m1_epoch"].unique().tolist(), df["m2_epoch"].unique().tolist())
+
     for m1n, m2n, p1, p2, s1, s2, e1, e2 in params:
+        cfg = "{}, param={}, seed={}, epoch={} and {}, param={}, seed={}, epoch={}".format(m1n, p1, s1, e1, m2n, p2, s2,
+                                                                                           e2)
+        save_path = "{}_{}_seed_{}_epoch_{}_{}_{}_seed_{}_epoch_{}.pdf".format(m1n, p1, s1, e1, m2n, p2, s2, e2)
+
+        if pathlib.Path(save_path).exists() and overwrite is False:
+            logger.info("Skipping already computed heatmap of {}".format(cfg))
+            continue
+
         df2 = df[(df["m1_name"] == m1n) & (df["m2_name"] == m2n) & (df["p1_value"] == p1) & (df["p2_value"] == p2)
                  & (df["m1_seed"] == s1) & (df["m2_seed"] == s2) & (df["m1_epoch"] == e1) & (df["m2_epoch"] == e2)]
         if df2.empty:
-            logger.info("Skipping empty config {}, param={}, seed={}, epoch={} and {}, param={}, seed={}, epoch={}"
-                        .format(m1n, p1, s1, e1, m2n, p2, s2, e2))
+            logger.info("Skipping empty config of {}".format(cfg))
             continue
-        logger.info("Computing heatmap of {}, param={}, seed={}, epoch={} and {}, param={}, seed={}, epoch={}"
-                    .format(m1n, p1, s1, e1, m2n, p2, s2, e2))
-        ax = sns.heatmap(df2.pivot("m1", "m2", "cka").reindex(index=col_order, columns=col_order))
+
+        logger.info("Computing heatmap of {}".format(cfg))
+        ax = sns.heatmap(df2.pivot("m1", "m2", "cka").reindex(index=col_order, columns=col_order), vmin=0, vmax=1)
         ax.set(ylabel="{}, {}={}, seed={}, epoch={}".format(m1n, df2["p1_name"].values[0], p1, s1, e1),
                xlabel="{}, {}={}, seed={}, epoch={}".format(m2n, df2["p2_name"].values[0], p2, s2, e2))
-        save_figure("{}_{}_seed_{}_epoch_{}_{}_{}_seed_{}_epoch_{}.pdf".format(m1n, p1, s1, e1, m2n, p2, s2, e2))
+        save_figure(save_path)
 
 
-def avg_cka_layer_pair(input_file, m1_layer, m2_layer, save_file):
+def avg_cka_layer_pair(input_file, m1_layer, m2_layer, save_file, overwrite):
     """ Returns a lines plot of the average CKA values between two layers
     over different epochs with different regularisation strength (one line per regularisation weight).
     """
     save_file = save_file.replace("/", "_")
+    if pathlib.Path(save_file).exists() and overwrite is False:
+        logger.info("Skipping already computed heatmap of {}".format(save_file))
+        return
+
     df = pd.read_csv(input_file, sep="\t", header=0)
     # Keep only CKA between identical runs, epochs and models
     df = df[(df["m1_name"] == df["m2_name"]) & (df["m1_seed"] == df["m2_seed"]) & (df["p1_value"] == df["p2_value"])
@@ -51,11 +65,15 @@ def avg_cka_layer_pair(input_file, m1_layer, m2_layer, save_file):
     save_figure(save_file)
 
 
-def avg_cka_layer_list(input_file, regularisation, layer, target, save_file):
+def avg_cka_layer_list(input_file, regularisation, layer, target, save_file, overwrite):
     """ Returns a lines plot of the average CKA values between the mean layer and each decoder layers
     over different epochs (one line per sampled-decoder similarity score).
     """
     save_file = save_file.replace("/", "_")
+    if pathlib.Path(save_file).exists() and overwrite is False:
+        logger.info("Skipping already computed heatmap of {}".format(save_file))
+        return
+
     df = pd.read_csv(input_file, sep="\t", header=0)
     # Keep only CKA between identical runs, epochs and models
     df = df[(df["m1_name"] == df["m2_name"]) & (df["m1_seed"] == df["m2_seed"]) & (df["p1_value"] == df["p2_value"]) &
@@ -71,9 +89,12 @@ def avg_cka_layer_list(input_file, regularisation, layer, target, save_file):
     save_figure(save_file)
 
 
-def aggregate_cka(input_dir, save_file):
+def aggregate_cka(input_dir, save_file, overwrite):
     """ Aggregate CKA results per seed and regularisation strength
     """
+    if pathlib.Path(save_file).exists() and overwrite is False:
+        logger.info("Skipping already computed heatmap of {}".format(save_file))
+        return
     files = glob("{}/*.tsv".format(input_dir))
     cleaned_dfs = []
     dfs = [pd.read_csv(f, sep="\t", header=0, index_col=0) for f in files]

@@ -1,5 +1,6 @@
 dataset_name: cars3d
 m1_name: beta_vae
+overwrite: false
 
 defaults:
   - _self_
