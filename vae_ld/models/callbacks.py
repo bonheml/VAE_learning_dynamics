@@ -24,7 +24,6 @@ class ImageGeneratorCallback(tf.keras.callbacks.Callback):
             plot_and_save(generated_images, "{}/epoch_{}_from_random_latents.pdf".format(self.filepath, epoch),
                           self.greyscale)
 
-            z = self.model.encoder(self.data, training=False)[-1]
-            generated_images = sigmoid(self.model.decoder(z, training=False)[-1])
+            generated_images = sigmoid(self.model(self.data, training=False))
             plot_and_save(generated_images, "{}/epoch_{}_from_real_data.pdf".format(self.filepath, epoch),
                           self.greyscale, self.data)
