@@ -25,7 +25,8 @@ class VGON(VAE):
     # This decorator is needed to prevent input shape errors
     @tf.function(input_signature=[tf.TensorSpec([None, None], tf.float32)])
     def call(self, inputs):
-        z = self.encoder(inputs)[-1]
+        z_gon = self.backprop_z_gon(inputs)
+        z = self.encoder(z_gon)[-1]
         return self.decoder(z)[-1]
 
     # noinspection PyMethodOverriding
