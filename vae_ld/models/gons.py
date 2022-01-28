@@ -25,6 +25,7 @@ class VGON(VAE):
     # This decorator is needed to prevent input shape errors
     @tf.function(input_signature=[tf.TensorSpec([None, None, None, None], tf.float32)])
     def call(self, inputs):
+        logger.debug("Received data of size {} in call".format(tf.shape(inputs)))
         z_gon = self.backprop_z_gon(inputs)
         z = self.encoder(z_gon)[-1]
         return self.decoder(z)[-1]
@@ -47,7 +48,7 @@ class VGON(VAE):
         return loss_res
 
     def backprop_z_gon(self, data):
-        logger.info(tf.shape(data))
+        logger.debug("Received data of size {} for z_gon backpropagation".format(tf.shape(data)))
         with tf.GradientTape() as inner_tape:
             z_0 = tf.zeros([tf.shape(data)[0], self.latent_shape])
             inner_tape.watch(z_0)

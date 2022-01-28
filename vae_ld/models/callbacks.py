@@ -1,5 +1,7 @@
 import tensorflow as tf
 from tensorflow import sigmoid
+
+from vae_ld.models import logger
 from vae_ld.visualisation.images import plot_and_save
 
 
@@ -24,6 +26,7 @@ class ImageGeneratorCallback(tf.keras.callbacks.Callback):
             plot_and_save(generated_images, "{}/epoch_{}_from_random_latents.pdf".format(self.filepath, epoch),
                           self.greyscale)
 
+            logger.debug("Generating reconstruction of data with shape {}".format(self.data.shape))
             generated_images = sigmoid(self.model(self.data, training=False))
             plot_and_save(generated_images, "{}/epoch_{}_from_real_data.pdf".format(self.filepath, epoch),
                           self.greyscale, self.data)
