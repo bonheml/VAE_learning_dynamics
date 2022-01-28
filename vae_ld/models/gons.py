@@ -47,7 +47,7 @@ class VGON(VAE):
 
     def backprop_z_gon(self, data):
         with tf.GradientTape() as inner_tape:
-            z_0 = tf.zeros(data.shape[0], self.latent_shape)
+            z_0 = tf.zeros([data.shape[0], self.latent_shape])
             inner_tape.watch(z_0)
             inner_losses = self.get_gradient_step_output(z_0, data, training=False)
         z_gon = -inner_tape.gradient(inner_losses["model_loss"], z_0)
