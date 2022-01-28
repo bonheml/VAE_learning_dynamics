@@ -115,7 +115,6 @@ class GONEncoder(tf.keras.Model):
 
     def __init__(self, input_shape, output_shape):
         super(GONEncoder, self).__init__()
-        self.latent_shape = input_shape
         self.z_mean = layers.Dense(output_shape, input_shape=(input_shape,), activation=None, name="encoder/z_mean")
         self.z_log_var = layers.Dense(output_shape, activation=None, name="encoder/z_log_var")
         self.z = Sampling(name="encoder/z")

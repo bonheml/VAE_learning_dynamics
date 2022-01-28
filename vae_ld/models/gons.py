@@ -10,7 +10,7 @@ class VGON(VAE):
     [1] Gradient origin networks, 2021, Bond-Taylor and Willcocks
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *, encoder, decoder, reconstruction_loss_fn, input_shape, latent_shape, **kwargs):
         """ Model initialisation
 
         :param generator: the generator to use (must be initialised beforehand). It should take a sampled z as input
@@ -18,8 +18,9 @@ class VGON(VAE):
         :param reconstruction_loss_fn: The metric to use for the reconstruction loss (e.g. l2, bernoulli, etc.)
         :param optimizer: The optimizer to use (e.g., adam). It must be initialised beforehand
         """
-        super(VGON, self).__init__(*args, **kwargs)
-        self.latent_shape = self.encoder.latent_shape
+        super(VGON, self).__init__(encoder=encoder, decoder=decoder, reconstruction_loss_fn=reconstruction_loss_fn,
+                                   input_shape=[input_shape], latent_shape=latent_shape, **kwargs)
+        self.latent_shape = latent_shape
 
     # This decorator is needed to prevent input shape errors
     @tf.function(input_signature=[tf.TensorSpec([None, None], tf.float32)])

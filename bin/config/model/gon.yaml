@@ -6,5 +6,5 @@ defaults:
   - reconstruction_loss_fn: bernoulli
 
 _target_: vae_ld.models.gons.VGON
-input_shape: [${latent_shape}]
+input_shape: ${latent_shape}
 latent_shape: ${latent_shape}
