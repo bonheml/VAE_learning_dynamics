@@ -1,7 +1,7 @@
 name: gon
 
 defaults:
-  - encoder: convolutional
+  - encoder: gon
   - decoder: convolutional
   - reconstruction_loss_fn: bernoulli
 
