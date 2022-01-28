@@ -23,8 +23,9 @@ class VGON(VAE):
         self.latent_shape = latent_shape
 
     # This decorator is needed to prevent input shape errors
-    @tf.function(input_signature=[tf.TensorSpec([None, None], tf.float32)])
+    @tf.function(input_signature=[tf.TensorSpec([None, None, None, None], tf.float32)])
     def call(self, inputs):
+        logger.info(inputs.shape)
         z_gon = self.backprop_z_gon(inputs)
         z = self.encoder(z_gon)[-1]
         return self.decoder(z)[-1]
