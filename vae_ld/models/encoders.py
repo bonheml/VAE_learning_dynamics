@@ -90,7 +90,7 @@ class MnistEncoder(tf.keras.Model):
     def __init__(self, input_shape, output_shape):
         super(MnistEncoder, self).__init__()
         self.e1 = layers.Conv2D(32, 3, activation="relu", strides=2, padding="same", name="encoder/1",
-                                input_shape=(input_shape,))
+                                input_shape=input_shape)
         self.e2 = layers.Conv2D(64, 3, activation="relu", strides=2, padding="same", name="encoder/2")
         self.e3 = layers.Flatten(name="encoder/3")
         self.e4 = layers.Dense(16, activation="relu", name="encoder/4")
@@ -116,7 +116,7 @@ class GONEncoder(tf.keras.Model):
     def __init__(self, input_shape, output_shape):
         super(GONEncoder, self).__init__()
         self.latent_shape = input_shape
-        self.z_mean = layers.Dense(output_shape, input_shape=input_shape, activation=None, name="encoder/z_mean")
+        self.z_mean = layers.Dense(output_shape, input_shape=(input_shape,), activation=None, name="encoder/z_mean")
         self.z_log_var = layers.Dense(output_shape, activation=None, name="encoder/z_log_var")
         self.z = Sampling(name="encoder/z")
 
