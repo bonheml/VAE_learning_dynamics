@@ -107,3 +107,21 @@ class MnistEncoder(tf.keras.Model):
         z_log_var = self.z_log_var(x4)
         z = self.z([z_mean, z_log_var])
         return x1, x2, x3, x4, z_mean, z_log_var, z
+
+
+class GONEncoder(tf.keras.Model):
+    """ Encoder for GONs containing only mean, log variance and sampled representations
+    """
+
+    def __init__(self, input_shape, output_shape):
+        super(GONEncoder, self).__init__()
+        self.latent_shape = input_shape
+        self.z_mean = layers.Dense(output_shape, input_shape=input_shape, activation=None, name="encoder/z_mean")
+        self.z_log_var = layers.Dense(output_shape, activation=None, name="encoder/z_log_var")
+        self.z = Sampling(name="encoder/z")
+
+    def call(self, inputs):
+        z_mean = self.z_mean(inputs)
+        z_log_var = self.z_log_var(inputs)
+        z = self.z([z_mean, z_log_var])
+        return z_mean, z_log_var, z

@@ -1,0 +1,10 @@
+name: gon
+
+defaults:
+  - encoder: convolutional
+  - decoder: convolutional
+  - reconstruction_loss_fn: bernoulli
+
+_target_: vae_ld.models.gons.VGON
+input_shape: ${dataset.observation_shape}
+latent_shape: ${latent_shape}
