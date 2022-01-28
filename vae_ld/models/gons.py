@@ -22,8 +22,6 @@ class VGON(VAE):
                                    input_shape=[input_shape], latent_shape=latent_shape, **kwargs)
         self.latent_shape = latent_shape
 
-    # This decorator is needed to prevent input shape errors
-    @tf.function(input_signature=[tf.TensorSpec([None, None, None, None], tf.float32)])
     def call(self, inputs):
         logger.debug("Received data of size {} in call".format(tf.shape(inputs)))
         z_gon = self.backprop_z_gon(inputs)
