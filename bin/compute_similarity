@@ -56,7 +56,7 @@ def compute_sim(cfg):
             models_info["m2_epoch"] = get_model_epoch(m2, cfg.dataset.name)
             m2_fname = get_model_filename(m2, cfg.m2_name, cfg.p2_value)
             logger.info("Computing similarity of {} and {}".format(m1, m2))
-            save_path = "{}_{}_{}.tsv".format(cfg.metric.name, m1_fname, m2_fname)
+            save_path = "{}_{}_{}.tsv".format(cfg.similarity_metric.name, m1_fname, m2_fname)
             if pathlib.Path(save_path).exists() and cfg.overwrite is False:
                 logger.info("Skipping already computed similarity for {}".format(save_path))
                 continue
