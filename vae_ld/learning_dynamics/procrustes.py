@@ -1,5 +1,7 @@
 import numpy as np
 
+from vae_ld.learning_dynamics import logger
+
 
 class Procrustes:
     """ Computes Procrustes distance between representations x and y
@@ -24,6 +26,7 @@ class Procrustes:
     def procrustes(self, x, y):
         a = self.normalise(x)
         b = self.normalise(y)
+        logger.debug("Shape of x : {}, shape of y: {}".format(a.shape, b.shape))
         a_sq_frob = np.sum(a ** 2)
         b_sq_frob = np.sum(b ** 2)
         nuc = np.linalg.norm(a @ b.T, ord="nuc")
