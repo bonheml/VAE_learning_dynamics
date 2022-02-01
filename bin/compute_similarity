@@ -38,8 +38,8 @@ def compute_similarity_metric(metric, data, m1_path, m2_path, save_path, models_
 def compute_sim(cfg):
     logger.info("Experiment config:\n{}".format(OmegaConf.to_yaml(cfg)))
     random_state = np.random.RandomState(cfg.seed)
-    logger.info("Instantiating {}...".format(cfg.metric.name))
-    metric = instantiate(cfg.metric)
+    logger.info("Instantiating {}...".format(cfg.similarity_metric.name))
+    metric = instantiate(cfg.similarity_metric)
     logger.info("Instantiating {} dataset".format(cfg.dataset.name))
     dataset = instantiate(cfg.dataset)
     samples = dataset.sample(cfg.n_samples, random_state, unique=True)[1]
