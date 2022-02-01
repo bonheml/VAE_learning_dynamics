@@ -1,8 +1,4 @@
 import numpy as np
-import tensorflow as tf
-import pandas as pd
-
-from vae_ld.learning_dynamics import logger
 
 
 def linear_kernel(x):
@@ -30,9 +26,10 @@ class CKA:
     Adapted from the demo code of "Similarity of Neural Network Representations Revisited", Kornblith et al. 2019
     https://colab.research.google.com/github/google-research/google-research/blob/master/representation_similarity/Demo.ipynb#scrollTo=MkucRi3yn7UJ
     """
-    def __init__(self, kernel=linear_kernel, debiased=False):
+    def __init__(self, name="CKA", kernel=linear_kernel, debiased=False):
         self.kernel = kernel
         self._debiased = debiased
+        self._name = "CKA"
 
     @property
     def kernel(self):
@@ -49,6 +46,10 @@ class CKA:
     @debiased.setter
     def debiased(self, debiased):
         self._debiased = debiased
+
+    @property
+    def name(self):
+        return self._name
 
     def center(self, x):
         x = x.copy()
@@ -70,52 +71,14 @@ class CKA:
             x -= means[None, :]
         return x
 
-    def cka(self, kc, lc):
+    def cka(self, x, y):
         # Note: this method assumes that kc and lc are the centered kernel values given by cka.center(cka.kernel(.))
         # Compute tr(KcLc) = vec(kc)^T vec(lc), omitting the term (m-1)**2, which is canceled by CKA
+        kc = self.center(self.kernel(x))
+        lc = self.center(self.kernel(y))
         hsic = np.dot(kc.ravel(), lc.ravel())
         # Divide by the product of the Frobenius norms of kc and lc to get CKA
         return hsic / (np.linalg.norm(kc, ord="fro") * np.linalg.norm(lc, ord="fro"))
 
     def __call__(self, x, y):
         return self.cka(x, y)
-
-
-def get_activations(data, model_path):
-    model = tf.keras.models.load_model(model_path)
-    acts = model.encoder.predict(data)
-    acts += model.decoder.predict(acts[-1])
-    # Note that one could get weights using l.get_weights() instead of l.name here
-    layer_names = [l.name for l in model.encoder.layers]
-    layer_names += [l.name for l in model.decoder.layers]
-    return model, acts, layer_names
-
-
-def prepare_activations(cka, x):
-    if len(x.shape) > 2:
-        x = x.reshape(x.shape[0], np.prod(x.shape[1:]))
-    kc = cka.center(cka.kernel(x))
-    return kc
-
-
-def compute_models_cka(cka, data, m1_path, m2_path, save_path, models_info):
-    m1, acts1, layers1 = get_activations(data, m1_path)
-    m2, acts2, layers2 = get_activations(data, m2_path)
-    res = {}
-    for i, l1 in enumerate(layers1):
-        logger.info("Preparing layer {} of {}".format(l1, m1_path))
-        kc = prepare_activations(cka, acts1[i])
-        res[l1] = {}
-        for j, l2 in enumerate(layers2):
-            logger.info("Preparing layer {} of {}".format(l2, m2_path))
-            lc = prepare_activations(cka, acts2[j])
-            logger.info("Computing CKA({}, {})".format(l1, l2))
-            res[l1][l2] = cka(kc, lc)
-    res = pd.DataFrame(res).T
-    for k, v in models_info.items():
-        res[k] = v
-    # Save csv with m1 layers as header, m2 layers as indexes
-    res = res.rename_axis("m1", axis="columns")
-    res = res.rename_axis("m2")
-    res.to_csv(save_path, sep="\t")
-

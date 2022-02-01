@@ -23,11 +23,11 @@ setup(
     include_package_data=True,
     scripts=[
         "bin/train",
-        "bin/visualise_cka",
+        "bin/visualise_similarity",
         "bin/visualise_images",
         "bin/get_data_ide",
         "bin/hidalgo",
-        "bin/compute_cka",
+        "bin/compute_similarity",
         "bin/compute_ph",
         "bin/test_dataset",
         "bin/filter_variables"

@@ -4,14 +4,14 @@ import hydra
 from hydra.utils import call
 from omegaconf import OmegaConf
 
-logger = logging.getLogger("visualise_cka")
+logger = logging.getLogger("visualise_similarity")
 
 
-@hydra.main(config_path="config", config_name="cka_visualisation")
-def visualise_cka(cfg):
+@hydra.main(config_path="config", config_name="similarity_visualisation")
+def visualise_similarity(cfg):
     logger.info("Visualisation config:\n{}".format(OmegaConf.to_yaml(cfg)))
     call(cfg.visualisation_tool.fn)
 
 
 if __name__ == "__main__":
-    visualise_cka()
+    visualise_similarity()

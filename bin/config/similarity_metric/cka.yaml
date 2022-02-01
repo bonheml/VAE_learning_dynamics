@@ -1,0 +1,3 @@
+_target_: vae_ld.learning_dynamics.cka.CKA
+debiased: false
+name: cka

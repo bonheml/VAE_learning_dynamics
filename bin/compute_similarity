@@ -1,0 +1,67 @@
+#!/usr/bin/env python
+import logging
+import pathlib
+import hydra
+from hydra.utils import instantiate
+import numpy as np
+from omegaconf import OmegaConf
+from vae_ld.learning_dynamics.utils import get_file_list, get_model_filename, get_model_epoch, get_activations, \
+    prepare_activations
+import pandas as pd
+
+logger = logging.getLogger("similarity_metric")
+
+
+def compute_similarity_metric(metric, data, m1_path, m2_path, save_path, models_info):
+    m1, acts1, layers1 = get_activations(data, m1_path)
+    m2, acts2, layers2 = get_activations(data, m2_path)
+    res = {}
+    for i, l1 in enumerate(layers1):
+        logger.info("Preparing layer {} of {}".format(l1, m1_path))
+        x = prepare_activations(acts1[i])
+        res[l1] = {}
+        for j, l2 in enumerate(layers2):
+            logger.info("Preparing layer {} of {}".format(l2, m2_path))
+            y = prepare_activations(acts2[j])
+            logger.info("Computing similarity of {} and {}".format(l1, l2))
+            res[l1][l2] = metric(x, y)
+    res = pd.DataFrame(res).T
+    for k, v in models_info.items():
+        res[k] = v
+    # Save csv with m1 layers as header, m2 layers as indexes
+    res = res.rename_axis("m1", axis="columns")
+    res = res.rename_axis("m2")
+    res.to_csv(save_path, sep="\t")
+
+
+@hydra.main(config_path="config", config_name="similarity")
+def compute_sim(cfg):
+    logger.info("Experiment config:\n{}".format(OmegaConf.to_yaml(cfg)))
+    random_state = np.random.RandomState(cfg.seed)
+    logger.info("Instantiating {}...".format(cfg.metric.name))
+    metric = instantiate(cfg.metric)
+    logger.info("Instantiating {} dataset".format(cfg.dataset.name))
+    dataset = instantiate(cfg.dataset)
+    samples = dataset.sample(cfg.n_samples, random_state, unique=True)[1]
+    logger.info("Looking for model folders in {}".format(cfg.m1_path))
+    m1_files = get_file_list(cfg.m1_path, cfg.keep_n, cfg.selection_type)
+    logger.info("Looking for model folders in {}".format(cfg.m2_path))
+    m2_files = get_file_list(cfg.m2_path, cfg.keep_n, cfg.selection_type)
+    models_info = {"m1_name": cfg.m1_name, "p1_name": cfg.p1_name, "p1_value": cfg.p1_value, "m1_seed": cfg.m1_seed,
+                   "m2_name": cfg.m2_name, "p2_name": cfg.p2_name, "p2_value": cfg.p2_value, "m2_seed": cfg.m2_seed}
+    for i, m1 in enumerate(m1_files):
+        m1_fname = get_model_filename(m1, cfg.m1_name, cfg.p1_value)
+        models_info["m1_epoch"] = get_model_epoch(m1, cfg.dataset.name)
+        for j, m2 in enumerate(m1_files[i:] if m1_files == m2_files else m2_files):
+            models_info["m2_epoch"] = get_model_epoch(m2, cfg.dataset.name)
+            m2_fname = get_model_filename(m2, cfg.m2_name, cfg.p2_value)
+            logger.info("Computing similarity of {} and {}".format(m1, m2))
+            save_path = "{}_{}_{}.tsv".format(cfg.metric.name, m1_fname, m2_fname)
+            if pathlib.Path(save_path).exists() and cfg.overwrite is False:
+                logger.info("Skipping already computed similarity for {}".format(save_path))
+                continue
+            compute_similarity_metric(metric, samples, m1, m2, save_path, models_info)
+
+
+if __name__ == "__main__":
+    compute_sim()

@@ -21,16 +21,13 @@ m2_path: ${oc.env:XP_PATH}/VAE_ld/train/${m2_name}/${dataset.name}/${p2_value}/$
 defaults:
   - _self_
   - dataset: cars
-
-cka:
-  _target_: vae_ld.learning_dynamics.cka.CKA
-  debiased: false
+  - similarity_metric: cka
 
 hydra:
   run:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${dataset.name}/${m1_name}/param_${p1_value}/seed_${m1_seed}/${m2_name}/param_${p2_value}/seed_${m2_seed}
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${dataset.name}/${similarity_metric.name}/${m1_name}/param_${p1_value}/seed_${m1_seed}/${m2_name}/param_${p2_value}/seed_${m2_seed}
   sweep:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${dataset.name}/${m1_name}/param_${p1_value}/seed_${m1_seed}/${m2_name}/param_${p2_value}
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${dataset.name}/${similarity_metric.name}/${m1_name}/param_${p1_value}/seed_${m1_seed}/${m2_name}/param_${p2_value}
     subdir: seed_${m2_seed}
   job:
     config:

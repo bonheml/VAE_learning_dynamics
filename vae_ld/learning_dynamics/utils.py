@@ -2,6 +2,7 @@ from glob import glob
 from pathlib import Path
 import numpy as np
 from vae_ld.data.util import natural_sort
+import tensorflow as tf
 
 
 def get_model_filename(model, model_name, param_value):
@@ -36,3 +37,26 @@ def get_model_epoch(model, dataset_name):
     # TODO End remove here
         epoch = int(mstem[i:].split("_")[1])
     return epoch
+
+
+def get_activations(data, model_path):
+    model = tf.keras.models.load_model(model_path)
+    acts = model.encoder.predict(data)
+    acts += model.decoder.predict(acts[-1])
+    # Note that one could get weights using l.get_weights() instead of l.name here
+    layer_names = [l.name for l in model.encoder.layers]
+    layer_names += [l.name for l in model.decoder.layers]
+    return model, acts, layer_names
+
+
+def get_weights(model_path):
+    model = tf.keras.models.load_model(model_path)
+    layer_weights = {l.name: l.get_weights() for l in model.encoder.layers}
+    layer_weights += {l.name: l.get_weights() for l in model.decoder.layers}
+    return layer_weights
+
+
+def prepare_activations(x):
+    if len(x.shape) > 2:
+        x = x.reshape(x.shape[0], np.prod(x.shape[1:]))
+    return x

@@ -1,0 +1,20 @@
+dataset_name: cars3d
+m1_name: beta_vae
+metric_name: cka
+overwrite: false
+
+defaults:
+  - _self_
+  - visualisation_tool: heatmap
+
+hydra:
+  run:
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${visualisation_tool.name}/${dataset_name}/${metric_name}/${m1_name}
+  sweep:
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${visualisation_tool.name}/${dataset_name}/${metric_name}
+    subdir: ${m1_name}
+  job:
+    config:
+      override_dirname:
+        kv_sep: _
+        item_sep: /

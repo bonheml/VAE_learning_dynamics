@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 sns.set_style("whitegrid", {'axes.grid': False, 'legend.labelspacing': 1.2})
 
 
-def cka_heatmap(input_file, overwrite):
+def similarity_heatmap(metric_name, input_file, overwrite):
     df = pd.read_csv(input_file, sep="\t", header=0)
     col_order = (["encoder/{}".format(i) for i in range(1, 7)] + ["encoder/z_mean", "encoder/z_log_var", "sampling"] +
                  ["decoder/{}".format(i) for i in range(1, 7)])
@@ -38,62 +38,62 @@ def cka_heatmap(input_file, overwrite):
             continue
 
         logger.info("Computing heatmap of {}".format(cfg))
-        ax = sns.heatmap(df2.pivot("m1", "m2", "cka").reindex(index=col_order, columns=col_order), vmin=0, vmax=1)
+        ax = sns.heatmap(df2.pivot("m1", "m2", metric_name).reindex(index=col_order, columns=col_order), vmin=0, vmax=1)
         ax.set(ylabel="{}, {}={}, seed={}, epoch={}".format(m1n, df2["p1_name"].values[0], p1, s1, e1),
                xlabel="{}, {}={}, seed={}, epoch={}".format(m2n, df2["p2_name"].values[0], p2, s2, e2))
         save_figure(save_path)
 
 
-def avg_cka_layer_pair(input_file, m1_layer, m2_layer, save_file, overwrite):
-    """ Returns a lines plot of the average CKA values between two layers
+def avg_similarity_layer_pair(metric_name, input_file, m1_layer, m2_layer, save_file, overwrite):
+    """ Returns a lines plot of the average similarity values between two layers
     over different epochs with different regularisation strength (one line per regularisation weight).
     """
     save_file = save_file.replace("/", "_")
     if pathlib.Path(save_file).exists() and overwrite is False:
-        logger.info("Skipping already computed heatmap of {}".format(save_file))
+        logger.info("Skipping already computed layer pair of {}".format(save_file))
         return
 
     df = pd.read_csv(input_file, sep="\t", header=0)
-    # Keep only CKA between identical runs, epochs and models
+    # Keep only similarity between identical runs, epochs and models
     df = df[(df["m1_name"] == df["m2_name"]) & (df["m1_seed"] == df["m2_seed"]) & (df["p1_value"] == df["p2_value"])
             & (df["m1_epoch"] == df["m2_epoch"])]
     param = df["p1_name"].values[0]
-    # Keep only CKA between m1 and m2 layers
+    # Keep only similarity between m1 and m2 layers
     df = df[(df["m1"] == m1_layer) & (df["m2"] == m2_layer)]
     df.rename(columns={"p1_value": param, "m1_epoch": "epoch"}, inplace=True)
-    sns.lineplot(data=df, x="epoch", y="cka", hue=param, style=param)
+    sns.lineplot(data=df, x="epoch", y=metric_name, hue=param, style=param)
     save_figure(save_file)
 
 
-def avg_cka_layer_list(input_file, regularisation, layer, target, save_file, overwrite):
-    """ Returns a lines plot of the average CKA values between the mean layer and each decoder layers
+def avg_similarity_layer_list(metric_name, input_file, regularisation, layer, target, save_file, overwrite):
+    """ Returns a lines plot of the average similarity values between the mean layer and each decoder layers
     over different epochs (one line per sampled-decoder similarity score).
     """
     save_file = save_file.replace("/", "_")
     if pathlib.Path(save_file).exists() and overwrite is False:
-        logger.info("Skipping already computed heatmap of {}".format(save_file))
+        logger.info("Skipping already computed layer list of {}".format(save_file))
         return
 
     df = pd.read_csv(input_file, sep="\t", header=0)
-    # Keep only CKA between identical runs, epochs and models
+    # Keep only similarity between identical runs, epochs and models
     df = df[(df["m1_name"] == df["m2_name"]) & (df["m1_seed"] == df["m2_seed"]) & (df["p1_value"] == df["p2_value"]) &
             (df["m1_epoch"] == df["m2_epoch"]) & (df["p1_value"] == regularisation)]
     param = df["p1_name"].values[0]
-    # Keep only CKA between the given encoder layer and any decoder layer
+    # Keep only similarity between the given encoder layer and any decoder layer
     df = df[(df["m1"] == "{}".format(layer)) & (df["m2"].str.contains("{}/[1,2,3,4,5,6]".format(target)))]
     df["m2"] = df["m2"].str.replace("{}/".format(target), "")
     df.rename(columns={"p1_value": param, "m1_epoch": "epoch", "m2": "{} layer".format(target.capitalize())}, inplace=True)
-    sns.lineplot(data=df, x="epoch", y="cka", hue="{} layer".format(target.capitalize()),
+    sns.lineplot(data=df, x="epoch", y=metric_name, hue="{} layer".format(target.capitalize()),
                  style="{} layer".format(target.capitalize()))
     plt.legend(loc="center right")
     save_figure(save_file)
 
 
-def aggregate_cka(input_dir, save_file, overwrite):
-    """ Aggregate CKA results per seed and regularisation strength
+def aggregate_similarity(metric_name, input_dir, save_file, overwrite):
+    """ Aggregate similarity results per seed and regularisation strength
     """
     if pathlib.Path(save_file).exists() and overwrite is False:
-        logger.info("Skipping already computed heatmap of {}".format(save_file))
+        logger.info("Skipping already computed aggregation of {}".format(save_file))
         return
     files = glob("{}/*.tsv".format(input_dir))
     cleaned_dfs = []
@@ -103,7 +103,7 @@ def aggregate_cka(input_dir, save_file, overwrite):
         df = df.reset_index()
         df = df.melt(id_vars=["m1_seed", "m2_seed", "m1_epoch", "m2_epoch", "p1_name", "p2_name", "p1_value",
                               "p2_value", "m2", "m1_name", "m2_name"],
-                     var_name="m1", value_name="cka")
+                     var_name="m1", value_name=metric_name)
         cleaned_dfs.append(df)
     logger.info("Aggregating the dataframes...")
     df = pd.concat(cleaned_dfs)

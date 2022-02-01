@@ -5,7 +5,6 @@ from hydra.utils import instantiate
 from omegaconf import OmegaConf
 import numpy as np
 from vae_ld.learning_dynamics.persistent_homology import compute_persistence
-
 logger = logging.getLogger("compute_persistence")
 
 
