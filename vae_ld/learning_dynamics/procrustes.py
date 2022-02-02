@@ -16,21 +16,21 @@ class Procrustes:
     def name(self):
         return self._name
 
-    def normalise(self, x):
+    def normalise(self, X):
         # Here we use the same normalisation as in "Grounding Representation Similarity with Statistical Testing",
         # Ding et al. 2021
-        x_norm = x - x.mean(axis=1, keepdims=True)
+        x_norm = X - X.mean(axis=1, keepdims=True)
         x_norm /= np.linalg.norm(x_norm)
         return x_norm
 
-    def procrustes(self, x, y):
-        a = self.normalise(x)
-        b = self.normalise(y)
-        logger.debug("Shape of x : {}, shape of y: {}".format(a.shape, b.shape))
-        a_sq_frob = np.sum(a ** 2)
-        b_sq_frob = np.sum(b ** 2)
-        nuc = np.linalg.norm(a @ b.T, ord="nuc")
-        return a_sq_frob + b_sq_frob - 2 * nuc
+    def procrustes(self, X, Y):
+        A = self.normalise(X)
+        B = self.normalise(Y)
+        logger.debug("Shape of x : {}, shape of y: {}".format(A.shape, B.shape))
+        A_sq_frob = np.linalg.norm(A, ord="fro") ** 2
+        B_sq_frob = np.linalg.norm(B, ord="fro") ** 2
+        AB_nuc = np.linalg.norm(A.T @ B, ord="nuc")
+        return A_sq_frob + B_sq_frob - 2 * AB_nuc
 
     def __call__(self, x, y):
         return self.procrustes(x, y)
