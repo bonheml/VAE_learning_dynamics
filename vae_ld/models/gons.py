@@ -39,12 +39,6 @@ class VGON(VAE):
         losses["model_loss"] = self.compute_model_loss(losses["reconstruction_loss"], losses["kl_loss"], z_mean, z_log_var, z)
         return losses
 
-    def update_metrics(self, losses):
-        for m in self.metrics:
-            m.update_state(losses[m.name])
-        loss_res = {m.name: m.result() for m in self.metrics}
-        return loss_res
-
     def backprop_z_gon(self, data):
         logger.debug("Received data of size {} for z_gon backpropagation".format(tf.shape(data)))
         with tf.GradientTape() as inner_tape:
