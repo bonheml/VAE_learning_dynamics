@@ -1,0 +1,2 @@
+_target_: vae_ld.learning_dynamics.procrustes.GPUProcrustes
+name: procrustes
