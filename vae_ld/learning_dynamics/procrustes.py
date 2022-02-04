@@ -54,15 +54,15 @@ class GPUProcrustes:
         # Ding et al. 2021
         X_mean = tf.reduce_mean(X, axis=1, keepdims=True)
         X_centered = X - X_mean
-        X_norm = X_centered / tf.norm(X_centered, ord="fro")
+        X_norm = X_centered / tf.norm(X_centered, ord="fro", axis=(0, 1))
         return X_norm
 
     def procrustes(self, X, Y):
         A = self.normalise(X)
         B = self.normalise(Y)
         logger.debug("Shape of x : {}, shape of y: {}".format(A.shape, B.shape))
-        A_sq_frob = tf.norm(A, ord="fro") ** 2
-        B_sq_frob = tf.norm(B, ord="fro") ** 2
+        A_sq_frob = tf.norm(A, ord="fro", axis=(0, 1)) ** 2
+        B_sq_frob = tf.norm(B, ord="fro", axis=(0, 1)) ** 2
         AB = tf.transpose(A) @ B
         AB_nuc = tf.reduce_sum(tf.linalg.svd(AB, compute_uv=False))
         return (A_sq_frob + B_sq_frob - 2 * AB_nuc).numpy()
