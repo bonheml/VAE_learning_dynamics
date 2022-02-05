@@ -21,7 +21,7 @@ class Procrustes:
         # Here we use the same normalisation as in "Grounding Representation Similarity with Statistical Testing",
         # Ding et al. 2021
         X_norm = X - X.mean(axis=1, keepdims=True)
-        X_norm /= np.linalg.norm(X_norm).astype('float64')
+        X_norm /= np.linalg.norm(X_norm).astype("float64")
         return X_norm
 
     def procrustes(self, X, Y):
@@ -31,9 +31,10 @@ class Procrustes:
         A_sq_frob = np.linalg.norm(A, ord="fro") ** 2
         B_sq_frob = np.linalg.norm(B, ord="fro") ** 2
         AB = A.T @ B
+        logger.debug("Shape of XTY : {}, dtype of XTY: {}".format(AB.shape, AB.dtype))
         # Compute interpolative SVD with relative error < 0.01 to make the computation possible on large convolutional
         # layers
-        AB_nuc = np.sum(svd(AB, 0.01)[1])
+        AB_nuc = np.sum(svd(AB.astype("float64"), 0.01)[1])
         # AB_nuc = np.linalg.norm(AB, ord="nuc")
         return A_sq_frob + B_sq_frob - 2 * AB_nuc
 
