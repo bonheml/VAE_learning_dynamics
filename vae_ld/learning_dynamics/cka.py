@@ -53,7 +53,7 @@ class CKA:
         return self._name
 
     def center(self, x):
-        x = x.copy()
+        x = self.kernel(x.copy())
         if self._debiased:
             # Unbiased version proposed by Szekely, G. J., & Rizzo, M. L. in
             # Partial distance correlation with methods for dissimilarities (2014) and implemented in
@@ -75,11 +75,9 @@ class CKA:
     def cka(self, x, y):
         # Note: this method assumes that kc and lc are the centered kernel values given by cka.center(cka.kernel(.))
         # Compute tr(KcLc) = vec(kc)^T vec(lc), omitting the term (m-1)**2, which is canceled by CKA
-        kc = self.center(self.kernel(x))
-        lc = self.center(self.kernel(y))
-        hsic = np.dot(kc.ravel(), lc.ravel())
+        hsic = np.dot(x.ravel(), y.ravel())
         # Divide by the product of the Frobenius norms of kc and lc to get CKA
-        return hsic / (np.linalg.norm(kc, ord="fro") * np.linalg.norm(lc, ord="fro"))
+        return hsic / (np.linalg.norm(x, ord="fro") * np.linalg.norm(y, ord="fro"))
 
     def __call__(self, x, y):
         return self.cka(x, y)
@@ -111,7 +109,7 @@ class GPUCKA:
         return self._name
 
     def center(self, x):
-        x = tf.identity(x)
+        x = self.kernel(tf.identity(x))
         means = tf.reduce_mean(x, axis=1)
         means -= tf.reduce_mean(means) / 2
         x -= means[:, None]
@@ -121,11 +119,9 @@ class GPUCKA:
     def cka(self, x, y):
         # Note: this method assumes that kc and lc are the centered kernel values given by cka.center(cka.kernel(.))
         # Compute tr(KcLc) = vec(kc)^T vec(lc), omitting the term (m-1)**2, which is canceled by CKA
-        kc = self.center(self.kernel(x))
-        lc = self.center(self.kernel(y))
-        hsic = tf.tensordot(tf.reshape(kc, [-1]), tf.reshape(lc, [-1]), axes=1)
+        hsic = tf.tensordot(tf.reshape(x, [-1]), tf.reshape(y, [-1]), axes=1)
         # Divide by the product of the Frobenius norms of kc and lc to get CKA
-        return (hsic / (tf.norm(kc, ord="fro", axis=(0, 1)) * tf.norm(lc, ord="fro", axis=(0, 1)))).numpy()
+        return (hsic / (tf.norm(x, ord="fro", axis=(0, 1)) * tf.norm(y, ord="fro", axis=(0, 1)))).numpy()
 
     def __call__(self, x, y):
         return self.cka(x, y)
