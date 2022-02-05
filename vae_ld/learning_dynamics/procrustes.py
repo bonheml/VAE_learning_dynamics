@@ -1,6 +1,7 @@
 import numpy as np
 import tensorflow as tf
 from vae_ld.learning_dynamics import logger
+from scipy.linalg.interpolative import svd
 
 
 class Procrustes:
@@ -29,7 +30,11 @@ class Procrustes:
         logger.debug("Shape of x : {}, shape of y: {}".format(A.shape, B.shape))
         A_sq_frob = np.linalg.norm(A, ord="fro") ** 2
         B_sq_frob = np.linalg.norm(B, ord="fro") ** 2
-        AB_nuc = np.linalg.norm(A.T @ B, ord="nuc")
+        AB = A.T @ B
+        # Compute interpolative SVD with relative error < 0.01 to make the computation possible on large convolutional
+        # layers
+        AB_nuc = np.sum(svd(AB, 0.01)[1])
+        # AB_nuc = np.linalg.norm(AB, ord="nuc")
         return A_sq_frob + B_sq_frob - 2 * AB_nuc
 
     def __call__(self, X, Y):
