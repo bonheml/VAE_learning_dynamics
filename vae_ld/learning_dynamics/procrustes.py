@@ -21,7 +21,7 @@ class Procrustes:
         # Here we use the same normalisation as in "Grounding Representation Similarity with Statistical Testing",
         # Ding et al. 2021
         X_norm = X - X.mean(axis=1, keepdims=True)
-        X_norm /= np.linalg.norm(X_norm)
+        X_norm /= np.linalg.norm(X_norm).astype('float64')
         return X_norm
 
     def procrustes(self, X, Y):
