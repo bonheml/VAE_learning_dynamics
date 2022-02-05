@@ -1,7 +1,6 @@
 import numpy as np
 import tensorflow as tf
 from vae_ld.learning_dynamics import logger
-from scipy.linalg.interpolative import svd
 
 
 class Procrustes:
@@ -27,7 +26,7 @@ class Procrustes:
     def procrustes(self, X, Y):
         A = self.center(X)
         B = self.center(Y)
-        logger.debug("Shape of x : {}, shape of y: {}".format(A.shape, B.shape))
+        logger.debug("Shape of X : {}, shape of Y: {}".format(A.shape, B.shape))
 
         # In case dimensionality > nb_samples, we transpose A to get speedup the matrix multiplication done for the
         # Frobenius norm, taking advantage of the fact that the Frobenius norm of a matrix and its transpose are the same
@@ -44,9 +43,7 @@ class Procrustes:
             AB = A.T @ B
         logger.debug("Shape of XTY : {}, dtype of XTY: {}".format(AB.shape, AB.dtype))
 
-        # Compute interpolative SVD with relative error < 0.01 to make the computation possible on large convolutional
-        # layers
-        AB_nuc = np.sum(svd(AB.astype("float64"), 0.01)[1])
+        AB_nuc = np.sum(np.linalg.svd(AB, compute_uv=False))
         # AB_nuc = np.linalg.norm(AB, ord="nuc")
         return A_sq_frob + B_sq_frob - 2 * AB_nuc
 
