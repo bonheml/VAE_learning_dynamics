@@ -21,17 +21,29 @@ class Procrustes:
         # Here we use the same normalisation as in "Grounding Representation Similarity with Statistical Testing",
         # Ding et al. 2021
         X_norm = X - X.mean(axis=1, keepdims=True)
-        X_norm /= np.linalg.norm(X_norm).astype("float64")
+        X_norm /= np.linalg.norm(X_norm)
         return X_norm
 
     def procrustes(self, X, Y):
         A = self.center(X)
         B = self.center(Y)
         logger.debug("Shape of x : {}, shape of y: {}".format(A.shape, B.shape))
-        A_sq_frob = np.linalg.norm(A, ord="fro") ** 2
-        B_sq_frob = np.linalg.norm(B, ord="fro") ** 2
-        AB = A.T @ B
+
+        # In case dimensionality > nb_samples, we transpose A to get speedup the matrix multiplication done for the
+        # Frobenius norm, taking advantage of the fact that the Frobenius norm of a matrix and its transpose are the same
+        A_sq_frob = np.power(np.linalg.norm(A if A.shape[1] < A.shape[0] else A.T, ord="fro"), 2)
+        B_sq_frob = np.power(np.linalg.norm(B if B.shape[1] < B.shape[0] else B.T, ord="fro"), 2)
+
+        # In case both representations have the same shape dimensionality > nb_samples, we transpose B to speedup the
+        # computation of the matrix multiplication. This will not impact the results of the nuclear norm and may speedup
+        # the SVD.
+        if A.shape == B.shape and A.shape[0] < A.shape[1]:
+            AB = A @ B.T
+        # Otherwise, we get AB of shape dim_A * dim_B
+        else:
+            AB = A.T @ B
         logger.debug("Shape of XTY : {}, dtype of XTY: {}".format(AB.shape, AB.dtype))
+
         # Compute interpolative SVD with relative error < 0.01 to make the computation possible on large convolutional
         # layers
         AB_nuc = np.sum(svd(AB.astype("float64"), 0.01)[1])
