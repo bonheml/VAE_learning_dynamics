@@ -1,6 +1,7 @@
 import numpy as np
 import tensorflow as tf
 from vae_ld.learning_dynamics import logger
+import jax.numpy as jnp
 
 
 class Procrustes:
@@ -43,7 +44,7 @@ class Procrustes:
             AB = A.T @ B
         logger.debug("Shape of XTY : {}, dtype of XTY: {}".format(AB.shape, AB.dtype))
 
-        AB_nuc = np.sum(np.linalg.svd(AB, compute_uv=False))
+        AB_nuc = np.sum(jnp.linalg.svd(AB, compute_uv=False))
         # AB_nuc = np.linalg.norm(AB, ord="nuc")
         return A_sq_frob + B_sq_frob - 2 * AB_nuc
 

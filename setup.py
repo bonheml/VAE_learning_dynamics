@@ -49,7 +49,8 @@ setup(
         "seaborn",
         "tensorflow_probability",
         "scipy",
-        "gudhi"
+        "gudhi",
+        "jax"
     ],
     classifiers=[
         "Intended Audience :: Science/Research",
