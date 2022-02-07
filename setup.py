@@ -50,7 +50,7 @@ setup(
         "tensorflow_probability",
         "scipy",
         "gudhi",
-        "jax[cuda]"
+        "jax[cpu]"
     ],
     classifiers=[
         "Intended Audience :: Science/Research",
