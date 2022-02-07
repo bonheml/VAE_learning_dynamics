@@ -2,6 +2,7 @@ dataset_name: cars3d
 m1_name: beta_vae
 metric_name: cka
 overwrite: false
+latent_dim: 10
 
 defaults:
   - _self_
@@ -9,9 +10,9 @@ defaults:
 
 hydra:
   run:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${visualisation_tool.name}/${dataset_name}/${metric_name}/${m1_name}
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/latent_${latent_dim}/${visualisation_tool.name}/${dataset_name}/${metric_name}/${m1_name}
   sweep:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${visualisation_tool.name}/${dataset_name}/${metric_name}
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/latent_${latent_dim}/${visualisation_tool.name}/${dataset_name}/${metric_name}
     subdir: ${m1_name}
   job:
     config:

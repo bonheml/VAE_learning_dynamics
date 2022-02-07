@@ -6,5 +6,5 @@ fn:
   m1_layer: "encoder/z_mean"
   m2_layer: "sampling"
   save_file: ${metric_name}_${dataset_name}_${m1_name}_${visualisation_tool.fn.m1_layer}_${visualisation_tool.fn.m2_layer}.pdf
-  input_file: ${oc.env:XP_PATH}/VAE_ld/visualise_similarity/aggregate/${dataset_name}/${metric_name}/${m1_name}/${metric_name}_${dataset_name}_${m1_name}_agg.tsv
+  input_file: ${oc.env:XP_PATH}/VAE_ld/visualise_similarity/aggregate/latent_${latent_dim}/${dataset_name}/${metric_name}/${m1_name}/${metric_name}_${dataset_name}_${m1_name}_agg.tsv
   overwrite: ${overwrite}
