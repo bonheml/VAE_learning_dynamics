@@ -16,9 +16,9 @@ defaults:
 
 hydra:
   run:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/latent_${latent_dim}/${dataset.name}/${model_name}/latent_${latent_dim}/param_${param_value}/seed_${model_seed}
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/latent_${latent_dim}/${dataset.name}/${model_name}/param_${param_value}/seed_${model_seed}
   sweep:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/latent_${latent_dim}/${dataset.name}/${model_name}/latent_${latent_dim}/param_${param_value}
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/latent_${latent_dim}/${dataset.name}/${model_name}/param_${param_value}
     subdir: seed_${model_seed}
   job:
     config:
