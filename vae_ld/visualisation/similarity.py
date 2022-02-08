@@ -1,4 +1,3 @@
-import itertools
 import pathlib
 
 import seaborn as sns
@@ -13,35 +12,56 @@ sns.set_style("whitegrid", {'axes.grid': False, 'legend.labelspacing': 1.2})
 
 def similarity_heatmap(metric_name, input_file, overwrite):
     df = pd.read_csv(input_file, sep="\t", header=0)
+    grouped_df = df.groupby(["m1_name", "p1_value", "m1_seed", "m1_epoch", "m2_name", "p2_value", "m2_seed",
+                             "m2_epoch"])
+    group_names = grouped_df.groups.keys()
     col_order = (["encoder/{}".format(i) for i in range(1, 7)] + ["encoder/z_mean", "encoder/z_log_var", "sampling"] +
                  ["decoder/{}".format(i) for i in range(1, 7)])
-    df = df[~(df["m1"].isin(["decoder/reshape", "decoder/output"])) &
-            ~(df["m2"].isin(["decoder/reshape", "decoder/output"]))]
-    params = itertools.product(df["m1_name"].unique().tolist(), df["m2_name"].unique().tolist(),
-                               df["p1_value"].unique().tolist(), df["p2_value"].unique().tolist(),
-                               df["m1_seed"].unique().tolist(), df["m2_seed"].unique().tolist(),
-                               df["m1_epoch"].unique().tolist(), df["m2_epoch"].unique().tolist())
 
-    for m1n, m2n, p1, p2, s1, s2, e1, e2 in params:
-        cfg = "{}, param={}, seed={}, epoch={} and {}, param={}, seed={}, epoch={}".format(m1n, p1, s1, e1, m2n, p2, s2,
-                                                                                           e2)
-        save_path = "{}_{}_seed_{}_epoch_{}_{}_{}_seed_{}_epoch_{}.pdf".format(m1n, p1, s1, e1, m2n, p2, s2, e2)
+    for group_name in group_names:
+        cfg = "{}, param={}, seed={}, epoch={} and {}, param={}, seed={}, epoch={}".format(*group_name)
+        save_path = "{}_{}_seed_{}_epoch_{}_{}_{}_seed_{}_epoch_{}.pdf".format(*group_name)
 
-        if pathlib.Path(save_path).exists() and overwrite is False:
-            logger.info("Skipping already computed heatmap of {}".format(cfg))
+        if overwrite is False and pathlib.Path(save_path).exists():
+            logger.info("Skipping already plotted heatmap of {}".format(cfg))
             continue
 
-        df2 = df[(df["m1_name"] == m1n) & (df["m2_name"] == m2n) & (df["p1_value"] == p1) & (df["p2_value"] == p2)
-                 & (df["m1_seed"] == s1) & (df["m2_seed"] == s2) & (df["m1_epoch"] == e1) & (df["m2_epoch"] == e2)]
-        if df2.empty:
-            logger.info("Skipping empty config of {}".format(cfg))
-            continue
-
-        logger.info("Computing heatmap of {}".format(cfg))
-        ax = sns.heatmap(df2.pivot("m1", "m2", metric_name).reindex(index=col_order, columns=col_order), vmin=0, vmax=1)
-        ax.set(ylabel="{}, {}={}, seed={}, epoch={}".format(m1n, df2["p1_name"].values[0], p1, s1, e1),
-               xlabel="{}, {}={}, seed={}, epoch={}".format(m2n, df2["p2_name"].values[0], p2, s2, e2))
+        group = grouped_df.get_group(group_name)
+        logger.info("Plotting heatmap of {}".format(cfg))
+        ax = sns.heatmap(group.pivot("m1", "m2", metric_name).reindex(index=col_order, columns=col_order), vmin=0, vmax=1)
+        ax.set(ylabel="{}, {}={}, seed={}, epoch={}".format(group_name[0], group["p1_name"].values[0], *group_name[1:4]),
+               xlabel="{}, {}={}, seed={}, epoch={}".format(group_name[4], group["p2_name"].values[0], *group_name[5:]))
         save_figure(save_path)
+
+    # col_order = (["encoder/{}".format(i) for i in range(1, 7)] + ["encoder/z_mean", "encoder/z_log_var", "sampling"] +
+    #              ["decoder/{}".format(i) for i in range(1, 7)])
+    # df = df[~(df["m1"].isin(["decoder/reshape", "decoder/output"])) &
+    #         ~(df["m2"].isin(["decoder/reshape", "decoder/output"]))]
+    # params = itertools.product(df["m1_name"].unique().tolist(), df["m2_name"].unique().tolist(),
+    #                            df["p1_value"].unique().tolist(), df["p2_value"].unique().tolist(),
+    #                            df["m1_seed"].unique().tolist(), df["m2_seed"].unique().tolist(),
+    #                            df["m1_epoch"].unique().tolist(), df["m2_epoch"].unique().tolist())
+    #
+    # for m1n, m2n, p1, p2, s1, s2, e1, e2 in params:
+    #     cfg = "{}, param={}, seed={}, epoch={} and {}, param={}, seed={}, epoch={}".format(m1n, p1, s1, e1, m2n, p2, s2,
+    #                                                                                        e2)
+    #     save_path = "{}_{}_seed_{}_epoch_{}_{}_{}_seed_{}_epoch_{}.pdf".format(m1n, p1, s1, e1, m2n, p2, s2, e2)
+    #
+    #     if pathlib.Path(save_path).exists() and overwrite is False:
+    #         logger.info("Skipping already computed heatmap of {}".format(cfg))
+    #         continue
+    #
+    #     df2 = df[(df["m1_name"] == m1n) & (df["m2_name"] == m2n) & (df["p1_value"] == p1) & (df["p2_value"] == p2)
+    #              & (df["m1_seed"] == s1) & (df["m2_seed"] == s2) & (df["m1_epoch"] == e1) & (df["m2_epoch"] == e2)]
+    #     if df2.empty:
+    #         logger.info("Skipping empty config of {}".format(cfg))
+    #         continue
+    #
+    #     logger.info("Computing heatmap of {}".format(cfg))
+    #     ax = sns.heatmap(df2.pivot("m1", "m2", metric_name).reindex(index=col_order, columns=col_order), vmin=0, vmax=1)
+    #     ax.set(ylabel="{}, {}={}, seed={}, epoch={}".format(m1n, df2["p1_name"].values[0], p1, s1, e1),
+    #            xlabel="{}, {}={}, seed={}, epoch={}".format(m2n, df2["p2_name"].values[0], p2, s2, e2))
+    #     save_figure(save_path)
 
 
 def avg_similarity_layer_pair(metric_name, input_file, m1_layer, m2_layer, save_file, overwrite):
