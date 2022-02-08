@@ -41,7 +41,7 @@ def get_model_epoch(model, dataset_name):
 
 def get_activations(data, model_path):
     model = tf.keras.models.load_model(model_path)
-    acts = [data] + model.encoder.predict(data)
+    acts = (data,) + model.encoder.predict(data)
     acts += model.decoder.predict(acts[-1])
     # Note that one could get weights using l.get_weights() instead of l.name here
     layer_names = ["input"] + [l.name for l in model.encoder.layers]
