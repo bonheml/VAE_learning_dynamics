@@ -15,8 +15,8 @@ def similarity_heatmap(metric_name, input_file, overwrite):
     grouped_df = df.groupby(["m1_name", "p1_value", "m1_seed", "m1_epoch", "m2_name", "p2_value", "m2_seed",
                              "m2_epoch"])
     group_names = grouped_df.groups.keys()
-    col_order = (["encoder/{}".format(i) for i in range(1, 7)] + ["encoder/z_mean", "encoder/z_log_var", "sampling"] +
-                 ["decoder/{}".format(i) for i in range(1, 7)])
+    col_order = (["input"] + ["encoder/{}".format(i) for i in range(1, 7)] +
+                 ["encoder/z_mean", "encoder/z_log_var", "sampling"] + ["decoder/{}".format(i) for i in range(1, 7)])
 
     for group_name in group_names:
         cfg = "{}, param={}, seed={}, epoch={} and {}, param={}, seed={}, epoch={}".format(*group_name)
