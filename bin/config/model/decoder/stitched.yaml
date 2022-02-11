@@ -1,0 +1,6 @@
+_target_: vae_ld.models.stitched_models.prepare_pretrained_models
+m1_path: ${m1_path}
+m2_path: ${m2_path}
+target: decoder
+last_m1: null
+first_m2: null

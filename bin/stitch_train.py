@@ -1,0 +1,64 @@
+#!/usr/bin/env python
+import glob
+import logging
+from pathlib import Path
+import hydra
+import tensorflow as tf
+from hydra.utils import instantiate
+from omegaconf import OmegaConf
+import numpy as np
+
+from vae_ld.data.util import natural_sort
+
+logger = logging.getLogger("stitch_train")
+
+
+@hydra.main(config_path="config", config_name="stitch_training")
+def train(cfg):
+    tf.config.set_visible_devices([], 'GPU')
+    logger.info("Model config:\n{}".format(OmegaConf.to_yaml(cfg)))
+    logger.info("Ensuring Tensorflow and Numpy are seeded...")
+    tf.random.set_seed(cfg.seed)
+    random_state = np.random.RandomState(cfg.seed)
+
+    logger.info("Creating the optimiser...")
+    optimizer = instantiate(cfg.optimizer)
+
+    logger.info("Retrieving the data...")
+    train_sampler = instantiate(cfg.sampling)
+    test_sampler = instantiate(cfg.sampling)
+    test_sampler.validation = True
+
+    logger.info("Instantiating callbacks and creating subdirectories for callback logs...")
+    callbacks = []
+    for k, v in cfg.callbacks.items():
+        if k == "image_generator":
+            data_callback = train_sampler.data.sample(v.nb_samples, random_state)[1]
+            greyscale = cfg.dataset.observation_shape[2] == 1
+            callbacks.append(instantiate(v, data=data_callback, greyscale=greyscale))
+        else:
+            callbacks.append(instantiate(v))
+        if ("filepath" or "logdir") in v.keys():
+            path = Path(k)
+            path.mkdir(parents=True, exist_ok=True)
+            if k == "checkpoint":
+                checkpoint = glob.glob("{}/*".format(path))
+                checkpoint.sort(key=natural_sort)
+                checkpoint = checkpoint[-1] if checkpoint != [] else None
+
+    steps_per_epochs = train_sampler.data.data_size // cfg.batch_size
+    epochs = max(cfg.training_steps // steps_per_epochs, 1)
+
+    logger.info("Creating the model...")
+    model = instantiate(cfg.model)
+    # Note that run_eagerly must be set to true to allow data generator on custom models
+    model.compile(optimizer=optimizer, run_eagerly=True)
+
+    logger.info("Starting model training...")
+    hist = model.fit(train_sampler, epochs=epochs, batch_size=cfg.batch_size, callbacks=callbacks,
+                     validation_data=test_sampler)
+    model.save("checkpoint/epoch_{}_model_loss_{}".format(epochs, hist.history["model_loss"][-1]))
+
+
+if __name__ == "__main__":
+    train()

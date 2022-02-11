@@ -1,0 +1,43 @@
+batch_size: 64
+training_steps: 300000
+latent_shape: 10
+seed: 0
+param_value: 1
+
+m1_name: beta_vae
+p1_value: 1
+m1_seed: 0
+m1_epoch: 25
+
+m2_name: ${m1_name}
+p2_value: ${p1_value}
+m2_seed: ${m1_seed}
+m2_epoch: ${m1_epoch}
+
+m1_path: ${oc.env:XP_PATH}/VAE_ld/train/latent_${latent_dim}/${m1_name}/${dataset.name}/${p1_value}/${m1_seed}/checkpoint/epoch_${m1_epoch}*
+m2_path: ${oc.env:XP_PATH}/VAE_ld/train/latent_${latent_dim}/${m2_name}/${dataset.name}/${p2_value}/${m2_seed}/checkpoint/epoch_${m2_epoch}*
+
+defaults:
+  - _self_
+  - dataset: cars
+  - sampling: sampler
+  - optimizer: adam
+  - model: beta_vae
+  - model/encoder: stitched
+  - model/decoder: stitched
+  - callbacks:
+    - model_checkpoint
+    - tensorboard
+    - image_generator
+
+hydra:
+  run:
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/latent_${latent_shape}/${model.name}/${dataset.name}/${param_value}/${seed}
+  sweep:
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/latent_${latent_shape}/${model.name}/${dataset.name}/${param_value}
+    subdir: ${seed}
+  job:
+    config:
+      override_dirname:
+        kv_sep: _
+        item_sep: /

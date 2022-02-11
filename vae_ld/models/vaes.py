@@ -1,7 +1,5 @@
 import tensorflow as tf
 from tensorflow import math as tfm
-from tensorflow.keras.models import Sequential
-from tensorflow.keras import layers
 
 from vae_ld.models import logger
 from vae_ld.models.vae_utils import compute_gaussian_kl, compute_batch_tc, compute_covariance, shuffle_z
@@ -281,40 +279,3 @@ class DIPVAE(VAE):
             cov += tf.reduce_mean(tf.linalg.diag(tf.exp(z_log_var)), axis=0)
         reg_kl_loss = self.compute_dip_reg(cov) + kl_loss
         return tf.add(reconstruction_loss, reg_kl_loss)
-
-
-def get_stitching_layer(prev_layer, next_layer):
-    if type(next_layer) == layers.Dense:
-        return layers.Dense(next_layer.input_shape[1], name="stitch")
-    if type(next_layer) == layers.Conv2D:
-        return layers.Conv2D(prev_layer.filters, 1, name="stitch")
-    if type(next_layer) == layers.Conv2DTranspose:
-        return layers.Conv2DTranspose(prev_layer.filters, 1, name="stitch")
-
-
-def stitch_submodel(m1, m2, last_m1, first_m2):
-    model = Sequential()
-
-    # Freeze the weights of the pretrained submodels
-    m1.trainable = False
-    m2.trainable = False
-    last_layer_m1 = None
-
-    # Assign the first N layers of m1 to the new submodel
-    for layer in m1.layers:
-        model.add(layer)
-        if layer.name == last_m1:
-            last_layer_m1 = layer
-            break
-
-    # Add stitching layer and assign the last M layers of m2 to the new submodel
-    skip = True
-    for layer in m2.layers:
-        if layer.name == first_m2:
-            skip = False
-            # Add the stitching layer
-            model.add(get_stitching_layer(last_layer_m1, layer))
-        if skip is False:
-            model.add(layer)
-
-    return model
