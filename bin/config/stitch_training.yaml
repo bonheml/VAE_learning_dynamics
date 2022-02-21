@@ -21,15 +21,16 @@ target: decoder
 m1_path: ${oc.env:XP_PATH}/VAE_ld/train/latent_${latent_dim}/${m1_name}/${dataset.name}/${p1_value}/${m1_seed}/checkpoint/epoch_${m1_epoch}*
 m2_path: ${oc.env:XP_PATH}/VAE_ld/train/latent_${latent_dim}/${m2_name}/${dataset.name}/${p2_value}/${m2_seed}/checkpoint/epoch_${m2_epoch}*
 
-# @package _global_
+
 defaults:
-  - /dataset: cars
-  - /sampling: sampler
-  - /optimizer: adam
-  - /model: beta_vae
-  - override /model/encoder: stitched
-  - override /model/decoder: stitched
-  - /callbacks:
+  - _self_
+  - dataset: cars
+  - sampling: sampler
+  - optimizer: adam
+  - model: beta_vae
+  - override model/encoder: stitched
+  - override model/decoder: stitched
+  - callbacks:
     - model_checkpoint
     - tensorboard
     - image_generator
