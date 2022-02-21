@@ -27,7 +27,7 @@ def filter_vars(cfg):
 
     for i, m in enumerate(model_files):
         save_file = "{}.tsv".format(get_model_filename(m, cfg.model_name, cfg.param_value))
-        models_info["model_epoch"] = get_model_epoch(m, cfg.dataset.name)
+        models_info["model_epoch"] = get_model_epoch(m)
         df = filter_variables(samples, m, save_file, var_threshold=cfg.var_threshold,
                               mean_error_range=cfg.mean_error_range, batch_size=cfg.batch_size)
         for k, v in models_info.items():

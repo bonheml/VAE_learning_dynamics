@@ -51,9 +51,9 @@ def compute_sim(cfg):
                    "m2_name": cfg.m2_name, "p2_name": cfg.p2_name, "p2_value": cfg.p2_value, "m2_seed": cfg.m2_seed}
     for i, m1 in enumerate(m1_files):
         m1_fname = get_model_filename(m1, cfg.m1_name, cfg.p1_value)
-        models_info["m1_epoch"] = get_model_epoch(m1, cfg.dataset.name)
+        models_info["m1_epoch"] = get_model_epoch(m1)
         for j, m2 in enumerate(m1_files[i:] if m1_files == m2_files else m2_files):
-            models_info["m2_epoch"] = get_model_epoch(m2, cfg.dataset.name)
+            models_info["m2_epoch"] = get_model_epoch(m2)
             m2_fname = get_model_filename(m2, cfg.m2_name, cfg.p2_value)
             logger.info("Computing similarity of {} and {}".format(m1, m2))
             save_path = "{}_{}_{}.tsv".format(cfg.similarity_metric.name, m1_fname, m2_fname)

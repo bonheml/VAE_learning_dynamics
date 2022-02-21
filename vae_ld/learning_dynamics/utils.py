@@ -22,20 +22,10 @@ def get_file_list(model_path, keep_n=0, selection_type="even"):
     return m_files
 
 
-def get_model_epoch(model, dataset_name):
+def get_model_epoch(model):
     mstem = Path(model).stem
     i = mstem.find("epoch_")
-    # TODO remove hard-coded epochs
-    last_epoch = 26
-    if dataset_name == "cars3d":
-        last_epoch = 1090
-    elif dataset_name == "smallnorb":
-        last_epoch = 410
-    if i == -1:
-        epoch = last_epoch
-    else:
-    # TODO End remove here
-        epoch = int(mstem[i:].split("_")[1])
+    epoch = int(mstem[i:].split("_")[1])
     return epoch
 
 
