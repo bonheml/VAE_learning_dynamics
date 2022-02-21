@@ -14,10 +14,6 @@ p2_value: ${p1_value}
 m2_seed: ${m1_seed}
 m2_epoch: ${m1_epoch}
 
-last_m1: decoder/3
-first_m2: decoder/4
-target: decoder
-
 m1_path: ${oc.env:XP_PATH}/VAE_ld/train/latent_${latent_shape}/${m1_name}/${dataset.name}/${p1_value}/${m1_seed}/checkpoint/epoch_${m1_epoch}*
 m2_path: ${oc.env:XP_PATH}/VAE_ld/train/latent_${latent_shape}/${m2_name}/${dataset.name}/${p2_value}/${m2_seed}/checkpoint/epoch_${m2_epoch}*
 
@@ -34,6 +30,8 @@ defaults:
     - image_generator
   - override model/encoder: stitched
   - override model/decoder: stitched
+  - model/decoder.last_m1: decoder/3
+  - model/decoder.first_m2: decoder/4
 
 hydra:
   run:
