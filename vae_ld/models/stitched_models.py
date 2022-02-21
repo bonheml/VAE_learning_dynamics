@@ -3,6 +3,8 @@ import glob
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras import layers
 
+from vae_ld.models import logger
+
 
 def get_stitching_layer(prev_layer):
     if type(prev_layer) == layers.Dense:
@@ -45,6 +47,7 @@ def stitch_submodel(m1, m2, last_m1, first_m2):
 def prepare_pretrained_models(m1_path, m2_path, target, last_m1=None, first_m2=None):
     m1_path = glob.glob(m1_path)[0]
     m2_path = glob.glob(m2_path)[0]
+    logger.info("Stitch {} and {} from layer {} to {}".format(m1_path, m2_path, last_m1, first_m2))
     m1 = load_model(m1_path)
     m2 = load_model(m2_path)
     sub_model_1 = m1.encoder if target == "encoder" else m1.decoder
