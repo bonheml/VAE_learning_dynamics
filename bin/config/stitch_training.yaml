@@ -30,8 +30,6 @@ defaults:
     - image_generator
   - override model/encoder: stitched
   - override model/decoder: stitched
-  - model/decoder.last_m1: decoder/3
-  - model/decoder.first_m2: decoder/4
 
 hydra:
   run:
