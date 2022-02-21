@@ -27,12 +27,13 @@ defaults:
   - sampling: sampler
   - optimizer: adam
   - model: beta_vae
-  - model/encoder: stitched
-  - model/decoder: stitched
   - callbacks:
     - model_checkpoint
     - tensorboard
     - image_generator
+
+override model/encoder: stitched
+override model/decoder: stitched
 
 hydra:
   run:
