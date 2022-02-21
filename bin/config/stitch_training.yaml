@@ -32,9 +32,6 @@ defaults:
     - tensorboard
     - image_generator
 
-override model/encoder: stitched
-override model/decoder: stitched
-
 hydra:
   run:
     dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/latent_${latent_shape}/${model.name}/${dataset.name}/${param_value}/${seed}
