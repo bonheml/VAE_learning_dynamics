@@ -1,6 +1,7 @@
 name: beta_vae
 
 defaults:
+  - _self_
   - encoder: convolutional
   - decoder: convolutional
   - reconstruction_loss_fn: bernoulli

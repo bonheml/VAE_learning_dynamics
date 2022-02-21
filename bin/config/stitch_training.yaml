@@ -27,6 +27,8 @@ defaults:
   - sampling: sampler
   - optimizer: adam
   - model: beta_vae
+  - model/encoder: stitched
+  - model/decoder: stitched
   - callbacks:
     - model_checkpoint
     - tensorboard
