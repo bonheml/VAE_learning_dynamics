@@ -1,8 +1,6 @@
 import glob
-
-from tensorflow.keras.models import Sequential, load_model
+from tensorflow.keras.models import Sequential, load_model, Model
 from tensorflow.keras import layers
-
 from vae_ld.models import logger
 
 
@@ -41,7 +39,13 @@ def stitch_submodel(m1, m2, last_m1, first_m2):
         if skip is False:
             model.add(layer)
 
-    return model
+    # Return all the intermediate activations, as done in the initial model
+    final_model = Model(
+        inputs=model.inputs,
+        outputs=[layer.output for layer in model.layers],
+    )
+
+    return final_model
 
 
 def prepare_pretrained_models(m1_path, m2_path, target, last_m1=None, first_m2=None):
