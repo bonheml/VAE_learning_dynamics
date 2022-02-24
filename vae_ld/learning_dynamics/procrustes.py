@@ -26,7 +26,7 @@ class Procrustes:
         # X_norm = X - X.mean(axis=1, keepdims=True)
         # X_norm /= np.linalg.norm(X_norm)
         X_max = tf.reduce_max(X, axis=[0, 1, 2])
-        X_min = tf.reduce_max(X, axis=[0, 1, 2])
+        X_min = tf.reduce_min(X, axis=[0, 1, 2])
         X_norm = (X - X_min) / (X_max - X_min)
         return X_norm
 
@@ -83,7 +83,7 @@ class GPUProcrustes:
         # X_centered = X - X_mean
         # X_norm = X_centered / tf.norm(X_centered, ord="fro", axis=(0, 1))
         X_max = tf.reduce_max(X, axis=[0, 1, 2])
-        X_min = tf.reduce_max(X, axis=[0, 1, 2])
+        X_min = tf.reduce_min(X, axis=[0, 1, 2])
         X_norm = (X - X_min) / (X_max - X_min)
         return X_norm
 
