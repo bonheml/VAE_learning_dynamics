@@ -14,6 +14,7 @@ p2_value: ${p1_value}
 m2_seed: ${m1_seed}
 m2_epoch: ${m1_epoch}
 
+
 m1_path: ${oc.env:XP_PATH}/VAE_ld/train/latent_${latent_shape}/${m1_name}/${dataset.name}/${p1_value}/${m1_seed}/checkpoint/epoch_${m1_epoch}*
 m2_path: ${oc.env:XP_PATH}/VAE_ld/train/latent_${latent_shape}/${m2_name}/${dataset.name}/${p2_value}/${m2_seed}/checkpoint/epoch_${m2_epoch}*
 
@@ -33,10 +34,13 @@ defaults:
 
 hydra:
   run:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/latent_${latent_shape}/${model.name}/${dataset.name}/${param_value}/${seed}
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/latent_${latent_shape}/${dataset.name}/${m1_name}/${p1_value}/
+    ${m1_seed}/${m2_name}/${p2_value}/${m2_seed}/encoder_${mode.encoder.last_m1}_${mode.encoder.first_m2}/
+    decoder_${mode.decoder.last_m1}_${mode.decoder.first_m2}
   sweep:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/latent_${latent_shape}/${model.name}/${dataset.name}/${param_value}
-    subdir: ${seed}
+    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/latent_${latent_shape}/${dataset.name}/${m1_name}/${p1_value}/
+    ${m1_seed}/${m2_name}/${p2_value}/${m2_seed}/encoder_${mode.encoder.last_m1}_${mode.encoder.first_m2}
+    subdir: decoder_${mode.decoder.last_m1}_${mode.decoder.first_m2}
   job:
     config:
       override_dirname:
