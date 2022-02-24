@@ -22,9 +22,15 @@ class Procrustes:
 
     def center(self, X):
         # Here we use the same normalisation as in "Grounding Representation Similarity with Statistical Testing",
-        # Ding et al. 2021
-        X_norm = X - X.mean(axis=1, keepdims=True)
-        X_norm /= np.linalg.norm(X_norm)
+        # Ding et al. 2021, however, it gives inconsistent results.
+        # X_norm = X - X.mean(axis=1, keepdims=True)
+        # X_norm /= np.linalg.norm(X_norm)
+        # Instead, we use the batch normalisation formula from "Batch Normalization: Accelerating Deep Network Training
+        # by Reducing Internal Covariate Shift" Loffe et Szegedy, 2015 with offset of 0 and scale of 1:
+        # (x - mu) / sigma
+        mu, sigma = tf.nn.moments(X, keepdims=False)
+        X_norm = tf.nn.batch_normalization(X, mu, sigma)
+
         return X_norm
 
     def procrustes(self, X, Y):
@@ -75,10 +81,16 @@ class GPUProcrustes:
 
     def center(self, X):
         # Here we use the same normalisation as in "Grounding Representation Similarity with Statistical Testing",
-        # Ding et al. 2021
-        X_mean = tf.reduce_mean(X, axis=1, keepdims=True)
-        X_centered = X - X_mean
-        X_norm = X_centered / tf.norm(X_centered, ord="fro", axis=(0, 1))
+        # Ding et al. 2021, however, it gives inconsistent results
+        # X_mean = tf.reduce_mean(X, axis=1, keepdims=True)
+        # X_centered = X - X_mean
+        # X_norm = X_centered / tf.norm(X_centered, ord="fro", axis=(0, 1))
+        # Instead, we use the batch normalisation formula from "Batch Normalization: Accelerating Deep Network Training
+        # by Reducing Internal Covariate Shift" Loffe et Szegedy, 2015 with offset of 0 and scale of 1:
+        # (x - mu) / sigma
+
+        mu, sigma = tf.nn.moments(X, keepdims=False)
+        X_norm = tf.nn.batch_normalization(X, mu, sigma)
         return X_norm
 
     def procrustes(self, X, Y):
