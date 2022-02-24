@@ -81,7 +81,8 @@ def avg_similarity_layer_pair(metric_name, input_file, m1_layer, m2_layer, save_
     # Keep only similarity between m1 and m2 layers
     df = df[(df["m1"] == m1_layer) & (df["m2"] == m2_layer)]
     df.rename(columns={"p1_value": param, "m1_epoch": "epoch"}, inplace=True)
-    sns.lineplot(data=df, x="epoch", y=metric_name, hue=param, style=param)
+    ax = sns.lineplot(data=df, x="epoch", y=metric_name, hue=param, style=param)
+    ax.set(ylim=(0, 1))
     save_figure(save_file)
 
 
@@ -103,8 +104,9 @@ def avg_similarity_layer_list(metric_name, input_file, regularisation, layer, ta
     df = df[(df["m1"] == "{}".format(layer)) & (df["m2"].str.contains("{}/[1,2,3,4,5,6]".format(target)))]
     df["m2"] = df["m2"].str.replace("{}/".format(target), "")
     df.rename(columns={"p1_value": param, "m1_epoch": "epoch", "m2": "{} layer".format(target.capitalize())}, inplace=True)
-    sns.lineplot(data=df, x="epoch", y=metric_name, hue="{} layer".format(target.capitalize()),
-                 style="{} layer".format(target.capitalize()))
+    ax = sns.lineplot(data=df, x="epoch", y=metric_name, hue="{} layer".format(target.capitalize()),
+                      style="{} layer".format(target.capitalize()))
+    ax.set(ylim=(0, 1))
     plt.legend(loc="center right")
     save_figure(save_file)
 
