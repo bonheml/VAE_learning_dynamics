@@ -23,8 +23,11 @@ class Procrustes:
     def center(self, X):
         # Here we use the same normalisation as in "Grounding Representation Similarity with Statistical Testing",
         # Ding et al. 2021.
-        X_norm = X - X.mean(axis=1, keepdims=True)
-        X_norm /= np.linalg.norm(X_norm)
+        # X_norm = X - X.mean(axis=1, keepdims=True)
+        # X_norm /= np.linalg.norm(X_norm)
+        X_max = tf.reduce_max(X, axis=[0, 1, 2])
+        X_min = tf.reduce_max(X, axis=[0, 1, 2])
+        X_norm = (X - X_min) / (X_max - X_min)
         return X_norm
 
     def procrustes(self, X, Y):
@@ -76,9 +79,12 @@ class GPUProcrustes:
     def center(self, X):
         # Here we use the same normalisation as in "Grounding Representation Similarity with Statistical Testing",
         # Ding et al. 2021
-        X_mean = tf.reduce_mean(X, axis=1, keepdims=True)
-        X_centered = X - X_mean
-        X_norm = X_centered / tf.norm(X_centered, ord="fro", axis=(0, 1))
+        # X_mean = tf.reduce_mean(X, axis=1, keepdims=True)
+        # X_centered = X - X_mean
+        # X_norm = X_centered / tf.norm(X_centered, ord="fro", axis=(0, 1))
+        X_max = tf.reduce_max(X, axis=[0, 1, 2])
+        X_min = tf.reduce_max(X, axis=[0, 1, 2])
+        X_norm = (X - X_min) / (X_max - X_min)
         return X_norm
 
     def procrustes(self, X, Y):
