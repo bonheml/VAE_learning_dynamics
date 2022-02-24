@@ -15,9 +15,9 @@ logger = logging.getLogger("similarity_metric")
 def compute_similarity_metric(metric, data, m1_path, m2_path, save_path, models_info):
     m1, acts1, layers1 = get_activations(data, m1_path)
     m2, acts2, layers2 = get_activations(data, m2_path)
-    logger.info("Preparing layers of {}".format(m1_path))
+    logger.info("Preparing layer activations of {}".format(m1_path))
     acts1 = [metric.center(prepare_activations(act)) for act in acts1]
-    logger.info("Preparing layers of {}".format(m2_path))
+    logger.info("Preparing layer activations of {}".format(m2_path))
     acts2 = [metric.center(prepare_activations(act)) for act in acts2]
     res = {}
     for i, l1 in enumerate(layers1):
