@@ -15,14 +15,16 @@ logger = logging.getLogger("similarity_metric")
 def compute_similarity_metric(metric, data, m1_path, m2_path, save_path, models_info):
     m1, acts1, layers1 = get_activations(data, m1_path)
     m2, acts2, layers2 = get_activations(data, m2_path)
+    logger.info("Preparing layers of {}".format(m1_path))
+    acts1 = [metric.center(prepare_activations(act)) for act in acts1]
+    logger.info("Preparing layers of {}".format(m2_path))
+    acts2 = [metric.center(prepare_activations(act)) for act in acts2]
     res = {}
     for i, l1 in enumerate(layers1):
-        logger.info("Preparing layer {} of {}".format(l1, m1_path))
-        x = metric.center(prepare_activations(acts1[i]))
+        x = acts1[i]
         res[l1] = {}
         for j, l2 in enumerate(layers2):
-            logger.info("Preparing layer {} of {}".format(l2, m2_path))
-            y = metric.center(prepare_activations(acts2[j]))
+            y = acts2[j]
             logger.info("Computing similarity of {} and {}".format(l1, l2))
             res[l1][l2] = metric(x, y)
     res = pd.DataFrame(res).T
