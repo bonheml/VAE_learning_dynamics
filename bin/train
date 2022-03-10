@@ -15,7 +15,6 @@ logger = logging.getLogger("train")
 
 @hydra.main(config_path="config", config_name="training")
 def train(cfg):
-    tf.config.set_visible_devices([], 'GPU')
     logger.info("Model config:\n{}".format(OmegaConf.to_yaml(cfg)))
     logger.info("Ensuring Tensorflow and Numpy are seeded...")
     tf.random.set_seed(cfg.seed)
