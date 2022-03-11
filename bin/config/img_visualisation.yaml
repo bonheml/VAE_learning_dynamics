@@ -7,7 +7,7 @@ latent_dim: 10
 n_samples: 16
 seed: 0
 
-model_path: ${oc.env:XP_PATH}/VAE_ld/train/latent_${latent_dim}/${model_name}/${dataset.name}/${param_value}/${model_seed}/checkpoint/epoch_${model_epoch}_*
+model_path: ${oc.env:XP_PATH}/train/latent_${latent_dim}/${model_name}/${dataset.name}/${param_value}/${model_seed}/checkpoint/epoch_${model_epoch}_*
 fname: epoch_${model_epoch}_random_z_${random_z}.pdf
 
 defaults:
@@ -16,9 +16,9 @@ defaults:
 
 hydra:
   run:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/latent_${latent_dim}/${dataset.name}/${model_name}/param_${param_value}/seed_${model_seed}
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_dim}/${dataset.name}/${model_name}/param_${param_value}/seed_${model_seed}
   sweep:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/latent_${latent_dim}/${dataset.name}/${model_name}/param_${param_value}
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_dim}/${dataset.name}/${model_name}/param_${param_value}
     subdir: seed_${model_seed}
   job:
     config:

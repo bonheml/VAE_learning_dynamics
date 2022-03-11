@@ -9,9 +9,9 @@ n_samples: 10000
 
 hydra:
   run:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${dataset.name}/${n_samples}/${dimensionality_reduction.name}/seed_${seed}
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/${dataset.name}/${n_samples}/${dimensionality_reduction.name}/seed_${seed}
   sweep:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${dataset.name}/${n_samples}/${dimensionality_reduction.name}/seed_${seed}
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/${dataset.name}/${n_samples}/${dimensionality_reduction.name}/seed_${seed}
     subdir: seed_${seed}
   job:
     config:

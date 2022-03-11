@@ -10,4 +10,4 @@ save_file: hidalgo_${dataset.name}_${n_samples}_samples_k_${n_manifolds}.tsv
 
 hydra:
   run:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/${dataset.name}/normalized_${normalized}/${n_samples}_samples/k_${n_manifolds}
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/${dataset.name}/normalized_${normalized}/${n_samples}_samples/k_${n_manifolds}

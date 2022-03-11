@@ -15,8 +15,8 @@ p2_name: ${p1_name}
 p2_value: ${p1_value}
 m2_seed: ${m1_seed}
 
-m1_path: ${oc.env:XP_PATH}/VAE_ld/train/latent_${latent_dim}/${m1_name}/${dataset.name}/${p1_value}/${m1_seed}/checkpoint/*
-m2_path: ${oc.env:XP_PATH}/VAE_ld/train/latent_${latent_dim}/${m2_name}/${dataset.name}/${p2_value}/${m2_seed}/checkpoint/*
+m1_path: ${oc.env:XP_PATH}/train/latent_${latent_dim}/${m1_name}/${dataset.name}/${p1_value}/${m1_seed}/checkpoint/*
+m2_path: ${oc.env:XP_PATH}/train/latent_${latent_dim}/${m2_name}/${dataset.name}/${p2_value}/${m2_seed}/checkpoint/*
 
 
 defaults:
@@ -26,9 +26,9 @@ defaults:
 
 hydra:
   run:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/latent_${latent_dim}/${dataset.name}/${similarity_metric.name}/${m1_name}/param_${p1_value}/seed_${m1_seed}/${m2_name}/param_${p2_value}/seed_${m2_seed}
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_dim}/${dataset.name}/${similarity_metric.name}/${m1_name}/param_${p1_value}/seed_${m1_seed}/${m2_name}/param_${p2_value}/seed_${m2_seed}
   sweep:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/latent_${latent_dim}/${dataset.name}/${similarity_metric.name}/${m1_name}/param_${p1_value}/seed_${m1_seed}/${m2_name}/param_${p2_value}
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_dim}/${dataset.name}/${similarity_metric.name}/${m1_name}/param_${p1_value}/seed_${m1_seed}/${m2_name}/param_${p2_value}
     subdir: seed_${m2_seed}
   job:
     config:

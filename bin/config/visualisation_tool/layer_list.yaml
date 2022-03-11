@@ -7,5 +7,5 @@ fn:
   layer: "encoder/z_mean"
   target: decoder
   save_file: ${metric_name}_${dataset_name}_${m1_name}_${visualisation_tool.fn.regularisation}_${visualisation_tool.fn.layer}_${visualisation_tool.fn.target}.pdf
-  input_file: ${oc.env:XP_PATH}/VAE_ld/visualise_similarity/latent_${latent_dim}/aggregate/${dataset_name}/${metric_name}/${m1_name}/${metric_name}_${dataset_name}_${m1_name}_agg.tsv
+  input_file: ${oc.env:XP_PATH}/visualise_similarity/latent_${latent_dim}/aggregate/${dataset_name}/${metric_name}/${m1_name}/${metric_name}_${dataset_name}_${m1_name}_agg.tsv
   overwrite: ${overwrite}

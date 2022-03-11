@@ -7,7 +7,7 @@ seed: 0
 model_name: beta_vae
 model_seed: 0
 latent_shape: 10
-model_path: ${oc.env:XP_PATH}/VAE_ld/train/${latent_shape}/${model_name}/${dataset.name}/${param_value}/${model_seed}/checkpoint/*
+model_path: ${oc.env:XP_PATH}/train/${latent_shape}/${model_name}/${dataset.name}/${param_value}/${model_seed}/checkpoint/*
 param_value: 1
 param_name: beta
 var_threshold: 0.1
@@ -16,9 +16,9 @@ batch_size: 4
 
 hydra:
   run:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/latent_${latent_shape}/${dataset.name}/${model_name}/param_${param_value}/seed_${model_seed}/
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_shape}/${dataset.name}/${model_name}/param_${param_value}/seed_${model_seed}/
   sweep:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/latent_${latent_shape}/${dataset.name}/${model_name}/param_${param_value}
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_shape}/${dataset.name}/${model_name}/param_${param_value}
     subdir: seed_${model_seed}
   job:
     config:

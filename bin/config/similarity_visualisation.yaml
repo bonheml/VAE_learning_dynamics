@@ -10,9 +10,9 @@ defaults:
 
 hydra:
   run:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/latent_${latent_dim}/${visualisation_tool.name}/${dataset_name}/${metric_name}/${m1_name}
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_dim}/${visualisation_tool.name}/${dataset_name}/${metric_name}/${m1_name}
   sweep:
-    dir: ${oc.env:XP_PATH}/VAE_ld/${hydra.job.name}/latent_${latent_dim}/${visualisation_tool.name}/${dataset_name}/${metric_name}
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_dim}/${visualisation_tool.name}/${dataset_name}/${metric_name}
     subdir: ${m1_name}
   job:
     config:
