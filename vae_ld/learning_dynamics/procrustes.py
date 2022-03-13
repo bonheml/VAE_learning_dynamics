@@ -25,7 +25,8 @@ class Procrustes:
         X_norm = X - X_mean
 
         if self._normalised:
-            X_norm /= tf.norm(X_norm, ord="fro", axis=[-2, -1])
+            X_norm /= tf.norm(X_norm if X_norm.shape[1] > X_norm.shape[0] else tf.transpose(X_norm),
+                              ord="fro", axis=[-2, -1])
 
         return X_norm
 
@@ -37,7 +38,7 @@ class Procrustes:
         X_norm = X - X.mean(axis=1, keepdims=True)
 
         if self._normalised:
-            X_norm /= np.linalg.norm(X_norm, ord="fro")
+            X_norm /= np.linalg.norm(X_norm if X_norm.shape[1] > X_norm.shape[0] else X_norm.T, ord="fro")
 
         return X_norm
 
@@ -52,8 +53,8 @@ class Procrustes:
             A_sq_frob = np.sum(X ** 2)
             B_sq_frob = np.sum(Y ** 2)
         else:
-            A_sq_frob = np.linalg.norm(X, ord="fro") ** 2
-            B_sq_frob = np.linalg.norm(Y, ord="fro") ** 2
+            A_sq_frob = np.linalg.norm(X if X.shape[1] > X.shape[0] else X.T, ord="fro") ** 2
+            B_sq_frob = np.linalg.norm(Y if Y.shape[1] > Y.shape[0] else Y.T, ord="fro") ** 2
 
         AB = X.T @ Y
         logger.debug("Shape of XTY : {}, dtype of XTY: {}".format(AB.shape, AB.dtype))
@@ -67,11 +68,12 @@ class Procrustes:
             A_sq_frob = tf.reduce_sum(X ** 2)
             B_sq_frob = tf.reduce_sum(Y ** 2)
         else:
-            A_sq_frob = tf.norm(X, ord="fro", axis=[-2, -1]) ** 2
-            B_sq_frob = tf.norm(Y, ord="fro", axis=[-2, -1]) ** 2
+            A_sq_frob = tf.norm(X if X.shape[1] > X.shape[0] else tf.transpose(X), ord="fro", axis=[-2, -1]) ** 2
+            B_sq_frob = tf.norm(Y if Y.shape[1] > Y.shape[0] else tf.transpose(Y), ord="fro", axis=[-2, -1]) ** 2
 
+        AB = X.T @ Y
         # Compute the nuclear norm (i.e., sum of AB's singular values)
-        AB_nuc = tf.reduce_sum(tf.linalg.svd(tf.transpose(X) @ Y, compute_uv=False))
+        AB_nuc = tf.reduce_sum(tf.linalg.svd(AB, compute_uv=False))
         return (A_sq_frob + B_sq_frob - 2 * AB_nuc).numpy()
 
     def __call__(self, X, Y):
