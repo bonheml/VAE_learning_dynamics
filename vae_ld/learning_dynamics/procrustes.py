@@ -25,7 +25,7 @@ class Procrustes:
         X_norm = X - X_mean
 
         if self._normalised:
-            X_norm /= tf.norm(X_norm, ord="fro")
+            X_norm /= tf.norm(X_norm, ord="fro", axis=[-2, -1])
 
         return X_norm
 
@@ -67,8 +67,8 @@ class Procrustes:
             A_sq_frob = tf.reduce_sum(X ** 2)
             B_sq_frob = tf.reduce_sum(Y ** 2)
         else:
-            A_sq_frob = tf.norm(X, ord="fro") ** 2
-            B_sq_frob = tf.norm(Y, ord="fro") ** 2
+            A_sq_frob = tf.norm(X, ord="fro", axis=[-2, -1]) ** 2
+            B_sq_frob = tf.norm(Y, ord="fro", axis=[-2, -1]) ** 2
 
         # Compute the nuclear norm (i.e., sum of AB's singular values)
         AB_nuc = tf.reduce_sum(tf.linalg.svd(tf.transpose(X) @ Y, compute_uv=False))
