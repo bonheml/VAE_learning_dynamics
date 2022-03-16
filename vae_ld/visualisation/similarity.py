@@ -12,15 +12,19 @@ sns.set_style("whitegrid", {'axes.grid': False, 'legend.labelspacing': 1.2})
 
 def similarity_heatmap(metric_name, input_file, overwrite):
     df = pd.read_csv(input_file, sep="\t", header=0)
+    # Sampling layer is named differently on linear architectures
+    df.replace("encoder/z", "sampling", inplace=True)
     grouped_df = df.groupby(["m1_name", "p1_value", "m1_seed", "m1_epoch", "m2_name", "p2_value", "m2_seed",
                              "m2_epoch"])
     group_names = grouped_df.groups.keys()
     # Handle different number of layers for different encoder/decoder architectures.
-    encoder_layers = ["encoder/{}".format(i) for i in range(1, 7) if "encoder/{}".format(i) in df["m1"].values]
-    decoder_layers = ["decoder/{}".format(i) for i in range(1, 7) if "decoder/{}".format(i) in df["m1"].values]
-    # Sampling layer is named differently on linear architecture
-    sampling = "sampling" if "sampling" in df["m1"].values else "encoder/z"
-    col_order = (["input"] + encoder_layers + ["encoder/z_mean", "encoder/z_log_var", sampling] + decoder_layers)
+    encoder_layers1 = ["encoder/{}".format(i) for i in range(1, 7) if "encoder/{}".format(i) in df["m1"].values]
+    decoder_layers1 = ["decoder/{}".format(i) for i in range(1, 7) if "decoder/{}".format(i) in df["m1"].values]
+    col_order1 = (["input"] + encoder_layers1 + ["encoder/z_mean", "encoder/z_log_var", "sampling"] + decoder_layers1)
+
+    encoder_layers2 = ["encoder/{}".format(i) for i in range(1, 7) if "encoder/{}".format(i) in df["m2"].values]
+    decoder_layers2 = ["decoder/{}".format(i) for i in range(1, 7) if "decoder/{}".format(i) in df["m2"].values]
+    col_order2 = (["input"] + encoder_layers2 + ["encoder/z_mean", "encoder/z_log_var", "sampling"] + decoder_layers2)
 
     for group_name in group_names:
         cfg = "{}, param={}, seed={}, epoch={} and {}, param={}, seed={}, epoch={}".format(*group_name)
@@ -32,7 +36,7 @@ def similarity_heatmap(metric_name, input_file, overwrite):
 
         group = grouped_df.get_group(group_name)
         logger.info("Plotting heatmap of {}".format(cfg))
-        ax = sns.heatmap(group.pivot("m1", "m2", metric_name).reindex(index=col_order, columns=col_order), vmin=0, vmax=1)
+        ax = sns.heatmap(group.pivot("m1", "m2", metric_name).reindex(index=col_order1, columns=col_order2), vmin=0, vmax=1)
         ax.set(ylabel="{}, {}={}, seed={}, epoch={}".format(group_name[0], group["p1_name"].values[0], *group_name[1:4]),
                xlabel="{}, {}={}, seed={}, epoch={}".format(group_name[4], group["p2_name"].values[0], *group_name[5:]))
         save_figure(save_path)
