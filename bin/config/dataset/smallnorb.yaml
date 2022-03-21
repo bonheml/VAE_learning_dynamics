@@ -4,3 +4,4 @@ observation_shape: [64,64,1]
 url: https://cs.nyu.edu/~ylclab/data/norb-v1.0-small/
 data_size: 46789
 name: smallnorb
+factors_shape: [5, 10, 9, 18, 6]

@@ -36,14 +36,12 @@ class SmallNORB(Data):
         self._chunk_names = ["5x46789x9x18x6x2x96x96-training", "5x01235x9x18x6x2x96x96-testing"]
         self._file_ext = ["cat", "dat", "info"]
         self._file_template = "smallnorb-{}-{}.mat"
-        self._factors_shape = (5, 10, 9, 18, 6)
         # Instances are not part of the latent space.
         self.latent_factor_indices = [0, 2, 3, 4]
-        self._factors_nb = len(self._factors_shape)
 
         self._data, features = self.load_data()
-        self.index = util.StateSpaceAtomIndex(self._factors_shape, features)
-        self.state_space = util.SplitDiscreteStateSpace(self._factors_shape, self.latent_factor_indices)
+        self.index = util.StateSpaceAtomIndex(self.factors_shape, features)
+        self.state_space = util.SplitDiscreteStateSpace(self.factors_shape, self.latent_factor_indices)
 
     def load_data(self):
         if not self.path.exists():

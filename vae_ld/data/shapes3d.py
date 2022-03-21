@@ -30,9 +30,7 @@ class Shapes3D(Data):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._h5py_dataset, self._data = self.load_data()
-        self._factors_shape = [10, 10, 10, 8, 4, 15]
-        self.latent_factor_indices = list(range(6))
-        self._factors_nb = len(self._factors_shape)
+        self.latent_factor_indices = list(range(self._factors_nb))
         self.state_space = util.SplitDiscreteStateSpace(self._factors_shape, self.latent_factor_indices)
         self.factor_bases = np.prod(self._factors_shape) / np.cumprod(self._factors_shape)
 

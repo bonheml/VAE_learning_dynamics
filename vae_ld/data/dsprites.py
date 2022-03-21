@@ -29,10 +29,10 @@ class DSprites(Data):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.latent_factor_indices = list(range(6))
-        self._data, self._factors_shape = self.load_data()
-        self.factor_bases = np.prod(self._factors_shape) / np.cumprod(self._factors_shape)
-        self.state_space = util.SplitDiscreteStateSpace(self._factors_shape, self.latent_factor_indices)
+        self.latent_factor_indices = list(range(self._factors_nb))
+        self._data = self.load_data()
+        self.factor_bases = np.prod(self.factors_shape) / np.cumprod(self.factors_shape)
+        self.state_space = util.SplitDiscreteStateSpace(self.factors_shape, self.latent_factor_indices)
 
     def __getitem__(self, key):
         data = super().__getitem__(key)
@@ -55,7 +55,7 @@ class DSprites(Data):
         with gfile.Open(file_path, "rb") as data_file:
             # Data was saved originally using python2, so we need to set the encoding.
             data = np.load(data_file, encoding="latin1", allow_pickle=True)
-        return data["imgs"], np.array(data["metadata"][()]["latents_sizes"], dtype=np.int64)
+        return data["imgs"]
 
     def _resize_images(self, integer_images):
         resize_dim = self.observation_shape[:2]

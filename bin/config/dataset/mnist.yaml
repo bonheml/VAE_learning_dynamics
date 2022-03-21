@@ -4,3 +4,4 @@ data_size: 70000
 name: mnist
 url: ""
 path: ""
+factors_shape: [10]

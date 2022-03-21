@@ -1,6 +1,5 @@
 import numpy as np
 import tensorflow as tf
-from vae_ld.data import util
 from vae_ld.data.dataset import Data
 
 

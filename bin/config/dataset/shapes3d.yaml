@@ -4,3 +4,4 @@ observation_shape: [64,64,3]
 url: https://storage.cloud.google.com/3d-shapes/3dshapes.h5
 data_size: 480000
 name: shapes3d
+factors_shape: [10, 10, 10, 8, 4, 15]

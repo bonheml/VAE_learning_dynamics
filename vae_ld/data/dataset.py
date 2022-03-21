@@ -15,12 +15,12 @@ class Data:
     Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
     """
 
-    def __init__(self, *, url, path, observation_shape, data_size, name, **kwargs):
+    def __init__(self, *, url, path, observation_shape, data_size, name, factors_shape, **kwargs):
         self._path = Path(path).expanduser()
         self._observation_shape = tuple(observation_shape)
         self._data_size = data_size
-        self._factors_shape = None
-        self._factors_nb = None
+        self._factors_shape = factors_shape
+        self._factors_nb = len(self._factors_shape)
         self._data = []
         self._url = url
         self.name = name

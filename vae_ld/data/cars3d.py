@@ -20,7 +20,7 @@ class Cars3D(Data):
     The ground-truth factors of variation are:
      - elevation (4 different values)
      - azimuth (24 different values)
-     - object dip_type (183 different values)
+     - object type (183 different values)
 
     [1] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
     Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
@@ -28,9 +28,7 @@ class Cars3D(Data):
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._factors_shape = (4, 24, 183)
         self.latent_factor_indices = [0, 1, 2]
-        self._factors_nb = len(self._factors_shape)
         features = extmath.cartesian([np.array(list(range(i))) for i in self.factors_shape])
         self.index = util.StateSpaceAtomIndex(self.factors_shape, features)
         self.state_space = util.SplitDiscreteStateSpace(self._factors_shape,
