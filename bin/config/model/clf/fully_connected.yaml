@@ -1,0 +1,3 @@
+_target_: vae_ld.models.classifier.FullyConnectedClassifier
+input_shape: ${dataset.observation_shape}
+output_shape: ${dataset.factors_shape}

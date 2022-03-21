@@ -1,0 +1,8 @@
+name: classifier
+
+defaults:
+  - _self_
+  - clf: convolutional
+
+_target_: vae_ld.models.classifier.Classifier
+input_shape: ${dataset.observation_shape}
