@@ -75,7 +75,9 @@ class CKA:
     def cka(self, x, y):
         # Note: this method assumes that kc and lc are the centered kernel values given by cka.center(cka.kernel(.))
         # Compute tr(KcLc) = vec(kc)^T vec(lc), omitting the term (m-1)**2, which is canceled by CKA
-        hsic = np.dot(x.ravel(), y.ravel())
+        # s is a small factor aimed at stabilizing dot product of vectors with very small values
+        s = 1e-10
+        hsic = np.dot(x.ravel() + s, y.ravel() + s)
         normalization_x = np.linalg.norm(x)
         normalization_y = np.linalg.norm(y)
         cka = hsic / (normalization_x * normalization_y)
