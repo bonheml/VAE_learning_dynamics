@@ -1,5 +1,5 @@
 import numpy as np
-import tensorflow as tf
+from vae_ld.learning_dynamics import logger
 
 
 def linear_kernel(x):
@@ -76,52 +76,12 @@ class CKA:
         # Note: this method assumes that kc and lc are the centered kernel values given by cka.center(cka.kernel(.))
         # Compute tr(KcLc) = vec(kc)^T vec(lc), omitting the term (m-1)**2, which is canceled by CKA
         hsic = np.dot(x.ravel(), y.ravel())
+        normalization_x = np.linalg.norm(x)
+        normalization_y = np.linalg.norm(y)
+        cka = hsic / (normalization_x * normalization_y)
         # Divide by the product of the Frobenius norms of kc and lc to get CKA
-        return hsic / (np.linalg.norm(x, ord="fro") * np.linalg.norm(y, ord="fro"))
-
-    def __call__(self, x, y):
-        return self.cka(x, y)
-
-
-def linear_kernel_gpu(x):
-    return tf.tensordot(x, x.T, axes=1)
-
-
-class GPUCKA:
-    """
-    Adapted from the demo code of "Similarity of Neural Network Representations Revisited", Kornblith et al. 2019
-    https://colab.research.google.com/github/google-research/google-research/blob/master/representation_similarity/Demo.ipynb#scrollTo=MkucRi3yn7UJ
-    """
-    def __init__(self, name="CKA_gpu", kernel=linear_kernel_gpu):
-        self.kernel = kernel
-        self._name = "CKA"
-
-    @property
-    def kernel(self):
-        return self._kernel
-
-    @kernel.setter
-    def kernel(self, kernel):
-        self._kernel = kernel
-
-    @property
-    def name(self):
-        return self._name
-
-    def center(self, x):
-        x = self.kernel(tf.identity(x))
-        means = tf.reduce_mean(x, axis=1)
-        means -= tf.reduce_mean(means) / 2
-        x -= means[:, None]
-        x -= means[None, :]
-        return x
-
-    def cka(self, x, y):
-        # Note: this method assumes that kc and lc are the centered kernel values given by cka.center(cka.kernel(.))
-        # Compute tr(KcLc) = vec(kc)^T vec(lc), omitting the term (m-1)**2, which is canceled by CKA
-        hsic = tf.tensordot(tf.reshape(x, [-1]), tf.reshape(y, [-1]), axes=1)
-        # Divide by the product of the Frobenius norms of kc and lc to get CKA
-        return (hsic / (tf.norm(x, ord="fro", axis=(0, 1)) * tf.norm(y, ord="fro", axis=(0, 1)))).numpy()
+        logger.debug("CKA = {} / ({} * {}) = {}".format(hsic, normalization_x, normalization_y, cka))
+        return cka
 
     def __call__(self, x, y):
         return self.cka(x, y)
