@@ -18,11 +18,14 @@ class Procrustes:
         return self._name
 
     def center(self, X):
-        m = tnp if self._gpu else np
         # Here when self.normalised is True, we use the same normalisation as in
         # "Grounding Representation Similarity with Statistical Testing", Ding et al. 2021
-        X_norm = X - m.mean(X, axis=0, keepdims=True)
-        X_norm /= m.linalg.norm(X_norm)
+        if self._gpu:
+            X_norm = X - tnp.mean(X, axis=0, keepdims=True)
+            X_norm /= tf.norm(X_norm)
+        else:
+            X_norm = X - np.mean(X, axis=0, keepdims=True)
+            X_norm /= np.linalg.norm(X_norm)
 
         return X_norm
 
