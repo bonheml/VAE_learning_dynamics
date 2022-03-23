@@ -49,4 +49,6 @@ def get_weights(model_path):
 def prepare_activations(x):
     if len(x.shape) > 2:
         x = x.reshape(x.shape[0], np.prod(x.shape[1:]))
+    # Prevent very tiny values from causing underflow in similarity metrics later on
+    x[abs(x) < 1.e-7] = 0.
     return x
