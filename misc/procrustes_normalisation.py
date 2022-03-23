@@ -1,37 +1,84 @@
 import numpy as np
-
-
-def procrustes(X, Y):
-    A_sq_frob = np.sum(X ** 2)
-    B_sq_frob = np.sum(Y ** 2)
-    AB = X.T @ Y
-    AB_nuc = np.linalg.norm(AB, ord="nuc")
-    return 1 - (A_sq_frob + B_sq_frob - 2 * AB_nuc) / 2
+import pandas as pd
+from vae_ld.learning_dynamics.procrustes import Procrustes
+from vae_ld.learning_dynamics.cka import CKA
+import matplotlib.pyplot as plt
 
 
 def matrix_gen(shape, seed=0):
     np.random.seed(seed)
     X = np.random.random(shape[::-1]).T
-    X -= X.mean(axis=1, keepdims=True)
-    X /= np.linalg.norm(X)
     return X
 
+def almost_sim(shape, shape2, seed = 0, seed2 = 1):
+    np.random.seed(seed)
+    X1 = np.random.random(shape[::-1])
+    np.random.seed(seed2)
+    X2 = np.random.random(shape2[::-1])
+    X = np.concatenate((X1, X2), axis=0).T
+    return X
 
 def test_sim():
-    A = matrix_gen((1000, 5))
-    B = matrix_gen((1000, 100))
-    C = matrix_gen((1000, 1000))
-    D = matrix_gen((1000, 1000), seed=42)
-    print("A is of shape {}, initialised with seed 0.".format(A.shape))
-    print("B is of shape {}, initialised with seed 0. Its 5 first features are the same as A.".format(B.shape))
-    print("C is of shape {}, initialised with seed 0. "
-          "Its 5 first features are the same as A and its first 100 features are the same as B.".format(C.shape))
-    print("D is of shape {}, initialised with seed 42. It is different from every other matrices.".format(D.shape))
+    mats = []
+    dims = list(range(50, 1000, 40))
+    p = Procrustes()
+    c = CKA()
+    for n in dims:
+        mats.append((matrix_gen((n, 50)), matrix_gen((n, 50), seed=42), almost_sim((n, 40), (n, 10)),
+                     almost_sim((n, 25), (n, 25)), matrix_gen((n, 5))))
+    res = {"n": [], "Procrustes": [], "CKA": []}
+    for i, n in enumerate(dims):
+        res["n"].append(n)
+        C = p.center(mats[i][0])
+        D = p.center(mats[i][1])
+        res["Procrustes"].append(p(C, D))
+        res["CKA"].append(c(C.dot(C.T), D.dot(D.T)))
+    df = pd.DataFrame.from_dict(res)
+    df.set_index("n", inplace=True)
+    fig = df.plot.line(ylim=(0, 1)).get_figure()
+    plt.tight_layout()
+    fig.savefig("different_ab.pdf")
 
-    print("Procrustes similarity:\nAB={}, AC={}, AD={}, BC={}, BD={}, CD={}".format(
-        procrustes(A, B), procrustes(A, C), procrustes(A, D), procrustes(B, C), procrustes(B, D), procrustes(C, D))
-    )
+    res = {"n": [], "Procrustes": [], "CKA": []}
+    for i, n in enumerate(dims):
+        res["n"].append(n)
+        C = p.center(mats[i][0])
+        D = p.center(mats[i][2])
+        res["Procrustes"].append(p(C, D))
+        res["CKA"].append(c(C.dot(C.T), D.dot(D.T)))
+    df = pd.DataFrame.from_dict(res)
+    df.set_index("n", inplace=True)
+    fig = df.plot.line(ylim=(0, 1)).get_figure()
+    plt.tight_layout()
+    fig.savefig('similar_ab.pdf')
+
+    res = {"n": [], "Procrustes": [], "CKA": []}
+    for i, n in enumerate(dims):
+        res["n"].append(n)
+        C = p.center(mats[i][0])
+        D = p.center(mats[i][3])
+        res["Procrustes"].append(p(C, D))
+        res["CKA"].append(c(C.dot(C.T), D.dot(D.T)))
+    df = pd.DataFrame.from_dict(res)
+    df.set_index("n", inplace=True)
+    fig = df.plot.line(ylim=(0, 1)).get_figure()
+    plt.tight_layout()
+    fig.savefig('mid_similar_ab.pdf')
+
+    res = {"n": [], "Procrustes": [], "CKA": []}
+    for i, n in enumerate(dims):
+        res["n"].append(n)
+        C = p.center(mats[i][0])
+        D = p.center(mats[i][4])
+        res["Procrustes"].append(p(C, D))
+        res["CKA"].append(c(C.dot(C.T), D.dot(D.T)))
+    df = pd.DataFrame.from_dict(res)
+    df.set_index("n", inplace=True)
+    fig = df.plot.line(ylim=(0, 1)).get_figure()
+    plt.tight_layout()
+    fig.savefig('dif_dim_ab.pdf')
 
 
 if __name__ == "__main__":
     test_sim()
+

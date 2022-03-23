@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 from vae_ld.learning_dynamics import logger
-
+import tensorflow.experimental.numpy as tnp
 
 class Procrustes:
     """ Computes Procrustes distance between representations x and y
@@ -9,73 +9,37 @@ class Procrustes:
     Implementation of Grounding Representation Similarity with Statistical Testing", Ding et al. 2021
     """
 
-    def __init__(self, name="procrustes", use_gpu=False, normalised=False):
+    def __init__(self, name="procrustes", use_gpu=False):
         self._name = name
-        self._normalised = normalised
         self._gpu = use_gpu
 
     @property
     def name(self):
         return self._name
 
-    def _center_gpu(self, X):
-        # Here when self.normalised is True, we use the same normalisation as in
-        # "Grounding Representation Similarity with Statistical Testing", Ding et al. 2021
-        X_mean = tf.reduce_mean(X, axis=1, keepdims=True)
-        X_norm = X - X_mean
-
-        if self._normalised:
-            X_norm /= tf.norm(X_norm if X_norm.shape[1] > X_norm.shape[0] else tf.transpose(X_norm),
-                              ord="fro", axis=[-2, -1])
-
-        return X_norm
-
     def center(self, X):
-        if self._gpu:
-            return self._center_gpu(X)
+        m = tnp if self._gpu else np
         # Here when self.normalised is True, we use the same normalisation as in
         # "Grounding Representation Similarity with Statistical Testing", Ding et al. 2021
-        X_norm = X - X.mean(axis=1, keepdims=True)
-
-        if self._normalised:
-            X_norm /= np.linalg.norm(X_norm if X_norm.shape[1] > X_norm.shape[0] else X_norm.T, ord="fro")
+        X_norm = X - m.mean(X, axis=0, keepdims=True)
+        X_norm /= m.linalg.norm(X_norm)
 
         return X_norm
 
     def procrustes(self, X, Y):
+        m = tnp if self._gpu else np
         logger.debug("Shape of X : {}, shape of Y: {}".format(X.shape, Y.shape))
-        if self._gpu:
-            return self._procrustes_gpu(X, Y)
+        A_sq_frob = m.sum(X ** 2)
+        B_sq_frob = m.sum(Y ** 2)
 
-        if self._normalised:
-            # Following the implementation of "Grounding Representation Similarity with Statistical Testing",
-            # Ding et al. 2021
-            A_sq_frob = np.sum(X ** 2)
-            B_sq_frob = np.sum(Y ** 2)
-        else:
-            A_sq_frob = np.linalg.norm(X if X.shape[1] > X.shape[0] else X.T, ord="fro") ** 2
-            B_sq_frob = np.linalg.norm(Y if Y.shape[1] > Y.shape[0] else Y.T, ord="fro") ** 2
-
-        AB = X.T @ Y
+        AB = m.transpose(X) @ Y
         logger.debug("Shape of XTY : {}, dtype of XTY: {}".format(AB.shape, AB.dtype))
-        AB_nuc = np.linalg.norm(AB, ord="nuc")
-        return A_sq_frob + B_sq_frob - 2 * AB_nuc
-
-    def _procrustes_gpu(self, X, Y):
-        if self._normalised:
-            # Following the implementation of "Grounding Representation Similarity with Statistical Testing",
-            # Ding et al. 2021
-            A_sq_frob = tf.reduce_sum(X ** 2)
-            B_sq_frob = tf.reduce_sum(Y ** 2)
+        if self._gpu:
+            AB_nuc = tf.reduce_sum(tf.linalg.svd(AB, compute_uv=False))
         else:
-            A_sq_frob = tf.norm(X if X.shape[1] > X.shape[0] else tf.transpose(X), ord="fro", axis=[-2, -1]) ** 2
-            B_sq_frob = tf.norm(Y if Y.shape[1] > Y.shape[0] else tf.transpose(Y), ord="fro", axis=[-2, -1]) ** 2
-
-        AB = tf.transpose(X) @ Y
-        # Compute the nuclear norm (i.e., sum of AB's singular values)
-        AB_nuc = tf.reduce_sum(tf.linalg.svd(AB, compute_uv=False))
-        return (A_sq_frob + B_sq_frob - 2 * AB_nuc).numpy()
+            AB_nuc = m.linalg.norm(AB, ord="nuc")
+        return A_sq_frob + B_sq_frob - 2 * AB_nuc
 
     def __call__(self, X, Y):
         procrustes_dist = self.procrustes(X, Y)
-        return 1 - procrustes_dist / 2 if self._normalised else procrustes_dist
+        return 1 - procrustes_dist / 2
