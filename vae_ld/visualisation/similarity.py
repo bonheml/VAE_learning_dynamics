@@ -99,7 +99,7 @@ def avg_similarity_layer_list(metric_name, input_file, regularisation, layer, ta
 def plot_tsne(input_dir, save_file, target, overwrite):
     save_file, exists = check_exists(save_file)
     if exists and overwrite is False:
-        logger.info("Skipping already computed layer pair of {}".format(save_file))
+        logger.info("Skipping already computed graph of {}".format(save_file))
         return
 
     files = glob("{}/*.tsv".format(input_dir))
