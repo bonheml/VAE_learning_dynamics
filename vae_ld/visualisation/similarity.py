@@ -1,13 +1,20 @@
 import pathlib
-
+import numpy as np
 import seaborn as sns
 from glob import glob
 import pandas as pd
+from sklearn.decomposition import PCA
+from sklearn.manifold import TSNE
 from vae_ld.visualisation import logger
 from vae_ld.visualisation.utils import save_figure
 import matplotlib.pyplot as plt
 
 sns.set_style("whitegrid", {'axes.grid': False, 'legend.labelspacing': 1.2})
+
+
+def check_exists(save_file):
+    save_file = save_file.replace("/", "_")
+    return save_file, pathlib.Path(save_file).exists()
 
 
 def similarity_heatmap(metric_name, input_file, overwrite):
@@ -46,8 +53,8 @@ def avg_similarity_layer_pair(metric_name, input_file, m1_layer, m2_layer, save_
     """ Returns a lines plot of the average similarity values between two layers
     over different epochs with different regularisation strength (one line per regularisation weight).
     """
-    save_file = save_file.replace("/", "_")
-    if pathlib.Path(save_file).exists() and overwrite is False:
+    save_file, exists = check_exists(save_file)
+    if exists and overwrite is False:
         logger.info("Skipping already computed layer pair of {}".format(save_file))
         return
 
@@ -68,9 +75,9 @@ def avg_similarity_layer_list(metric_name, input_file, regularisation, layer, ta
     """ Returns a lines plot of the average similarity values between the mean layer and each decoder layers
     over different epochs (one line per sampled-decoder similarity score).
     """
-    save_file = save_file.replace("/", "_")
-    if pathlib.Path(save_file).exists() and overwrite is False:
-        logger.info("Skipping already computed layer list of {}".format(save_file))
+    save_file, exists = check_exists(save_file)
+    if exists and overwrite is False:
+        logger.info("Skipping already computed layer pair of {}".format(save_file))
         return
 
     df = pd.read_csv(input_file, sep="\t", header=0)
@@ -86,6 +93,47 @@ def avg_similarity_layer_list(metric_name, input_file, regularisation, layer, ta
                       style="{} layer".format(target.capitalize()))
     ax.set(ylim=(0, 1))
     plt.legend(loc="center right")
+    save_figure(save_file)
+
+
+def plot_tsne(input_dir, save_file, target, overwrite):
+    save_file, exists = check_exists(save_file)
+    if exists and overwrite is False:
+        logger.info("Skipping already computed layer pair of {}".format(save_file))
+        return
+
+    files = glob("{}/*.tsv".format(input_dir))
+    to_drop = ["m1_seed", "m2_seed", "m1_epoch", "m2_epoch", "p1_name", "p2_name", "p1_value", "p2_value",
+               "m1_name", "m2_name"]
+    X, m1_labels, m2_labels = [], [], []
+    if target == "seed":
+        l1, l2 = "m1_seed", "m1_epoch"
+        hue, style = "Seed", "Epoch"
+    else:
+        l1, l2 = "p1_value", "m1_epoch"
+        hue, style = "Regularisation", "Epoch"
+    for f in files:
+        df = pd.read_csv(f, sep="\t", header=0, index_col=0)
+        if target == "seed":
+            df = df[(df["m1_name"] == df["m2_name"]) & (df["m1_epoch"] == df["m2_epoch"]) &
+                    (df["m1_seed"] == df["m2_seed"]) & (df["p1_value"] == df["p2_value"])]
+        else:
+            df = df[(df["m1_name"] == df["m2_name"]) & (df["m1_epoch"] == df["m2_epoch"]) &
+                    (df["p1_value"] == df["p2_value"])]
+        if not df.empty:
+            m1_labels.append(df[l1].values[0])
+            m2_labels.append(df[l2].values[0])
+            x = df.drop(columns=to_drop).to_numpy().ravel()
+            # Keep the lower triangular part of the vectorised symmetric matrix
+            x = x[:x.shape[0] // 2]
+            X.append(x)
+    X = np.array(X)
+    X = PCA(n_components=50).fit_transform(X)
+    X = TSNE().fit_transform(X)
+    df = pd.DataFrame.from_dict({"x": X[:, 0], "y": X[:, 1], hue: m1_labels, style: m2_labels})
+    print(df)
+    ax = sns.scatterplot(x="x", y="y", hue=hue, style=style, data=df)
+    ax.set(xlabel=None, ylabel=None)
     save_figure(save_file)
 
 
