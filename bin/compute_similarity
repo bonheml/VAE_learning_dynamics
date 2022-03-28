@@ -24,7 +24,7 @@ def compute_similarity_metric(metric, data, m1_path, m2_path, save_path, models_
         res[l1] = {}
         for j, l2 in enumerate(layers2):
             logger.info("Computing similarity of {} and {}".format(l1, l2))
-            res[l1][l2] = metric(acts1[i], acts2[j])
+            res[l1][l2] = float(metric(acts1[i], acts2[j]))
     res = pd.DataFrame(res).T
     for k, v in models_info.items():
         res[k] = v
