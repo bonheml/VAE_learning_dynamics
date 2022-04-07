@@ -2,6 +2,8 @@ import numpy as np
 import tensorflow as tf
 from vae_ld.learning_dynamics import logger
 import tensorflow.experimental.numpy as tnp
+from scipy import linalg
+
 
 class Procrustes:
     """ Computes Procrustes distance between representations x and y
@@ -24,6 +26,7 @@ class Procrustes:
             X_norm = X - tnp.mean(X, axis=0, keepdims=True)
             X_norm /= tf.norm(X_norm)
         else:
+            X = np.asfortranarray(X, dtype=np.float32)
             X_norm = X - np.mean(X, axis=0, keepdims=True)
             X_norm /= np.linalg.norm(X_norm)
 
@@ -40,7 +43,7 @@ class Procrustes:
         if self._gpu:
             AB_nuc = tf.reduce_sum(tf.linalg.svd(AB, compute_uv=False))
         else:
-            AB_nuc = m.linalg.norm(AB, ord="nuc")
+            AB_nuc = np.sum(linalg.svd(AB, compute_uv=False, overwrite_a=True, check_finite=False))
         return A_sq_frob + B_sq_frob - 2 * AB_nuc
 
     def __call__(self, X, Y):
