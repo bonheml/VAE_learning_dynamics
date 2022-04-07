@@ -38,11 +38,15 @@ class Procrustes:
         A_sq_frob = m.sum(X ** 2)
         B_sq_frob = m.sum(Y ** 2)
 
-        AB = m.transpose(X) @ Y
-        logger.debug("Shape of XTY : {}, dtype of XTY: {}".format(AB.shape, AB.dtype))
         if self._gpu:
+            AB = m.transpose(X) @ Y
+            logger.debug("Shape of XTY : {}, dtype of XTY: {}".format(AB.shape, AB.dtype))
             AB_nuc = tf.reduce_sum(tf.linalg.svd(AB, compute_uv=False))
         else:
+            # Speedup matrix multiplication for large matrices
+            AB = linalg.blas.sgemm(1.0, X.T, Y)
+            logger.debug("Shape of XTY : {}, dtype of XTY: {}".format(AB.shape, AB.dtype))
+            # Speedup nuclear norm for large matrices
             AB_nuc = np.sum(linalg.svd(AB, compute_uv=False, overwrite_a=True, check_finite=False))
         return A_sq_frob + B_sq_frob - 2 * AB_nuc
 
