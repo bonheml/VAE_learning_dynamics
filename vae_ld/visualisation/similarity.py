@@ -129,10 +129,9 @@ def plot_tsne(input_dir, save_file, target, overwrite):
             X.append(x)
     X = np.array(X)
     X = PCA(n_components=50).fit_transform(X)
-    X = TSNE().fit_transform(X)
-    df = pd.DataFrame.from_dict({"x": X[:, 0], "y": X[:, 1], hue: m1_labels, style: m2_labels})
-    print(df)
-    ax = sns.scatterplot(x="x", y="y", hue=hue, style=style, data=df)
+    X = TSNE(random_state=0).fit_transform(X)
+    df = pd.DataFrame.from_dict({"t-SNE dim 1": X[:, 0], "t-SNE dim 2": X[:, 1], hue: m1_labels, style: m2_labels})
+    ax = sns.scatterplot(x="t-SNE dim 1", y="t-SNE dim 2", hue=hue, style=style, data=df)
     ax.set(xlabel=None, ylabel=None)
     save_figure(save_file)
 
