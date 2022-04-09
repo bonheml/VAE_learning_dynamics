@@ -114,12 +114,7 @@ def plot_tsne(input_dir, save_file, target, overwrite):
         hue, style = "Regularisation", "Epoch"
     for f in files:
         df = pd.read_csv(f, sep="\t", header=0, index_col=0)
-        if target == "seed":
-            df = df[(df["m1_name"] == df["m2_name"]) & (df["m1_epoch"] == df["m2_epoch"]) &
-                    (df["m1_seed"] == df["m2_seed"]) & (df["p1_value"] == df["p2_value"])]
-        else:
-            df = df[(df["m1_name"] == df["m2_name"]) & (df["m1_epoch"] == df["m2_epoch"]) &
-                    (df["p1_value"] == df["p2_value"])]
+        df = df[(df["m1_name"] == df["m2_name"]) & (df["m1_epoch"] == df["m2_epoch"]) & (df["p1_value"] == df["p2_value"])]
         if not df.empty:
             m1_labels.append(df[l1].values[0])
             m2_labels.append(df[l2].values[0])
