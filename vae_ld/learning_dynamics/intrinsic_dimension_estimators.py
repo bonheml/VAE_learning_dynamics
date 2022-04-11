@@ -9,10 +9,12 @@ from vae_ld.learning_dynamics import logger
 
 
 class TwoNN:
-    """ Implementation of the ID estimator TwoNN from [1]
+    """ Implementation of the ID estimator TwoNN from Facco et al. [1].
 
-    [1] Estimating the intrinsic dimension of datasets by a minimal neighborhood information
-        Elena Facco, Maria d’Errico, Alex Rodriguez, and Alessandro Laio, 2017
+    References
+    ----------
+    .. [1] Facco, E., d’Errico, M., Rodriguez, A., & Laio, A. (2017). Estimating the intrinsic dimension of datasets by a
+        minimal neighborhood information. Scientific reports, 7(1), 1-8.
     """
     def __init__(self):
         self._to_keep = 0.9
@@ -25,21 +27,41 @@ class TwoNN:
     @to_keep.setter
     def to_keep(self, to_keep):
         """ Set the fraction of data points to keep during the ID estimate
+
+        Parameters
+        ----------
+        to_keep : float
+            A value in ]0, 1] corresponding to the fraction of data points to keep during the ID estimate.
+
+        Returns
+        -------
+        None
         """
         if to_keep <= 0 or to_keep > 1:
             raise ValueError("The fraction to keep must be between 0 (excluded) and 1.")
         self._to_keep = to_keep
 
     def fit_transform(self, X):
-        """ Compute the intrinsic dimension estimation, based on the implementation of [1] and [2].
-        The steps described in [3] (p.3) are outlined in the code comments.
+        """ Compute the intrinsic dimension estimation of `X` based on the `C++ implementation by the authors of [1] <https://github.com/efacco/TWO-NN>`_
+        and the `Python implementation by the authors of [2] <https://github.com/ansuini/IntrinsicDimDeep>`_.
+        The steps described in [1] (p.3) are outlined in the code comments.
+        
+        Parameters
+        ----------
+        X : np.array
+            A (n_example, n_features) matrix
 
-        [1] https://github.com/efacco/TWO-NN (C++ implementation by the authors of [3])
-        [2] https://github.com/ansuini/IntrinsicDimDeep (Python implementation by the authors of [4])
-        [3] Estimating the intrinsic dimension of datasets by a minimal neighborhood information
-            Elena Facco, Maria d’Errico, Alex Rodriguez, and Alessandro Laio, 2017
-        [4] Intrinsic dimension of data representations in deep neural networks
-            Alessio Ansuini, Alessandro Laio, Jakob H. Macke, and Davide Zoccolan, 2019
+        Returns
+        -------
+        float
+            The intrinsic dimension estimation
+        
+        References
+        ----------
+        .. [1] Facco, Elena, et al. "Estimating the intrinsic dimension of datasets by a minimal neighborhood 
+               information." Scientific reports 7.1 (2017): 1-8.
+        .. [2] Ansuini, A., Laio, A., Macke, J. H., & Zoccolan, D. (2019). Intrinsic dimension of data representations
+               in deep neural networks. Advances in Neural Information Processing Systems, 32.
         """
         self._knn.fit(X)
         # 1. Compute the pairwise distances for each point in the dataset
@@ -83,6 +105,24 @@ class TwoNN:
 
 
 class MLE:
+    """ Implementation of the MLE ID estimator from Levina and Bickel [1].
+
+    Parameters
+    ----------
+    k : int
+        Number of neighbour to use
+    seed : int
+        Seed used to run the MLE
+    runs : int, optional
+        Number of time the MLE should be repeated. Default 5
+    anchor : float, optional
+        The fraction of data points to keep during the ID estimate. Must be between 0 and 1. Default 0.9
+
+    References
+    ----------
+    .. [1] Levina, E. & Bickel, P. J. Maximum likelihood estimation of intrinsic dimension. In Advances in neural
+           information processing systems 777–784 (2004).
+    """
     def __init__(self, k, seed, runs=5, anchor=0.9):
         self._anchor = anchor
         self._k = k
@@ -96,8 +136,6 @@ class MLE:
 
     @anchor.setter
     def anchor(self, anchor):
-        """ Set the fraction of data points to keep during the ID estimate
-        """
         if anchor <= 0 or anchor > 1:
             raise ValueError("The anchor fraction must be between 0 (excluded) and 1.")
         self._anchor = anchor
@@ -107,14 +145,24 @@ class MLE:
         return self._k
 
     @k.setter
-    def anchor(self, k):
-        """ Set the fraction of data points to keep during the ID estimate
-        """
+    def k(self, k):
         if k <= 0:
             raise ValueError("The number of neighbours must be greater than 0.")
         self._k = k
 
     def fit_transform(self, X):
+        """ Compute `n_runs` ID estimations of `X` and return the average score.
+
+        Parameters
+        ----------
+        X : np.array
+            A (n_example, n_features) matrix
+
+        Returns
+        -------
+        float
+            The average IDE of `X` obtained for `n_runs`.
+        """
         anchor_samples = int(self.anchor * X.shape[0])
         res = np.zeros((self._n_runs,))
         data_idxs = np.arange(X.shape[0])
@@ -144,23 +192,34 @@ class MLE:
 
 
 class Hidalgo:
-    """ Compute Hidalgo, an algorithm initially proposed in [1].
-    The implementation is from https://github.com/micheleallegra/Hidalgo/tree/master/python,
-    the code released with [1].
+    """ Compute Hidalgo, an algorithm initially proposed by Allegra et al. [1], based on
+    `their implementation <https://github.com/micheleallegra/Hidalgo/tree/master/python>`_.
+    Hidalgo estimates the local ID of `k` sub-manifolds.
 
-    [1] Data segmentation based on the local intrinsic dimension, Allegra et al., 2020
+    Parameters
+    ----------
+    metric : str, optional
+        The metric to use for KNN, if predefined, then a distance matrix will be given when calling fit. Default "euclidean"
+    k : int, optional
+        The number of sub-manifolds
+    zeta : float, optional
+        The probability to sample the neighbour of a point from the same sub-manifold (in the paper's formula,
+        this is xsi)
+    q : int, optional
+        Number of closest neighbours from each points to keep
+    iters : int, optional
+        Number of iterations of the Gibbs sampling
+    replicas : int, optional
+        Number of times the sampling should be replicated
+    burn_in : float, optional
+        Percentage of points to exclude of the estimation
+
+    References
+    ----------
+    .. [1] Allegra, M., Facco, E., Denti, F., Laio, A., & Mira, A. (2020). Data segmentation based on the local
+          intrinsic dimension. Scientific reports, 10(1), 1-12.
     """
     def __init__(self, metric='euclidean', k=2, zeta=0.8, q=3, iters=10000, replicas=10, burn_in=0.9):
-        """
-        :param metric: The metric to use for KNN, if predefined, then a distance matrix will be given when calling fit
-        :param k: The number of manifolds
-        :param zeta: The probability to sample the neighbour of a point from the same manifold (in the paper's formula,
-        this is xsi)
-        :param q: number of closest neighbours from each points to keep
-        :param iters: number of iterations of the Gibbs sampling
-        :param replicas: number of times the sampling should be replicated
-        :param burn_in: percentage of points to exclude of the estimation
-        """
         self.metric = metric
         self.k = k
         self.zeta = zeta
@@ -237,6 +296,18 @@ class Hidalgo:
         return best_sampling, self.n_samples
 
     def fit(self, X):
+        """ Compute ID estimations of `X` using Hidalgo.
+
+        Parameters
+        ----------
+        X : np.array
+            A (n_example, n_features) matrix
+
+        Returns
+        -------
+        dict
+            A dictionary of all the estimated parameters
+        """
         n = np.shape(X)[0]
         sampling, n_samples = self._fit(X)
         p_i = np.zeros((self.k, n))
