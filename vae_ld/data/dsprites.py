@@ -8,23 +8,22 @@ import numpy as np
 
 
 class DSprites(Data):
-    """DSprites dataset. Based on Locatello et al. [1] implementation
-    (https://github.com/google-research/disentanglement_lib)
-
-    The data set was originally used in [2] and can be downloaded from
-    https://github.com/deepmind/dsprites-dataset.
+    """DSprites dataset. Based on Locatello et al. [1] `implementation <https://github.com/google-research/disentanglement_lib>`_.
+    The `dataset <https://github.com/deepmind/dsprites-dataset>`_  was originally used in [2].
 
     The ground-truth factors of variation are (in the default setting):
-    0 - shape (3 different values)
-    1 - scale (6 different values)
-    2 - orientation (40 different values)
-    3 - position x (32 different values)
-    4 - position y (32 different values)
+        * 0 - shape (3 different values)
+        * 1 - scale (6 different values)
+        * 2 - orientation (40 different values)
+        * 3 - position x (32 different values)
+        * 4 - position y (32 different values)
 
-    [1] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
-    Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
-    [2] Higgins et al. (2017) beta-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework
-    Proceedings of ICLR 2017
+    References
+    ----------
+    .. [1] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
+           Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
+    .. [2] Higgins et al. (2017) beta-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework
+           Proceedings of ICLR 2017
     """
 
     def __init__(self, **kwargs):
@@ -71,11 +70,9 @@ class DSprites(Data):
         return resized_images
 
     def sample_factors(self, num, random_state):
-        """Sample a batch of factors Y."""
         return self.state_space.sample_latent_factors(num, random_state)
 
     def sample_observations_from_factors(self, factors, random_state):
-        """Sample a batch of observations X given a batch of factors Y."""
         all_factors = self.state_space.sample_all_factors(factors, random_state)
         indices = np.array(np.dot(all_factors, self.factor_bases), dtype=np.int64)
         return self._postprocess(self._data[indices], random_state)
@@ -89,22 +86,23 @@ class DSprites(Data):
 
 
 class ColorDSprites(DSprites):
-    """Color DSprites. Based on Locatello et al. [1] implementation and dataset
-    (https://github.com/google-research/disentanglement_lib)
+    """Color DSprites. Based on Locatello et al. [1] `implementation <https://github.com/google-research/disentanglement_lib>`_.
 
     This data set is the same as the original DSprites data set except that when
     sampling the observations X, the sprite is colored in a randomly sampled
     color.
 
     The ground-truth factors of variation are (in the default setting):
-    0 - shape (3 different values)
-    1 - scale (6 different values)
-    2 - orientation (40 different values)
-    3 - position x (32 different values)
-    4 - position y (32 different values)
+        * 0 - shape (3 different values)
+        * 1 - scale (6 different values)
+        * 2 - orientation (40 different values)
+        * 3 - position x (32 different values)
+        * 4 - position y (32 different values)
 
-    [1] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
-    Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
+    References
+    ----------
+    .. [1] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
+           Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
     """
 
     def __init__(self, **kwargs):
@@ -122,22 +120,23 @@ class ColorDSprites(DSprites):
 
 
 class NoisyDSprites(DSprites):
-    """Noisy DSprites. Based on Locatello et al. [1] implementation and dataset
-    (https://github.com/google-research/disentanglement_lib)
+    """Noisy DSprites. Based on Locatello et al. [1] `implementation and dataset <https://github.com/google-research/disentanglement_lib>`_.
 
     This data set is the same as the original DSprites data set except that when
     sampling the observations X, the background pixels are replaced with random
     noise.
 
     The ground-truth factors of variation are (in the default setting):
-    0 - shape (3 different values)
-    1 - scale (6 different values)
-    2 - orientation (40 different values)
-    3 - position x (32 different values)
-    4 - position y (32 different values)
+        * 0 - shape (3 different values)
+        * 1 - scale (6 different values)
+        * 2 - orientation (40 different values)
+        * 3 - position x (32 different values)
+        * 4 - position y (32 different values)
 
-    [1] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
-    Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
+    References
+    ----------
+    .. [1] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
+           Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
     """
 
     def __init__(self, **kwargs):
@@ -160,11 +159,11 @@ class GreyDSprites(DSprites):
     sampling the observations X, the background pixels are turned to a configurable uniform shade of grey.
 
     The ground-truth factors of variation are (in the default setting):
-    0 - shape (3 different values)
-    1 - scale (6 different values)
-    2 - orientation (40 different values)
-    3 - position x (32 different values)
-    4 - position y (32 different values)
+        * 0 - shape (3 different values)
+        * 1 - scale (6 different values)
+        * 2 - orientation (40 different values)
+        * 3 - position x (32 different values)
+        * 4 - position y (32 different values)
     """
 
     def __init__(self, grey_shade=0.8, **kwargs):
@@ -178,8 +177,7 @@ class GreyDSprites(DSprites):
 
 
 class ScreamDSprites(DSprites):
-    """Scream DSprites. Based on Locatello et al. [1] implementation and dataset
-    (https://github.com/google-research/disentanglement_lib)
+    """Scream DSprites. Based on Locatello et al. [1] `implementation and dataset <https://github.com/google-research/disentanglement_lib>`_.
 
     This data set is the same as the original DSprites data set except that when
     sampling the observations X, a random patch of the Scream image is sampled as
@@ -187,14 +185,16 @@ class ScreamDSprites(DSprites):
     color of the sampled patch at the pixels of the sprite.
 
     The ground-truth factors of variation are (in the default setting):
-    0 - shape (3 different values)
-    1 - scale (6 different values)
-    2 - orientation (40 different values)
-    3 - position x (32 different values)
-    4 - position y (32 different values)
+        * 0 - shape (3 different values)
+        * 1 - scale (6 different values)
+        * 2 - orientation (40 different values)
+        * 3 - position x (32 different values)
+        * 4 - position y (32 different values)
 
-    [1] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
-    Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
+    References
+    ----------
+    .. [1] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
+           Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
     """
 
     def __init__(self, **kwargs):
@@ -225,6 +225,13 @@ class ScreamDSprites(DSprites):
         return observations
 
     def load_scream(self):
+        """ Load `The scream` image.
+
+        Returns
+        -------
+        np.array
+            An array of size (350,274,3) containing a normalised version of `The scream`
+        """
         file = self.path / self._scream_url.split("/")[-1]
         if not file.exists():
             self.download_scream()
@@ -235,6 +242,16 @@ class ScreamDSprites(DSprites):
         return np.asarray(scream) * 1. / 255.
 
     def download_scream(self):
+        """ Download `The scream` image.
+
+        Note
+        ----
+        This will only be done if the image does not already exists in the given path.
+
+        Returns
+        -------
+        None
+        """
         logger.info("Downloading The Scream image. This will happen only once.")
         file_path = str(self.path / self._scream_url.split("/")[-1])
         response = requests.get(self._scream_url)

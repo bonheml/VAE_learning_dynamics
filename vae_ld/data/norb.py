@@ -11,24 +11,24 @@ from vae_ld.data.dataset import Data
 
 
 class SmallNORB(Data):
-    """SmallNORB dataset. Based on Locatello et al. [1] implementation
-    (https://github.com/google-research/disentanglement_lib)
+    """SmallNORB dataset. Based on Locatello et al. [1] `implementation <https://github.com/google-research/disentanglement_lib>`_
 
-    The data set was first used in [2] can be downloaded from
-    https://cs.nyu.edu/~ylclab/data/norb-v1.0-small/. Images are resized to 64x64.
+    The `dataset <https://cs.nyu.edu/~ylclab/data/norb-v1.0-small/>`_  was first used in [2]. Images are resized to 64x64.
 
     The ground-truth factors of variation are:
-    0 - category (5 different values)
-    1 - elevation (9 different values)
-    2 - azimuth (18 different values)
-    3 - lighting condition (6 different values)
+        * 0 - category (5 different values)
+        * 1 - elevation (9 different values)
+        * 2 - azimuth (18 different values)
+        * 3 - lighting condition (6 different values)
 
     The instance in each category is randomly sampled when generating the images.
 
-    [1] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
-    Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
-    [2] LeCun et al. (2004), Learning Methods for Generic Object Recognition with Invariance to Pose and
-    Lighting. IEEE Computer Society Conference on Computer Vision and Pattern Recognition (CVPR)
+    References
+    ----------
+    .. [1] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
+           Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
+    .. [2] LeCun et al. (2004), Learning Methods for Generic Object Recognition with Invariance to Pose and
+           Lighting. IEEE Computer Society Conference on Computer Vision and Pattern Recognition (CVPR)
     """
 
     def __init__(self, **kwargs):

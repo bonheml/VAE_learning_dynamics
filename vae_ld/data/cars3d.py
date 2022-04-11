@@ -12,19 +12,20 @@ from vae_ld.data.dataset import Data
 
 
 class Cars3D(Data):
-    """Cars3D data set. Based on Locatello et al. [1] implementation
-    (https://github.com/google-research/disentanglement_lib)
+    """
+    Cars3D data set. Based on Locatello et al. [1] `implementation <https://github.com/google-research/disentanglement_lib>`_
 
-    The data set was first used in [2] and can be
-    downloaded from http://www.scottreed.info/. The images are rescaled to 64x64.
+    The `dataset <http://www.scottreed.info/>`_ was first used in [2]. The images are rescaled to 64x64.
     The ground-truth factors of variation are:
-     - elevation (4 different values)
-     - azimuth (24 different values)
-     - object type (183 different values)
+        * elevation (4 different values)
+        * azimuth (24 different values)
+        * object type (183 different values)
 
-    [1] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
-    Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
-    [2] Reed et al. (2015). Deep visual analogy-making. In Advances in neural information processing systems
+    References
+    ----------
+    .. [1] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
+           Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
+    .. [2] Reed et al. (2015). Deep visual analogy-making. In Advances in neural information processing systems
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -36,11 +37,9 @@ class Cars3D(Data):
         self._data = self.load_data()
 
     def sample_factors(self, num, random_state):
-        """Sample a batch of factors Y."""
         return self.state_space.sample_latent_factors(num, random_state)
 
     def sample_observations_from_factors(self, factors, seed):
-        """Sample a batch of observations X given a batch of factors Y."""
         all_factors = self.state_space.sample_all_factors(factors, seed)
         indices = self.index.features_to_index(all_factors)
         return self.data[indices].astype(np.float32)

@@ -1,6 +1,5 @@
 import math
 from pathlib import Path
-
 import numpy as np
 import requests
 from keras.utils.data_utils import Sequence
@@ -8,11 +7,30 @@ from vae_ld.data import logger
 
 
 class Data:
-    """ Generic Data class used to load and interact with a dataset based on Locatello et al. [1] implementation
-    (https://github.com/google-research/disentanglement_lib)
+    """ Generic Data class used to load and interact with a dataset based on Locatello et al. [1]
+    `implementation <https://github.com/google-research/disentanglement_lib>`_
 
-    [1] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
-    Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
+
+    Parameters
+    ----------
+    url : str
+        The URL where the dataset can be downloaded
+    path : str
+        The absolute path where the dataset will be stored
+    observation_shape : list
+        The shape of one data example (e.g., [64,64,3])
+    data_size : int
+        The number of data examples in the dataset
+    name : str
+        The name of the dataset
+    factors_shape : list
+        A list containing the number of labels for each ground truth factor (e.g., [4, 24, 183] for cars3D)
+
+
+    References
+    ----------
+    .. [1] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
+           Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
     """
 
     def __init__(self, *, url, path, observation_shape, data_size, name, factors_shape, **kwargs):
@@ -26,6 +44,18 @@ class Data:
         self.name = name
 
     def __getitem__(self, key):
+        """ Get data example at index key
+
+        Parameters
+        ----------
+        key
+            The index or slice of data examples to retrieve
+
+        Returns
+        -------
+        np.array
+            The data examples
+        """
         return self._data[key]
 
     @property
@@ -49,19 +79,84 @@ class Data:
         return self._data
 
     def load_data(self):
-        """Load data from the dataset"""
+        """ Load data from the dataset
+
+        Returns
+        -------
+        np.array
+            The (data_size, observation_shape) dataset
+
+        Raises
+        -------
+        NotImplementedError
+        """
         raise NotImplementedError()
 
     def sample_factors(self, batch_size, seed):
-        """Sample a batch of factors Y."""
+        """ Sample a batch of factors Y.
+
+        Parameters
+        ----------
+        batch_size : int
+            The number of examples to return
+        seed : np.random.RandomState
+            The numpy random state used to generate the sample.
+
+        Returns
+        -------
+        np.array
+            A (n_examples, n_factors) batch of factors
+
+        Raises
+        -------
+        NotImplementedError
+        """
         raise NotImplementedError()
 
     def sample_observations_from_factors(self, factors, seed):
-        """Sample a batch of observations X given a batch of factors Y."""
+        """ Sample a batch of observations X given a batch of factors Y.
+
+        Parameters
+        ----------
+        factors : np.array
+            A (n_examples, n_factors) batch of factors
+
+        seed : np.random.RandomState
+            The numpy random state used to generate the sample.
+
+        Returns
+        -------
+        np.array
+            A (n_examples, observation_shape) batch of observations
+
+        Raises
+        -------
+        NotImplementedError
+        """
         raise NotImplementedError()
 
     def sample(self, batch_size, seed, unique=False, flatten=False, normalised=True):
-        """Sample a batch of factors Y and observations X."""
+        """ Sample a batch of factors Y and observations X.
+
+        Parameters
+        ----------
+        batch_size : int
+            The number of examples to return
+        seed : np.random.RandomState
+            The numpy random state used to generate the sample.
+        unique : bool, optional
+            If True remove duplicates after generation, else the sample can contain duplicate examples. Default False.
+        flatten : bool, optional
+            If False, any m-dimensional observation shape results in an array of m+1 dimensions.
+            If True, any m-dimensional observation shape is flattened resulting in a two dimensional array. Default False.
+        normalised : bool, optional
+            If True, the observations are divided by 255, else, they are left as-is. Default True.
+
+        Returns
+        -------
+        tuple
+            A tuple containing (factors, obs)
+        """
         factors = self.sample_factors(batch_size, seed)
         obs = self.sample_observations_from_factors(factors, seed)
         if unique is True:
@@ -74,10 +169,33 @@ class Data:
         return factors, obs
 
     def sample_observations(self, batch_size, seed):
-        """Sample a batch of observations X."""
+        """ Sample a batch of observations X.
+
+        Parameters
+        ----------
+        batch_size : int
+            The number of examples to return
+        seed : np.random.RandomState
+            The numpy random state used to generate the sample.
+
+        Returns
+        -------
+        np.array
+            A (batch_size, observation_shape) array of observations
+        """
         return self.sample(batch_size, seed)[1]
 
     def download(self):
+        """ Download the dataset.
+
+        Note
+        ----
+        This will only be done if the dataset does not already exists in the given path
+
+        Returns
+        -------
+        None
+        """
         fname = self.path / self._url.split("/")[-1]
         response = requests.get(self._url, stream=True, allow_redirects=True)
         response.raise_for_status()
@@ -86,6 +204,33 @@ class Data:
 
 
 class DataSampler(Sequence):
+    """ Sample data examples from a dataset.
+
+    Attributes
+    ----------
+    data : str
+        The dataset to sample from
+
+    batch_size : int
+        The size of the batches to sample
+
+    validation : bool or None
+        Whether to generate a train or validation set.
+
+    Parameters
+    ----------
+    data : Data
+        The dataset to sample from
+    batch_size : int
+        The size of the batches to sample
+    validation_split : float, optional
+        The Fraction of data left for validation. Default 0.2.
+    validation : bool or None, optional
+        If True, a validation sets are generated according to ``validation_split``.
+        If False, a train set is generated and a ratio of ``validation_split`` examples is removed from the dataset.
+        If None, a train set is generated and ``validation_split`` is ignored.
+        Default False.
+    """
 
     def __init__(self, *, data, batch_size, validation_split=0.2, validation=False, **kwargs):
         self._data = data
@@ -116,6 +261,13 @@ class DataSampler(Sequence):
         self._validation = validation
 
     def __len__(self):
+        """ The size of the dataset from which to sample.
+
+        Returns
+        -------
+        int
+            The number of data examples available.
+        """
         if self._validation_size is None:
             return self._full_len
         elif self._validation is True:
@@ -124,6 +276,18 @@ class DataSampler(Sequence):
             return self._full_len - self._val_len
 
     def __getitem__(self, idx):
+        """
+        Parameters
+        ----------
+        idx : int
+            Index from which to start sampling a ``batch_size`` sample.
+
+        Returns
+        -------
+        tuple
+            A tuple containing the sample only.
+        """
+
         if self._validation is True:
             idx += self._full_len - self._val_len
         logger.debug("Getting data from index {} to {}".format(idx * self.batch_size, (idx + 1) * self.batch_size))

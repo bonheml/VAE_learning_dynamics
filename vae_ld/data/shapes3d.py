@@ -7,24 +7,27 @@ from vae_ld.data.dataset import Data
 
 
 class Shapes3D(Data):
-    """Shapes3D dataset. Based on Locatello et al. [1] implementation
-      (https://github.com/google-research/disentanglement_lib)
+    """Shapes3D dataset. Based on Locatello et al. [1]
+    `implementation <https://github.com/google-research/disentanglement_lib>`_
   
-    The data set was first used in [2] and can be downloaded from
-    https://storage.cloud.google.com/3d-shapes/3dshapes.h5
+    The `dataset <https://storage.cloud.google.com/3d-shapes/3dshapes.h5>`_  was first used in [2].
+
   
     The ground-truth factors of variation are:
-    0 - floor color (10 different values)
-    1 - wall color (10 different values)
-    2 - object color (10 different values)
-    3 - object size (8 different values)
-    4 - object type (4 different values)
-    5 - azimuth (15 different values)
+        * 0 - floor color (10 different values)
+        * 1 - wall color (10 different values)
+        * 2 - object color (10 different values)
+        * 3 - object size (8 different values)
+        * 4 - object type (4 different values)
+        * 5 - azimuth (15 different values)
     
-    [1] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
-    Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
-    [2] Kim and Mnih (2018). Disentangling by Factorising.
-    In Proceedings of the 35th International Conference on Machine Learning (ICML)
+     References
+    ----------
+    .. [1] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
+           Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
+
+    .. [2] Kim and Mnih (2018). Disentangling by Factorising. In Proceedings of the 35th International Conference on
+           Machine Learning (ICML)
     """
 
     def __init__(self, **kwargs):

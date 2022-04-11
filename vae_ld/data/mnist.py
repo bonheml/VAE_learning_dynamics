@@ -19,11 +19,9 @@ class Mnist(Data):
         return mnist_digits, mnist_features, lookup_table
 
     def sample_factors(self, batch_size, seed):
-        """Sample a batch of factors Y."""
         return seed.choice(10, batch_size)
 
     def sample_observations_from_factors(self, factors, seed):
-        """Sample a batch of observations X given a batch of factors Y."""
         indices = []
         for i in factors:
             indices.append(self._lookup_table[i][seed.choice(len(self._lookup_table[i]), 1)][0])

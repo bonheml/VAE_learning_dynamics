@@ -4,11 +4,13 @@ import numpy as np
 
 class SplitDiscreteStateSpace(object):
     """State space with factors split between latent variable and observations.
-    Based on Locatello et al. [1] implementation
-    (https://github.com/google-research/disentanglement_lib)
+    Based on Locatello et al. [1]
+    `implementation <https://github.com/google-research/disentanglement_lib>`_
 
-    [1] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
-    Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
+    References
+    ----------
+    .. [1] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
+           Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
     """
 
     def __init__(self, factor_sizes, latent_factor_indices):
@@ -25,7 +27,20 @@ class SplitDiscreteStateSpace(object):
         return len(self.latent_factor_indices)
 
     def sample_latent_factors(self, num, random_state):
-        """Sample a batch of the latent factors."""
+        """ Sample a batch of latent factors Y.
+
+        Parameters
+        ----------
+        num : int
+            The number of examples to return
+        random_state : np.random.RandomState
+            The numpy random state used to generate the sample.
+
+        Returns
+        -------
+        np.array
+            A (n_examples, n_factors) batch of factors
+        """
         factors = np.zeros(
             shape=(num, len(self.latent_factor_indices)), dtype=np.int64)
         for pos, i in enumerate(self.latent_factor_indices):
@@ -33,7 +48,20 @@ class SplitDiscreteStateSpace(object):
         return factors
 
     def sample_all_factors(self, latent_factors, random_state):
-        """Samples the remaining factors based on the latent factors."""
+        """ Sample the remaining factors based on the latent factors.
+
+        Parameters
+        ----------
+        latent_factors : np.array
+            A (n_examples, n_factors) batch of factors
+        random_state : np.random.RandomState
+            The numpy random state used to generate the sample.
+
+        Returns
+        -------
+        np.array
+            A (n_examples, n_factors) batch of factors
+        """
         num_samples = latent_factors.shape[0]
         all_factors = np.zeros(
             shape=(num_samples, self.num_factors), dtype=np.int64)
@@ -48,21 +76,26 @@ class SplitDiscreteStateSpace(object):
 
 
 class StateSpaceAtomIndex(object):
-    """Index mapping from features to positions of state space atoms.
-    Based on Locatello et al. [1] implementation
-    (https://github.com/google-research/disentanglement_lib)
+    """ Index mapping from features to positions of state space atoms.
+    Based on Locatello et al. [1]
+    `implementation <https://github.com/google-research/disentanglement_lib>`_
 
-    [1] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
-    Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
+    References
+    ----------
+    .. [1] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
+           Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
     """
 
     def __init__(self, factor_sizes, features):
-        """Creates the StateSpaceAtomIndex.
+        """ Create the StateSpaceAtomIndex
 
-        Args:
-          factor_sizes: List of integers with the number of distinct values for each
+        Parameters
+        ----------
+        factor_sizes : list
+            List of integers containing the number of distinct values for each
             of the factors.
-          features: Numpy matrix where each row contains a different factor
+        features : np.array
+            Numpy matrix where each row contains a different factor
             configuration. The matrix needs to cover the whole state space.
         """
         self.factor_sizes = factor_sizes
@@ -76,23 +109,39 @@ class StateSpaceAtomIndex(object):
         self.state_space_to_save_space_index = lookup_table
 
     def features_to_index(self, features):
-        """Returns the indices in the input space for given factor configurations.
+        """ Return the indices in the input space for given factor configurations.
 
-        Args:
-          features: Numpy matrix where each row contains a different factor
+        Parameters
+        ----------
+        features : np.array
+            Numpy matrix where each row contains a different factor
             configuration for which the indices in the input space should be
             returned.
+
+        Returns
+        -------
+        np.array
+            The indices in the input space for given factor configurations.
+
         """
         state_space_index = self._features_to_state_space_index(features)
         return self.state_space_to_save_space_index[state_space_index]
 
     def _features_to_state_space_index(self, features):
-        """Returns the indices in the atom space for given factor configurations.
+        """ Return the indices in the atom space for given factor configurations.
 
-        Args:
-          features: Numpy matrix where each row contains a different factor
+        Parameters
+        ----------
+        features : np.array
+            Numpy matrix where each row contains a different factor
             configuration for which the indices in the atom space should be
             returned.
+
+        Returns
+        -------
+        np.array
+            The indices in the atom space for given factor configurations.
+
         """
         if (np.any(features > np.expand_dims(self.factor_sizes, 0)) or
                 np.any(features < 0)):
@@ -100,8 +149,28 @@ class StateSpaceAtomIndex(object):
         return np.array(np.dot(features, self.factor_bases), dtype=np.int64)
 
 
-# Natural sort implementation taken from https://nedbatchelder.com/blog/200712/human_sorting.html
 def tryint(s):
+    """ Try to convert a string to an integer. If the given string is an int, convert it to an integer, else return a string.
+
+    Parameters
+    ----------
+    s : str
+        The string to process
+
+    Returns
+    -------
+    str or int
+        The converted integer if s only contained decimal characters, otherwise the initial string
+
+    Examples
+    --------
+    >>> tryint("123")
+        123
+    >>> tryint("123a")
+        "123a"
+    >>> tryint("hello")
+        "hello"
+    """
     try:
         return int(s)
     except ValueError:
@@ -109,8 +178,13 @@ def tryint(s):
 
 
 def natural_sort(s):
-    """ Turn a string into a list of string and number chunks.
-        "z23a" -> ["z", 23, "a"]
+    """ Natural sort implementation taken from `Ned Batchelder website <https://nedbatchelder.com/blog/200712/human_sorting.html>`_.
+    Turn a string into a list of string and number chunks.
+
+    Examples
+    --------
+    >>> natural_sort("z23a")
+        ["z", 23, "a"]
     """
     return [tryint(c) for c in re.split('([0-9]+)', s)]
 
