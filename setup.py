@@ -10,6 +10,10 @@ import numpy as np
 
 hidalgo = Extension("gibbs", sources=["vae_ld/ext/gibbs.c"], include_dirs=[np.get_include()])
 
+extras = {
+   'doc': ['Sphinx', 'sphinx-rtd-theme']
+}
+
 setup(
     name="vae_ld",
     version="0.1",
@@ -53,10 +57,11 @@ setup(
         "gudhi",
         "jax[cpu]"
     ],
+    extras_require=extras,
     classifiers=[
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: Apache Software License",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
     ],
-    keywords="tensorflow2, machine learning, variational auto-encoders, deep learning",
+    keywords="tensorflow2, machine learning, variational autoencoders, deep learning, representational similarity",
 )
