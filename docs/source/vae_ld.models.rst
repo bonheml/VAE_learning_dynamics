@@ -9,26 +9,36 @@ Learning objectives
 VAE learning objectives aiming to encourage disentangled representation learning.
 Each of the following learning objective can be used interchangeably with different encoder/decoder type.
 
+Generic VAE
+-----------
 .. autoclass:: vae_ld.models.vaes.VAE
    :members:
    :undoc-members:
    :show-inheritance:
 
+beta-VAE
+--------
 .. autoclass:: vae_ld.models.vaes.BetaVAE
    :members:
    :undoc-members:
    :show-inheritance:
 
+Annealed VAE
+------------
 .. autoclass:: vae_ld.models.vaes.AnnealedVAE
    :members:
    :undoc-members:
    :show-inheritance:
 
+beta-TC VAE
+-----------
 .. autoclass:: vae_ld.models.vaes.BetaTCVAE
    :members:
    :undoc-members:
    :show-inheritance:
 
+DIP VAE
+-------
 .. autoclass:: vae_ld.models.vaes.DIPVAE
    :members:
    :undoc-members:
@@ -37,14 +47,20 @@ Each of the following learning objective can be used interchangeably with differ
 Encoders
 ========
 Different types of encoders that can be used with the learning objective previously described.
-Note that each layer output is exposed to allow computation of representational similarity between
-every layers later on.
 
+.. note::
+   Each layer output is exposed to allow computation of representational similarity between
+   every layers later on.
+
+Fully connected
+---------------
 .. autoclass:: vae_ld.models.encoders.FullyConnectedEncoder
    :members:
    :undoc-members:
    :show-inheritance:
 
+Convolutional
+-------------
 .. autoclass:: vae_ld.models.encoders.ConvolutionalEncoder
    :members:
    :undoc-members:
@@ -53,14 +69,20 @@ every layers later on.
 Decoders
 ========
 Different types of decoders that can be used with the learning objective previously described.
-Note that each layer output is exposed to allow computation of representational similarity between
-every layers later on.
 
+.. note::
+   Each layer output is exposed to allow computation of representational similarity between
+   every layers later on.
+
+Fully connected
+---------------
 .. autoclass:: vae_ld.models.decoders.FullyConnectedDecoder
    :members:
    :undoc-members:
    :show-inheritance:
 
+Deconvolutional
+---------------
 .. autoclass:: vae_ld.models.decoders.DeconvolutionalDecoder
    :members:
    :undoc-members:
@@ -68,8 +90,10 @@ every layers later on.
 
 Custom Layers
 =============
-The custom Sampling layer used by VAEs.
+The custom layers used by VAEs.
 
+Sampling layer
+--------------
 .. autoclass:: vae_ld.models.encoders.Sampling
    :members:
    :undoc-members:
@@ -79,6 +103,8 @@ Losses
 ======
 The different reconstruction losses implemented.
 
+Bernoulli Loss
+--------------
 .. autoclass:: vae_ld.models.losses.BernoulliLoss
    :members:
    :undoc-members:
@@ -88,6 +114,8 @@ Custom Callbacks
 ================
 The custom callbacks implemented.
 
+Image generator
+---------------
 .. autoclass:: vae_ld.models.callbacks.ImageGeneratorCallback
    :members:
    :undoc-members:

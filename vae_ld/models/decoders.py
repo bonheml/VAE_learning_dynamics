@@ -4,15 +4,16 @@ from tensorflow.keras import layers
 
 
 class DeconvolutionalDecoder(tf.keras.Model):
-    """ Deconvolutional decoder initially used in beta-VAE [1]. Based on Locatello et al. [2] implementation
-    (https://github.com/google-research/disentanglement_lib)
+    """ Deconvolutional decoder initially used in beta-VAE [1]. Based on Locatello et al. [2]
+    `implementation <https://github.com/google-research/disentanglement_lib>`_.
 
-    [1] Higgins, I. et al. (2017). β-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework.
-    In 5th International Conference on Learning Representations, ICLR 2017, Toulon, France.
-    [2] Locatello, F. et al. (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
-    Representations. In K. Chaudhuri and R. Salakhutdinov, eds., Proceedings of the 36th International Conference
-    on Machine Learning, Proceedings of Machine Learning Research, vol. 97, Long Beach, California, USA: PMLR,
-    pp. 4114–4124.
+    References
+    ----------
+    .. [1] Higgins, I., Matthey, L., Pal, A., Burgess, C., Glorot, X., Botvinick, M., ... & Lerchner, A. (2017).
+           β-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework. In 5th International
+           Conference on Learning Representations, ICLR 2017, Toulon, France.
+    .. [2] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
+           Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
     """
     def __init__(self, input_shape, output_shape):
         super(DeconvolutionalDecoder, self).__init__()
@@ -42,15 +43,16 @@ class DeconvolutionalDecoder(tf.keras.Model):
 
 
 class FullyConnectedDecoder(tf.keras.Model):
-    """ Fully connected decoder initially used in beta-VAE [1]. Based on Locatello et al. [2] implementation
-    (https://github.com/google-research/disentanglement_lib)
+    """ Fully connected decoder initially used in beta-VAE [1]. Based on Locatello et al. [2]
+    `implementation <https://github.com/google-research/disentanglement_lib>`_.
 
-    [1] Higgins, I. et al. (2017). β-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework.
-    In 5th International Conference on Learning Representations, ICLR 2017, Toulon, France.
-    [2] Locatello, F. et al. (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
-    Representations. In K. Chaudhuri and R. Salakhutdinov, eds., Proceedings of the 36th International Conference
-    on Machine Learning, Proceedings of Machine Learning Research, vol. 97, Long Beach, California, USA: PMLR,
-    pp. 4114–4124.
+    References
+    ----------
+    .. [1] Higgins, I., Matthey, L., Pal, A., Burgess, C., Glorot, X., Botvinick, M., ... & Lerchner, A. (2017).
+           β-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework. In 5th International
+           Conference on Learning Representations, ICLR 2017, Toulon, France.
+    .. [2] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
+           Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
     """
     def __init__(self, input_shape, output_shape):
         super(FullyConnectedDecoder, self).__init__()

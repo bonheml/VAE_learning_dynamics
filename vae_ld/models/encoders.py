@@ -3,9 +3,36 @@ from tensorflow.keras import layers
 
 
 class Sampling(layers.Layer):
-    """ Uses the reparametrisation trick to sample z = mean + exp(0.5 * log_var) * eps where eps ~ N(0,I)
+    """ Sampling layer
     """
     def call(self, inputs, **kwargs):
+        """ Uses the reparametrisation trick to sample z = mean + exp(0.5 * log_var) * eps
+        where eps ~ N(0,I).
+
+        Parameters
+        ----------
+        inputs : tuple
+            Tuple of the form (z_mean, z_log_var)
+
+        Returns
+        -------
+        tf.Tensor
+            Sampled representation
+
+        Examples
+        --------
+        >>> sampling = Sampling()
+        >>> mean = tf.constant([[0., 0.],[0., 0.]])
+        >>> log_var = tf.constant([[0., 0.],[0., 0.]])
+        >>> sampling((mean, log_var))
+        <tf.Tensor: shape=(2, 2), dtype=float32, numpy=
+        array([[-1.189146  ,  1.8920842 ],
+               [-0.25569448,  0.48008046]], dtype=float32)>
+        >>> sampling((mean, log_var))
+        <tf.Tensor: shape=(2, 2), dtype=float32, numpy=
+        array([[ 0.78779936,  0.0514518 ],
+               [-0.36348337, -0.65082115]], dtype=float32)>
+        """
         z_mean, z_log_var = inputs
         batch, dim = tf.shape(z_mean)[0], tf.shape(z_mean)[1]
         eps = tf.random.normal(shape=(batch, dim))
@@ -13,15 +40,16 @@ class Sampling(layers.Layer):
 
 
 class ConvolutionalEncoder(tf.keras.Model):
-    """ Convolutional encoder initially used in beta-VAE [1]. Based on Locatello et al. [2] implementation
-    (https://github.com/google-research/disentanglement_lib)
+    """ Convolutional encoder initially used in beta-VAE [1]. Based on Locatello et al. [2]
+    `implementation <https://github.com/google-research/disentanglement_lib>`_.
 
-    [1] Higgins, I. et al. (2017). β-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework.
-    In 5th International Conference on Learning Representations, ICLR 2017, Toulon, France.
-    [2] Locatello, F. et al. (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
-    Representations. In K. Chaudhuri and R. Salakhutdinov, eds., Proceedings of the 36th International Conference
-    on Machine Learning, Proceedings of Machine Learning Research, vol. 97, Long Beach, California, USA: PMLR,
-    pp. 4114–4124.
+    References
+    ----------
+    .. [1] Higgins, I., Matthey, L., Pal, A., Burgess, C., Glorot, X., Botvinick, M., ... & Lerchner, A. (2017).
+           β-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework. In 5th International
+           Conference on Learning Representations, ICLR 2017, Toulon, France.
+    .. [2] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
+           Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
     """
     def __init__(self, input_shape, output_shape):
         super(ConvolutionalEncoder, self).__init__()
@@ -53,15 +81,16 @@ class ConvolutionalEncoder(tf.keras.Model):
 
 
 class FullyConnectedEncoder(tf.keras.Model):
-    """ Fully connected encoder initially used in beta-VAE [1]. Based on Locatello et al. [2] implementation
-    (https://github.com/google-research/disentanglement_lib)
+    """ Fully connected encoder initially used in beta-VAE [1]. Based on Locatello et al. [2]
+    `implementation <https://github.com/google-research/disentanglement_lib>`_.
 
-    [1] Higgins, I. et al. (2017). β-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework.
-    In 5th International Conference on Learning Representations, ICLR 2017, Toulon, France.
-    [2] Locatello, F. et al. (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
-    Representations. In K. Chaudhuri and R. Salakhutdinov, eds., Proceedings of the 36th International Conference
-    on Machine Learning, Proceedings of Machine Learning Research, vol. 97, Long Beach, California, USA: PMLR,
-    pp. 4114–4124.
+    References
+    ----------
+    .. [1] Higgins, I., Matthey, L., Pal, A., Burgess, C., Glorot, X., Botvinick, M., ... & Lerchner, A. (2017).
+           β-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework. In 5th International
+           Conference on Learning Representations, ICLR 2017, Toulon, France.
+    .. [2] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
+           Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
     """
     def __init__(self, input_shape, output_shape):
         super(FullyConnectedEncoder, self).__init__()
