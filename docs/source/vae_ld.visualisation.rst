@@ -2,8 +2,14 @@
 Visualisation
 #####################
 
+Visualisation tools used to monitor the representational similarity.
+
 Visualise similarity
 --------------------
+
+.. warning::
+   These functions relies on the layer names of the current implementation and are not compatible with custom models.
+
 
 .. autofunction:: vae_ld.visualisation.similarity.similarity_heatmap
 

@@ -18,6 +18,21 @@ def check_exists(save_file):
 
 
 def similarity_heatmap(metric_name, input_file, overwrite):
+    """ Compute heatmaps of similarity scores obtained with `metric_name` for each model.
+
+    Parameters
+    ----------
+    metric_name : str
+        Name of the similarity metric used
+    input_file : str
+        Name of the file containing the aggregated results
+    overwrite : bool
+        If True, overwrite any existing file, else skip them.
+
+    Returns
+    -------
+    None
+    """
     df = pd.read_csv(input_file, sep="\t", header=0)
     # Sampling layer is named differently on linear architectures
     df.replace("encoder/z", "sampling", inplace=True)
@@ -52,6 +67,25 @@ def similarity_heatmap(metric_name, input_file, overwrite):
 def avg_similarity_layer_pair(metric_name, input_file, m1_layer, m2_layer, save_file, overwrite):
     """ Returns a lines plot of the average similarity values between two layers
     over different epochs with different regularisation strength (one line per regularisation weight).
+
+    Parameters
+    ----------
+    metric_name : str
+        Name of the similarity metric used
+    input_file : str
+        Name of the file containing the aggregated results
+    m1_layer : str
+        Name of the first layer
+    m2_layer : str
+        Name of the second layer
+    save_file : str
+        Name of the file used to save the figure.
+    overwrite : bool
+        If True, overwrite any existing file, else skip them.
+
+    Returns
+    -------
+    None
     """
     save_file, exists = check_exists(save_file)
     if exists and overwrite is False:
@@ -72,8 +106,29 @@ def avg_similarity_layer_pair(metric_name, input_file, m1_layer, m2_layer, save_
 
 
 def avg_similarity_layer_list(metric_name, input_file, regularisation, layer, target, save_file, overwrite):
-    """ Returns a lines plot of the average similarity values between the mean layer and each decoder layers
-    over different epochs (one line per sampled-decoder similarity score).
+    """ Returns a lines plot of the average similarity values between `layer` and each `target` layers
+    over different epochs.
+
+    Parameters
+    ----------
+    metric_name : str
+        Name of the similarity metric used
+    input_file : str
+        Name of the file containing the aggregated results
+    regularisation : int or float
+        The value of the model's regularisation weight
+    layer : str
+        Name of the layer to use
+    target : str
+        Can be "encoder" or "decoder"
+    save_file : str
+        Name of the file used to save the figure.
+    overwrite : bool
+        If True, overwrite any existing file, else skip them.
+
+    Returns
+    -------
+    None
     """
     save_file, exists = check_exists(save_file)
     if exists and overwrite is False:
@@ -97,6 +152,23 @@ def avg_similarity_layer_list(metric_name, input_file, regularisation, layer, ta
 
 
 def plot_tsne(input_dir, save_file, target, overwrite):
+    """ Plot t-SNE visualisation of the similarity matrices of different models.
+
+    Parameters
+    ----------
+    input_dir : str
+        Absolute path to the directory where the similarity scores are stored
+    save_file : str
+        Name of the file used to save the figure.
+    target : str
+        can be "seed" or "regularisation"
+    overwrite : bool
+        If True, overwrite any existing file, else skip them.
+
+    Returns
+    -------
+    None
+    """
     save_file, exists = check_exists(save_file)
     if exists and overwrite is False:
         logger.info("Skipping already computed graph of {}".format(save_file))
@@ -131,7 +203,22 @@ def plot_tsne(input_dir, save_file, target, overwrite):
 
 
 def aggregate_similarity(metric_name, input_dir, save_file, overwrite):
-    """ Aggregate similarity results per seed and regularisation strength
+    """ Aggregate similarity results in `input_dir` and save the results to `save_file` in TSV format.
+
+    Parameters
+    ----------
+    metric_name : str
+        Name of the similarity metric used
+    input_dir : str
+        Absolute path to the directory where the similarity scores are stored
+    save_file : str
+        Name of the file used to save the aggregated results
+    overwrite : bool
+        If True, overwrite `save_file` content if `save_file` already exists.
+
+    Returns
+    -------
+    None
     """
     if pathlib.Path(save_file).exists() and overwrite is False:
         logger.info("Skipping already computed aggregation of {}".format(save_file))
