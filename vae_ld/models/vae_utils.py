@@ -69,8 +69,13 @@ def compute_gaussian_log_pdf(z, z_mean, z_log_var):
 
 
 def compute_covariance(x):
-    """ Compute the covariance matrix of `x` based on Locatello et al.
+    r""" Compute the covariance matrix of `x` based on Locatello et al.
     `implementation <https://github.com/google-research/disentanglement_lib>`_
+
+    Uses
+
+    .. math::
+       cov(X) = E[XX^T] - E[X]E[X]^T.
 
     Parameters
     ----------
@@ -89,10 +94,15 @@ def compute_covariance(x):
 
 
 def compute_batch_tc(z, z_mean, z_log_var):
-    """ Estimates the total correlation over a batch. Based on Locatello et al.
+    r""" Estimates the total correlation over a batch. Based on Locatello et al.
     `implementation <https://github.com/google-research/disentanglement_lib>`_.
 
-    Compute E_j[log(q(z(x_j))) - log(prod_l q(z(x_j)_l))] where i and j are indexing the batch size and l is indexing
+    Compute
+
+    .. math::
+       E_j [\log q(z(x_j)) - \log \prod_l q(z(x_j)_l)]
+
+    where i and j are indexing the batch size and l is indexing
     the number of latent factors.
 
     Parameters

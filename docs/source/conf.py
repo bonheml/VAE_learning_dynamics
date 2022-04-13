@@ -35,6 +35,8 @@ extensions = [
    'sphinx.ext.doctest',
    'sphinx.ext.autodoc',
    'sphinx.ext.napoleon',
+   'sphinx.ext.autosectionlabel',
+   'sphinx.ext.mathjax',
 ]
 
 # Add any paths that contain templates here, relative to this directory.

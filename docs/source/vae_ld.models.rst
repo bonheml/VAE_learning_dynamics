@@ -52,15 +52,15 @@ Different types of encoders that can be used with the learning objective previou
    Each layer output is exposed to allow computation of representational similarity between
    every layers later on.
 
-Fully connected
----------------
+Fully connected encoder
+-----------------------
 .. autoclass:: vae_ld.models.encoders.FullyConnectedEncoder
    :members:
    :undoc-members:
    :show-inheritance:
 
-Convolutional
--------------
+Convolutional encoder
+---------------------
 .. autoclass:: vae_ld.models.encoders.ConvolutionalEncoder
    :members:
    :undoc-members:
@@ -74,15 +74,15 @@ Different types of decoders that can be used with the learning objective previou
    Each layer output is exposed to allow computation of representational similarity between
    every layers later on.
 
-Fully connected
----------------
+Fully connected decoder
+-----------------------
 .. autoclass:: vae_ld.models.decoders.FullyConnectedDecoder
    :members:
    :undoc-members:
    :show-inheritance:
 
-Deconvolutional
----------------
+Deconvolutional decoder
+-----------------------
 .. autoclass:: vae_ld.models.decoders.DeconvolutionalDecoder
    :members:
    :undoc-members:
@@ -121,8 +121,8 @@ Image generator
    :undoc-members:
    :show-inheritance:
 
-Utils
-=====
+Model utils
+===========
 .. automodule:: vae_ld.models.vae_utils
    :members:
    :undoc-members:

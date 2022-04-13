@@ -11,9 +11,11 @@ neural networks. Its first version has been implemented with a focus on for vari
 *How do Variational Autoencoders Learn? Insights from Representational Similarity*.
 
 .. toctree::
+   :maxdepth: 2
+
    getting_started.rst
-   script.rst
    reproduce.rst
+   script.rst
    vae_ld.data
    vae_ld.learning_dynamics
    vae_ld.models

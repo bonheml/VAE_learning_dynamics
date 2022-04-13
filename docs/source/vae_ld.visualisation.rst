@@ -19,8 +19,8 @@ Visualise similarity
 
 .. autofunction:: vae_ld.visualisation.similarity.plot_tsne
 
-Utils
------
+Visualisation utils
+-------------------
 
 .. autofunction:: vae_ld.visualisation.utils.save_figure
 

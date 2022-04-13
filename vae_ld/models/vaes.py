@@ -22,7 +22,7 @@ class VAE(tf.keras.Model):
     latent_shape : list
         The number of dimensions of z
 
-     References
+    References
     ----------
     .. [1] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
            Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
