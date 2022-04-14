@@ -76,9 +76,9 @@ class CKA:
         Parameters
         ----------
         x : np.array
-            A centered matrix of size (n, m)
+            A centered matrix of size (n, n)
         y : np.array
-            A centered matrix of size (n, p)
+            A centered matrix of size (n, n)
 
         Returns
         -------

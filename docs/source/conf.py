@@ -18,8 +18,8 @@ sys.path.insert(0, os.path.abspath('../vae_ld'))
 # -- Project information -----------------------------------------------------
 
 project = 'vae_ld'
-copyright = '2022, Lisa Bonheme'
-author = 'Lisa Bonheme'
+copyright = ''
+author = ''
 
 # The full version, including alpha/beta/rc tags
 release = '1.0'
@@ -63,3 +63,4 @@ release = '1.0.0'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+

@@ -10,20 +10,13 @@ Welcome to vae_ld's documentation!
 neural networks. Its first version has been implemented with a focus on for variational autoencoders for the paper
 *How do Variational Autoencoders Learn? Insights from Representational Similarity*.
 
+
 .. toctree::
    :maxdepth: 2
 
    getting_started.rst
    reproduce.rst
-   script.rst
    vae_ld.data
    vae_ld.learning_dynamics
    vae_ld.models
    vae_ld.visualisation
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
