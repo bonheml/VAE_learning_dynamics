@@ -126,8 +126,8 @@ Finally, the results are aggregated using:
 
 .. code-block::
 
-   $ visualise_similarity.sh -m visualisation_tool=aggregate m1_name=beta_vae,beta_tc_vae,dip_vae_ii,annealed_vae metric_name=cka,procrustes dataset_name=cars3d,dsprites,smallnorb
-   $ visualise_similarity.sh -m metric_name=procrustes visualisation_tool=aggregate m1_name=beta_vae,beta_tc_vae,dip_vae_ii,annealed_vae metric_name=cka,procrustes dataset_name=cars3d
+   $ visualise_similarity -m visualisation_tool=aggregate m1_name=beta_vae,beta_tc_vae,dip_vae_ii,annealed_vae metric_name=cka,procrustes dataset_name=cars3d,dsprites,smallnorb
+   $ visualise_similarity -m metric_name=procrustes visualisation_tool=aggregate m1_name=beta_vae,beta_tc_vae,dip_vae_ii,annealed_vae metric_name=cka,procrustes dataset_name=cars3d
 
 Here also, one can overwrite any results previously computed by adding `overwrite=true` to the command line.
 
@@ -141,29 +141,29 @@ The following (or equivalent individual runs) is computing t-SNE visualisations 
 
 .. code-block::
 
-   $ visualise_similarity.sh -m visualisation_tool=tsne m1_name=beta_vae,beta_tc_vae,dip_vae_ii,annealed_vae visualisation_tool.fn.target=seed dataset_name=cars3d,dsprites,smallnorb
-   $ visualise_similarity.sh -m metric_name=procrustes visualisation_tool=tsne m1_name=beta_vae,beta_tc_vae,dip_vae_ii,annealed_vae visualisation_tool.fn.target=seed
+   $ visualise_similarity -m visualisation_tool=tsne m1_name=beta_vae,beta_tc_vae,dip_vae_ii,annealed_vae visualisation_tool.fn.target=seed dataset_name=cars3d,dsprites,smallnorb
+   $ visualise_similarity -m metric_name=procrustes visualisation_tool=tsne m1_name=beta_vae,beta_tc_vae,dip_vae_ii,annealed_vae visualisation_tool.fn.target=seed
 
-   $ visualise_similarity.sh -m visualisation_tool=tsne m1_name=beta_vae,beta_tc_vae,dip_vae_ii,annealed_vae visualisation_tool.fn.target=regularisation dataset_name=cars3d,dsprites,smallnorb
-   $ visualise_similarity.sh -m metric_name=procrustes visualisation_tool=tsne m1_name=beta_vae,beta_tc_vae,dip_vae_ii,annealed_vae visualisation_tool.fn.target=regularisation
+   $ visualise_similarity -m visualisation_tool=tsne m1_name=beta_vae,beta_tc_vae,dip_vae_ii,annealed_vae visualisation_tool.fn.target=regularisation dataset_name=cars3d,dsprites,smallnorb
+   $ visualise_similarity -m metric_name=procrustes visualisation_tool=tsne m1_name=beta_vae,beta_tc_vae,dip_vae_ii,annealed_vae visualisation_tool.fn.target=regularisation
 
 Heatmap for CKA and procrustes can be generated with:
 
 .. code-block::
 
-   $ visualise_similarity.sh -m visualisation_tool=heatmap m1_name=beta_vae,beta_tc_vae,dip_vae_ii,annealed_vae dataset_name=cars3d,dsprites,smallnorb
-   $ visualise_similarity.sh -m metric_name=procrustes visualisation_tool=heatmap m1_name=beta_vae,beta_tc_vae,dip_vae_ii,annealed_vae
+   $ visualise_similarity -m visualisation_tool=heatmap m1_name=beta_vae,beta_tc_vae,dip_vae_ii,annealed_vae dataset_name=cars3d,dsprites,smallnorb
+   $ visualise_similarity -m metric_name=procrustes visualisation_tool=heatmap m1_name=beta_vae,beta_tc_vae,dip_vae_ii,annealed_vae
 
 Lineplots visualisations are generated with:
 
 .. code-block::
 
-    $ visualise_similarity.sh -m visualisation_tool=layer_pair visualisation_tool.fn.m1_layer=input,encoder/z_mean m1_name=beta_vae,beta_tc_vae,dip_vae_ii,annealed_vae dataset_name=cars3d,dsprites,smallnorb
-    $ visualise_similarity.sh -m metric_name=procrustes visualisation_tool=layer_pair visualisation_tool.fn.m1_layer=input,encoder/z_mean m1_name=beta_vae,beta_tc_vae,dip_vae_ii,annealed_vae
+    $ visualise_similarity -m visualisation_tool=layer_pair visualisation_tool.fn.m1_layer=input,encoder/z_mean m1_name=beta_vae,beta_tc_vae,dip_vae_ii,annealed_vae dataset_name=cars3d,dsprites,smallnorb
+    $ visualise_similarity -m metric_name=procrustes visualisation_tool=layer_pair visualisation_tool.fn.m1_layer=input,encoder/z_mean m1_name=beta_vae,beta_tc_vae,dip_vae_ii,annealed_vae
 
-    $ visualise_similarity.sh -m visualisation_tool=layer_list visualisation_tool.fn.regularisation=1,2,4,6,8 m1_name=beta_vae,beta_tc_vae dataset_name=cars3d,dsprites,smallnorb
-    $ visualise_similarity.sh -m metric_name=procrustes visualisation_tool=layer_list visualisation_tool.fn.regularisation=1,2,4,6,8 m1_name=beta_vae,beta_tc_vae
-    $ visualise_similarity.sh -m visualisation_tool=layer_list visualisation_tool.fn.regularisation=5,10,25,50,75 m1_name=annealed_vae dataset_name=cars3d,dsprites,smallnorb
-    $ visualise_similarity.sh -m metric_name=procrustes visualisation_tool=layer_list visualisation_tool.fn.regularisation=5,10,25,50,75 m1_name=annealed_vae
-    $ visualise_similarity.sh -m visualisation_tool=layer_list visualisation_tool.fn.regularisation=1,2,5,10,20 m1_name=dip_vae_ii dataset_name=cars3d,dsprites,smallnorb
-    $ visualise_similarity.sh -m metric_name=procrustes visualisation_tool=layer_list visualisation_tool.fn.regularisation=1,2,5,10,20 m1_name=dip_vae_ii
+    $ visualise_similarity -m visualisation_tool=layer_list visualisation_tool.fn.regularisation=1,2,4,6,8 m1_name=beta_vae,beta_tc_vae dataset_name=cars3d,dsprites,smallnorb
+    $ visualise_similarity -m metric_name=procrustes visualisation_tool=layer_list visualisation_tool.fn.regularisation=1,2,4,6,8 m1_name=beta_vae,beta_tc_vae
+    $ visualise_similarity -m visualisation_tool=layer_list visualisation_tool.fn.regularisation=5,10,25,50,75 m1_name=annealed_vae dataset_name=cars3d,dsprites,smallnorb
+    $ visualise_similarity -m metric_name=procrustes visualisation_tool=layer_list visualisation_tool.fn.regularisation=5,10,25,50,75 m1_name=annealed_vae
+    $ visualise_similarity -m visualisation_tool=layer_list visualisation_tool.fn.regularisation=1,2,5,10,20 m1_name=dip_vae_ii dataset_name=cars3d,dsprites,smallnorb
+    $ visualise_similarity -m metric_name=procrustes visualisation_tool=layer_list visualisation_tool.fn.regularisation=1,2,5,10,20 m1_name=dip_vae_ii
