@@ -46,7 +46,8 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
 
-autodoc_mock_imports = ["keras"]
+# only needed for tensorflow 2.6, later versions do not have the import issue
+# autodoc_mock_imports = ["keras"]
 
 
 # -- Options for HTML output -------------------------------------------------
