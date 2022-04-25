@@ -2,6 +2,8 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras import layers
 
+from vae_ld.models import logger
+
 
 class Classifier(tf.keras.Model):
     """ Classifier using similar architecture to VAE encoders
@@ -35,10 +37,12 @@ class Classifier(tf.keras.Model):
 
     def train_step(self, data):
         x, y = data
+        logger.debug("Receive batch of {} labels".format(y.shape))
 
         with tf.GradientTape() as tape:
             y_pred = self.clf(x, training=True)[-1]
             losses = []
+            logger.debug("Receive batch of {} predictions".format(y_pred.shape))
             for i in y_pred:
                 self.classification_accuracy[i].update_state(y[i], y_pred[i])
                 loss = self.classification_loss_fn(y[i], y_pred[i])
