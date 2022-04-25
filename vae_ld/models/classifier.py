@@ -33,6 +33,8 @@ class Classifier(tf.keras.Model):
     def metrics(self):
         return [*self.classification_loss_tracker, *self.classification_accuracy_tracker, self.model_loss_tracker]
 
+    # This decorator is needed to prevent input shape errors
+    @tf.function(input_signature=[tf.TensorSpec([None, None, None, None], tf.float32)])
     def call(self, inputs):
         return self.clf(inputs)[-1]
 
