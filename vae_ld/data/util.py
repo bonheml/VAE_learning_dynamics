@@ -144,7 +144,7 @@ class StateSpaceAtomIndex(object):
 
         """
         if np.any(indexes > self.num_total_atoms) or np.any(indexes < 0):
-            raise ValueError("Indices must be within [0, {}]!".format(self.num_total_atoms))
+            raise ValueError("Indices must be within [0, {}] but {} was given".format(self.num_total_atoms, indexes))
         features = np.zeros((len(indexes), len(self.factor_bases)))
         for i, index in enumerate(indexes):
             remainder = index
@@ -170,7 +170,7 @@ class StateSpaceAtomIndex(object):
         """
         if (np.any(features > np.expand_dims(self.factor_sizes, 0)) or
                 np.any(features < 0)):
-            raise ValueError("Feature indices have to be within [0, factor_size-1]!")
+            raise ValueError("Feature indices have to be within [0, factor_size-1] but {} was given".format(features))
         return np.array(np.dot(features, self.factor_bases), dtype=np.int64)
 
 
