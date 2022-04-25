@@ -24,13 +24,14 @@ class Classifier(tf.keras.Model):
         self.classification_loss_fn = tf.keras.losses.SparseCategoricalCrossentropy()
         self.classification_loss_tracker = [tf.keras.metrics.Mean(name="Categorical cross-entropy factor {}".format(i))
                                             for i in range(clf.n_classes)]
-        self.classification_accuracy = [tf.keras.metrics.CategoricalAccuracy(name="Categorical accuracy factor {}".format(i))
-                                        for i in range(clf.n_classes)]
+        self.classification_accuracy_fn = tf.keras.metrics.CategoricalAccuracy()
+        self.classification_accuracy_tracker = [tf.keras.metrics.Mean(name="Categorical accuracy factor {}".format(i))
+                                                for i in range(clf.n_classes)]
         self.model_loss_tracker = tf.keras.metrics.Mean(name="model_loss")
 
     @property
     def metrics(self):
-        return [*self.classification_loss_tracker, *self.classification_accuracy, self.model_loss_tracker]
+        return [*self.classification_loss_tracker, *self.classification_accuracy_tracker, self.model_loss_tracker]
 
     def call(self, inputs):
         return self.clf(inputs)[-1]
@@ -46,7 +47,8 @@ class Classifier(tf.keras.Model):
             logger.debug("Receive batch of ({},{}) predictions".format(len(y_pred), y_pred[0].shape[0]))
             logger.debug("Predictions are {}".format(y_pred))
             for i in y_pred:
-                self.classification_accuracy[i].update_state(y[i], y_pred[i])
+                acc = self.classification_accuracy[i](y[i], y_pred[i])
+                self.classification_accuracy_tracker[i].update_state(acc)
                 loss = self.classification_loss_fn(y[i], y_pred[i])
                 losses.append(loss)
 
@@ -66,7 +68,8 @@ class Classifier(tf.keras.Model):
 
         losses = 0
         for i in y_pred:
-            self.classification_accuracy[i].update_state(y[i], y_pred[i])
+            acc = self.classification_accuracy[i](y[i], y_pred[i])
+            self.classification_accuracy_tracker[i].update_state(acc)
             loss = self.classification_loss_fn(y[i], y_pred[i])
             self.classification_loss_tracker[i].update_state(loss)
             losses += loss
