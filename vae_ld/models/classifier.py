@@ -31,11 +31,10 @@ class Classifier(tf.keras.Model):
 
     @property
     def metrics(self):
-        #return [*self.classification_loss_tracker, *self.classification_accuracy_tracker, self.model_loss_tracker]
-        return [*self.classification_loss_tracker, self.model_loss_tracker]
+        return [*self.classification_loss_tracker, *self.classification_accuracy_tracker, self.model_loss_tracker]
 
-    def call(self, inputs, training):
-        return self.clf(inputs, training=training)[-1]
+    def call(self, inputs):
+        return self.clf(inputs)[-1]
 
     def train_step(self, data):
         x, y = data
@@ -48,8 +47,8 @@ class Classifier(tf.keras.Model):
             logger.debug("Receive batch of ({},{}) predictions".format(len(y_pred), y_pred[0].shape[0]))
             logger.debug("Predictions are {}".format(y_pred))
             for i in y_pred:
-                #acc = self.classification_accuracy_fn(y[i], y_pred[i])
-                #self.classification_accuracy_tracker[i].update_state(acc)
+                acc = self.classification_accuracy_fn(y[i], y_pred[i])
+                self.classification_accuracy_tracker[i].update_state(acc)
                 loss = self.classification_loss_fn(y[i], y_pred[i])
                 losses.append(loss)
 
@@ -69,8 +68,8 @@ class Classifier(tf.keras.Model):
 
         losses = 0
         for i in y_pred:
-            #acc = self.classification_accuracy_fn(y[i], y_pred[i])
-            #self.classification_accuracy_tracker[i].update_state(acc)
+            acc = self.classification_accuracy_fn(y[i], y_pred[i])
+            self.classification_accuracy_tracker[i].update_state(acc)
             loss = self.classification_loss_fn(y[i], y_pred[i])
             self.classification_loss_tracker[i].update_state(loss)
             losses += loss
