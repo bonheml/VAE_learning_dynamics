@@ -303,5 +303,5 @@ class DataSampler(Sequence):
             idxs = np.array(range(start_idx, stop_idx))
             labels = self.data.index.index_to_features(idxs).T
             logger.debug("Factors for indexes {}: {}".format(idxs, labels))
-            return data, self.data.index.index_to_features(idxs)
+            return data, labels
         return (data,)
