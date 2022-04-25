@@ -302,5 +302,5 @@ class DataSampler(Sequence):
         logger.debug("Return batch of size {}".format(data.shape))
         if self._get_labels:
             idxs = np.array(range(start_idx, stop_idx))
-            return data, self.data.index.index_to_features(idxs)
+            return data, self.data.index.index_to_features(idxs).T
         return (data,)
