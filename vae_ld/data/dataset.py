@@ -296,6 +296,8 @@ class DataSampler(Sequence):
             idx += self._full_len - self._val_len
         start_idx = idx * self.batch_size
         stop_idx = (idx + 1) * self.batch_size
+        if stop_idx > self.data.data_size:
+            stop_idx = self.data.data_size - 1
         logger.debug("Getting data from index {} to {}".format(start_idx, stop_idx))
         data = self.data[start_idx:stop_idx]
         logger.debug("Return batch of size {}".format(data.shape))
