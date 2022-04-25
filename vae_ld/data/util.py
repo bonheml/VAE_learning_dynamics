@@ -106,6 +106,7 @@ class StateSpaceAtomIndex(object):
             raise ValueError("Features matrix does not cover the whole state space.")
         lookup_table = np.zeros(num_total_atoms, dtype=np.int64)
         lookup_table[feature_state_space_index] = np.arange(num_total_atoms)
+        self.num_total_atoms = num_total_atoms
         self.state_space_to_save_space_index = lookup_table
 
     def features_to_index(self, features):
@@ -126,6 +127,31 @@ class StateSpaceAtomIndex(object):
         """
         state_space_index = self._features_to_state_space_index(features)
         return self.state_space_to_save_space_index[state_space_index]
+
+    def index_to_features(self, indexes):
+        """ Return the given factor configurations corresponding to the indices in the input space.
+
+        Parameters
+        ----------
+        indexes : np.array
+            The indices in the input space for given factor configurations.
+
+        Returns
+        -------
+        np.array
+            Numpy matrix where each row contains a different factor
+            configuration for which the indices in the input space should be
+            returned.
+
+        """
+        if np.any(indexes > self.num_total_atoms) or np.any(indexes < 0):
+            raise ValueError("Indices must be within [0, {}]!".format(self.num_total_atoms))
+        features = np.zeros((len(indexes), len(self.factor_bases)))
+        for i, index in enumerate(indexes):
+            remainder = index
+            for j, fb in enumerate(self.factor_bases):
+                features[i, j], remainder = np.divmod(remainder, fb)
+        return features.astype(np.int64)
 
     def _features_to_state_space_index(self, features):
         """ Return the indices in the atom space for given factor configurations.
