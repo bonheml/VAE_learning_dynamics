@@ -1,7 +1,6 @@
 import requests
 import PIL
 from tensorflow.python.platform import gfile
-
 from vae_ld.data import util, logger
 from vae_ld.data.dataset import Data
 import numpy as np
@@ -30,7 +29,6 @@ class DSprites(Data):
         super().__init__(**kwargs)
         self.latent_factor_indices = list(range(self._factors_nb))
         self._data = self.load_data()
-        self.factor_bases = np.prod(self.factors_shape) / np.cumprod(self.factors_shape)
         self.state_space = util.SplitDiscreteStateSpace(self.factors_shape, self.latent_factor_indices)
 
     def __getitem__(self, key):
@@ -74,7 +72,7 @@ class DSprites(Data):
 
     def sample_observations_from_factors(self, factors, random_state):
         all_factors = self.state_space.sample_all_factors(factors, random_state)
-        indices = np.array(np.dot(all_factors, self.factor_bases), dtype=np.int64)
+        indices = self.index.features_to_index(all_factors)
         return self._postprocess(self._data[indices], random_state)
 
     def _sample_factor(self, i, num, random_state):

@@ -3,7 +3,9 @@ from pathlib import Path
 import numpy as np
 import requests
 from keras.utils.data_utils import Sequence
-from vae_ld.data import logger
+from sklearn.utils import extmath
+
+from vae_ld.data import logger, util
 
 
 class Data:
@@ -39,6 +41,8 @@ class Data:
         self._data_size = data_size
         self._factors_shape = factors_shape
         self._factors_nb = len(self._factors_shape)
+        features = extmath.cartesian([np.array(list(range(i))) for i in self.factors_shape])
+        self.index = util.StateSpaceAtomIndex(self.factors_shape, features)
         self._data = []
         self._url = url
         self.name = name
@@ -232,13 +236,14 @@ class DataSampler(Sequence):
         Default False.
     """
 
-    def __init__(self, *, data, batch_size, validation_split=0.2, validation=False, **kwargs):
+    def __init__(self, *, data, batch_size, validation_split=0.2, validation=False, get_labels=False, **kwargs):
         self._data = data
         self._batch_size = batch_size
         self._validation_size = validation_split * self.data.data_size
         self._validation = validation
         self._full_len = math.ceil(self.data.data_size / self.batch_size)
         self._val_len = math.ceil(self._validation_size / self._batch_size)
+        self._get_labels = get_labels
 
     @property
     def data(self):
@@ -290,7 +295,12 @@ class DataSampler(Sequence):
 
         if self._validation is True:
             idx += self._full_len - self._val_len
-        logger.debug("Getting data from index {} to {}".format(idx * self.batch_size, (idx + 1) * self.batch_size))
-        data = self.data[idx * self.batch_size:(idx + 1) * self.batch_size]
+        start_idx = idx * self.batch_size
+        stop_idx = (idx + 1) * self.batch_size
+        logger.debug("Getting data from index {} to {}".format(start_idx, stop_idx))
+        data = self.data[start_idx:stop_idx]
         logger.debug("Return batch of size {}".format(data.shape))
+        if self._get_labels:
+            idxs = np.array(range(start_idx, stop_idx))
+            return data, self.data.index.index_to_features(idxs)
         return (data,)

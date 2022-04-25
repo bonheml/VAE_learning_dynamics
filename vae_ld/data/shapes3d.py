@@ -1,7 +1,6 @@
 import PIL
 import h5py
 import numpy as np
-
 from vae_ld.data import util, logger
 from vae_ld.data.dataset import Data
 
@@ -35,7 +34,6 @@ class Shapes3D(Data):
         self._h5py_dataset, self._data = self.load_data()
         self.latent_factor_indices = list(range(self._factors_nb))
         self.state_space = util.SplitDiscreteStateSpace(self._factors_shape, self.latent_factor_indices)
-        self.factor_bases = np.prod(self._factors_shape) / np.cumprod(self._factors_shape)
 
     def __getitem__(self, key):
         # Beware, because of the limitations of h5py, this will only work for indexes and contiguous slicing.
@@ -63,7 +61,7 @@ class Shapes3D(Data):
 
     def sample_observations_from_factors(self, factors, seed):
         all_factors = self.state_space.sample_all_factors(factors, seed)
-        indices = np.array(np.dot(all_factors, self.factor_bases), dtype=np.int64)
+        indices = self.index.features_to_index(all_factors)
         data = [np.asarray(PIL.Image.fromarray(self._data[i]).resize(self.observation_shape[:2])).astype(np.float32) / 255.
                 for i in indices]
         return np.array(data)

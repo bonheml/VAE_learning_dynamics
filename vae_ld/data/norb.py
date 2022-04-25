@@ -5,7 +5,6 @@ import numpy as np
 import requests
 from PIL import Image
 from tensorflow.python.platform.gfile import GFile
-
 from vae_ld.data import util, logger
 from vae_ld.data.dataset import Data
 
@@ -38,7 +37,6 @@ class SmallNORB(Data):
         self._file_template = "smallnorb-{}-{}.mat"
         # Instances are not part of the latent space.
         self.latent_factor_indices = [0, 2, 3, 4]
-
         self._data, features = self.load_data()
         self.index = util.StateSpaceAtomIndex(self.factors_shape, features)
         self.state_space = util.SplitDiscreteStateSpace(self.factors_shape, self.latent_factor_indices)

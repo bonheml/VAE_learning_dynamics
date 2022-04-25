@@ -1,4 +1,3 @@
-from sklearn.utils import extmath
 import tarfile
 import shutil
 import requests
@@ -6,7 +5,6 @@ from PIL import Image
 from scipy.io import loadmat
 import numpy as np
 from tensorflow.python.platform import gfile
-
 from vae_ld.data import util, logger
 from vae_ld.data.dataset import Data
 
@@ -30,8 +28,6 @@ class Cars3D(Data):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.latent_factor_indices = [0, 1, 2]
-        features = extmath.cartesian([np.array(list(range(i))) for i in self.factors_shape])
-        self.index = util.StateSpaceAtomIndex(self.factors_shape, features)
         self.state_space = util.SplitDiscreteStateSpace(self._factors_shape,
                                                         self.latent_factor_indices)
         self._data = self.load_data()
