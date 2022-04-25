@@ -38,12 +38,13 @@ class Classifier(tf.keras.Model):
     def train_step(self, data):
         x, y = data
         logger.debug("Receive batch of {} labels".format(y.shape))
+        logger.debug("Labels are {}".format(y))
 
         with tf.GradientTape() as tape:
             y_pred = self.clf(x, training=True)[-1]
             losses = []
-            logger.debug(y_pred)
-            #logger.debug("Receive batch of {} predictions".format(np.array(y_pred).shape))
+            logger.debug("Receive batch of ({},{}) predictions".format(len(y_pred), y_pred[0].shape[0]))
+            logger.debug("Predictions are {}".format(y_pred))
             for i in y_pred:
                 self.classification_accuracy[i].update_state(y[i], y_pred[i])
                 loss = self.classification_loss_fn(y[i], y_pred[i])
