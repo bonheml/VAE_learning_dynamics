@@ -243,6 +243,8 @@ class DataSampler(Sequence):
         self._random_state = np.random.default_rng(seed)
         self._validation_idxs = self._random_state.choice(self.data.data_size, self._validation_size, replace=False)
         self._train_idxs = np.array(list(set(range(self.data.data_size)) - set(self._validation_idxs)))
+        logger.debug("Validation size is {}".format(len(self._validation_idxs)))
+        logger.debug("Train size is {}".format(len(self._train_idxs)))
         self._random_state.shuffle(self._train_idxs)
         self._validation = validation
         self._get_labels = get_labels
@@ -292,11 +294,14 @@ class DataSampler(Sequence):
         tuple
             A tuple containing the sample only.
         """
+        logger.debug("Validation is {}".format(self.validation))
         idxs_map = self._validation_idxs if self.validation else self._train_idxs
         start_idx = idx * self.batch_size
         stop_idx = (idx + 1) * self.batch_size
         if stop_idx >= len(idxs_map):
             stop_idx = len(idxs_map) - 1
+
+        logger.debug("Retrieving indexes in range ({},{})".format(start_idx, stop_idx))
         idxs = idxs_map[start_idx:stop_idx]
         logger.debug("Getting data from indexes {}".format(idxs))
         data = self.data[idxs]
