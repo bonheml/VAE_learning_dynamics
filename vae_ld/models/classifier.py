@@ -42,7 +42,8 @@ class Classifier(tf.keras.Model):
         with tf.GradientTape() as tape:
             y_pred = self.clf(x, training=True)[-1]
             losses = []
-            logger.debug("Receive batch of {} predictions".format(np.array(y_pred).shape))
+            logger.debug(y_pred)
+            #logger.debug("Receive batch of {} predictions".format(np.array(y_pred).shape))
             for i in y_pred:
                 self.classification_accuracy[i].update_state(y[i], y_pred[i])
                 loss = self.classification_loss_fn(y[i], y_pred[i])
