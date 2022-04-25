@@ -109,7 +109,7 @@ class ConvolutionalClassifier(tf.keras.Model):
         x4 = self.e4(x3)
         x5 = self.e5(x4)
         x6 = self.e6(x5)
-        out = [output(x6) for output in self.outs]
+        out = [output(x6) for output in self.outputs]
         return x1, x2, x3, x4, x5, x6, out
 
 
