@@ -14,9 +14,9 @@ defaults:
 
 hydra:
   run:
-    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_shape}/${model.name}/${dataset.name}//${seed}
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/${model.name}/${dataset.name}/${seed}
   sweep:
-    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_shape}/${model.name}/${dataset.name}/
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/${model.name}/${dataset.name}/
     subdir: ${seed}
   job:
     config:
