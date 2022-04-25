@@ -1,4 +1,5 @@
 _target_: vae_ld.data.dataset.DataSampler
 batch_size: ${batch_size}
+seed: ${seed}
 validation_split: 0.1
 data: ${dataset}

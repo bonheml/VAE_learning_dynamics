@@ -236,13 +236,15 @@ class DataSampler(Sequence):
         Default False.
     """
 
-    def __init__(self, *, data, batch_size, validation_split=0.2, validation=False, get_labels=False, **kwargs):
+    def __init__(self, *, data, batch_size, seed, validation_split=0.2, validation=False, get_labels=False, **kwargs):
         self._data = data
         self._batch_size = batch_size
-        self._validation_size = validation_split * self.data.data_size
+        self._validation_size = math.ceil(validation_split * self.data.data_size)
+        self._random_state = np.random.default_rng(seed)
+        self._validation_idxs = self._random_state.choice(self.data.data_size, self._validation_size, replace=False)
+        self._train_idxs = np.array(list(set(range(self.data.data_size)) - set(self._validation_idxs)))
+        self._random_state.shuffle(self._train_idxs)
         self._validation = validation
-        self._full_len = math.ceil(self.data.data_size / self.batch_size)
-        self._val_len = math.ceil(self._validation_size / self._batch_size)
         self._get_labels = get_labels
 
     @property
@@ -273,12 +275,10 @@ class DataSampler(Sequence):
         int
             The number of data examples available.
         """
-        if self._validation_size is None:
-            return self._full_len
-        elif self._validation is True:
-            return self._val_len
+        if self._validation is True:
+            return len(self._validation_idxs)
         else:
-            return self._full_len - self._val_len
+            return len(self._train_idxs)
 
     def __getitem__(self, idx):
         """
@@ -292,17 +292,16 @@ class DataSampler(Sequence):
         tuple
             A tuple containing the sample only.
         """
-        if self._validation is True:
-            idx += self._full_len - self._val_len
+        idxs_map = self._validation_idxs if self.validation else self._train_idxs
         start_idx = idx * self.batch_size
         stop_idx = (idx + 1) * self.batch_size
-        if stop_idx > self.data.data_size:
-            stop_idx = self.data.data_size - 1
-        logger.debug("Getting data from index {} to {}".format(start_idx, stop_idx))
-        data = self.data[start_idx:stop_idx]
+        if stop_idx >= len(idxs_map):
+            stop_idx = len(idxs_map) - 1
+        idxs = idxs_map[start_idx:stop_idx]
+        logger.debug("Getting data from indexes {}".format(idxs))
+        data = self.data[idxs]
         logger.debug("Return batch of size {}".format(data.shape))
         if self._get_labels:
-            idxs = np.array(range(start_idx, stop_idx))
             labels = self.data.index.index_to_features(idxs).T
             logger.debug("Factors for indexes {}: {}".format(idxs, labels))
             return data, labels
