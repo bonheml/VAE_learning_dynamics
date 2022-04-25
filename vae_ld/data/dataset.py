@@ -292,7 +292,6 @@ class DataSampler(Sequence):
         tuple
             A tuple containing the sample only.
         """
-
         if self._validation is True:
             idx += self._full_len - self._val_len
         start_idx = idx * self.batch_size
@@ -302,5 +301,7 @@ class DataSampler(Sequence):
         logger.debug("Return batch of size {}".format(data.shape))
         if self._get_labels:
             idxs = np.array(range(start_idx, stop_idx))
-            return data, self.data.index.index_to_features(idxs).T
+            labels = self.data.index.index_to_features(idxs).T
+            logger.debug("Factors for indexes {}: {}".format(idxs, labels))
+            return data, self.data.index.index_to_features(idxs)
         return (data,)
