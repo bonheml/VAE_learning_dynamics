@@ -24,7 +24,7 @@ class Classifier(tf.keras.Model):
         self.classification_loss_fn = tf.keras.losses.SparseCategoricalCrossentropy()
         self.classification_loss_tracker = [tf.keras.metrics.Mean(name="Categorical cross-entropy factor {}".format(i))
                                             for i in range(clf.n_classes)]
-        self.classification_accuracy_fn = tf.keras.metrics.CategoricalAccuracy()
+        self.classification_accuracy_fn = tf.keras.metrics.SparseCategoricalAccuracy()
         self.classification_accuracy_tracker = [tf.keras.metrics.Mean(name="Categorical accuracy factor {}".format(i))
                                                 for i in range(clf.n_classes)]
         self.model_loss_tracker = tf.keras.metrics.Mean(name="model_loss")
