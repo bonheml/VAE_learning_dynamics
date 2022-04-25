@@ -140,8 +140,7 @@ class StateSpaceAtomIndex(object):
         -------
         np.array
             Numpy matrix where each row contains a different factor
-            configuration for which the indices in the input space should be
-            returned.
+            configuration corresponding to the given indices in the input space.
 
         """
         if np.any(indexes > self.num_total_atoms) or np.any(indexes < 0):
