@@ -271,30 +271,11 @@ class DataSampler(Sequence):
         self._validation = validation
 
     def __len__(self):
-        """ The size of the dataset from which to sample.
-
-        Returns
-        -------
-        int
-            The number of data examples available.
-        """
         if self._validation is True:
-            return len(self._validation_idxs)
-        else:
-            return len(self._train_idxs)
+            return len(self._validation_idxs) // self.batch_size
+        return len(self._train_idxs) // self.batch_size
 
     def __getitem__(self, idx):
-        """
-        Parameters
-        ----------
-        idx : int
-            Index from which to start sampling a ``batch_size`` sample.
-
-        Returns
-        -------
-        tuple
-            A tuple containing the sample only.
-        """
         logger.debug("Validation is {}, current index is {}".format(self.validation, idx))
         idxs_map = self._validation_idxs if self.validation else self._train_idxs
         start_idx = idx * self.batch_size
