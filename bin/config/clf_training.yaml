@@ -1,0 +1,25 @@
+batch_size: 64
+training_steps: 300000
+seed: 0
+
+defaults:
+  - _self_
+  - dataset: cars
+  - sampling: clf_sampler
+  - optimizer: adam
+  - model: classifier
+  - callbacks:
+    - model_checkpoint
+    - tensorboard
+
+hydra:
+  run:
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_shape}/${model.name}/${dataset.name}//${seed}
+  sweep:
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_shape}/${model.name}/${dataset.name}/
+    subdir: ${seed}
+  job:
+    config:
+      override_dirname:
+        kv_sep: _
+        item_sep: /
