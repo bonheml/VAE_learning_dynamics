@@ -48,10 +48,10 @@ class Classifier(tf.keras.Model):
             logger.debug("Predictions are {}".format(y_preds))
             for i, y_pred in enumerate(y_preds):
                 logger.debug("For class {}".format(i))
-                acc = self.classification_accuracy_fn(y[i], y_pred[i])
+                acc = self.classification_accuracy_fn(y[i], y_pred)
                 logger.debug("Accuracy is {}".format(acc))
                 self.classification_accuracy_tracker[i].update_state(acc)
-                loss = self.classification_loss_fn(y[i], y_pred[i])
+                loss = self.classification_loss_fn(y[i], y_pred)
                 logger.debug("Cross entropy loss is {}".format(loss))
                 losses.append(loss)
 
@@ -71,9 +71,9 @@ class Classifier(tf.keras.Model):
 
         losses = 0
         for i, y_pred in enumerate(y_preds):
-            acc = self.classification_accuracy_fn(y[i], y_pred[i])
+            acc = self.classification_accuracy_fn(y[i], y_pred)
             self.classification_accuracy_tracker[i].update_state(acc)
-            loss = self.classification_loss_fn(y[i], y_pred[i])
+            loss = self.classification_loss_fn(y[i], y_pred)
             self.classification_loss_tracker[i].update_state(loss)
             losses += loss
         self.model_loss_tracker.update_state(losses)
