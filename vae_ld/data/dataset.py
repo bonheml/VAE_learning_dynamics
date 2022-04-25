@@ -239,10 +239,11 @@ class DataSampler(Sequence):
     def __init__(self, *, data, batch_size, seed, validation_split=0.2, validation=False, get_labels=False, **kwargs):
         self._data = data
         self._batch_size = batch_size
-        self._validation_size = math.ceil(validation_split * self.data.data_size)
+        data_size = np.copy(self.data.data_size)
+        self._validation_size = math.ceil(validation_split * data_size)
         self._random_state = np.random.default_rng(seed)
-        self._validation_idxs = self._random_state.choice(self.data.data_size, self._validation_size, replace=False)
-        self._train_idxs = np.array(list(set(range(self.data.data_size)) - set(self._validation_idxs)))
+        self._validation_idxs = self._random_state.choice(data_size - 1, self._validation_size, replace=False)
+        self._train_idxs = np.array(list(set(range(data_size)) - set(self._validation_idxs)))
         logger.debug("Validation size is {}".format(len(self._validation_idxs)))
         logger.debug("Train size is {}".format(len(self._train_idxs)))
         self._random_state.shuffle(self._train_idxs)
@@ -294,7 +295,7 @@ class DataSampler(Sequence):
         tuple
             A tuple containing the sample only.
         """
-        logger.debug("Validation is {}".format(self.validation))
+        logger.debug("Validation is {}, current index is {}".format(self.validation, idx))
         idxs_map = self._validation_idxs if self.validation else self._train_idxs
         start_idx = idx * self.batch_size
         stop_idx = (idx + 1) * self.batch_size
