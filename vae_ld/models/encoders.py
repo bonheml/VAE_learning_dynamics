@@ -153,3 +153,37 @@ class GONEncoder(tf.keras.Model):
         z_log_var = self.z_log_var(inputs)
         z = self.z([z_mean, z_log_var])
         return z_mean, z_log_var, z
+
+
+class PreTrainedEncoder(tf.keras.Model):
+    """ Encoder using a pre-trained model and learning only the mean and variance layer.
+    An additional dense layer can be added between the pre-trained model and the mean and variance layers.
+
+    Parameters
+    ----------
+    output_shape: int
+        The dimensionality of the latent representation
+    pre_trained_model: tf.keras.Model
+        A pre-trained model which will be used as feature extractor
+    use_dense: bool, optional
+        If True, add a dense layer after the pre-trained model. Default False
+    """
+    def __init__(self, output_shape, pre_trained_model, use_dense=False):
+        super(PreTrainedEncoder, self).__init__()
+        self.pre_trained = pre_trained_model
+        self.flatten = layers.Flatten(name="encoder/flatten")
+        if use_dense:
+            self.dense = layers.Dense(256, activation="relu", name="encoder/dense")
+        self.z_mean = layers.Dense(output_shape, name="encoder/z_mean")
+        self.z_log_var = layers.Dense(output_shape, name="encoder/z_log_var")
+        self.sampling = Sampling()
+
+    def call(self, inputs):
+        x = self.pre_trained(inputs, training=False)
+        x1 = self.flatten(x)
+        if hasattr(self, 'dense'):
+            x1 = self.dense(x1)
+        z_mean = self.z_mean(x1)
+        z_log_var = self.z_log_var(x1)
+        z = self.sampling([z_mean, z_log_var])
+        return x, x1, z_mean, z_log_var, z

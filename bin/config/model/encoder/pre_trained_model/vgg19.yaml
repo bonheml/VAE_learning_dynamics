@@ -1,0 +1,3 @@
+_target_: tensorflow.keras.applications.vgg19.VGG19
+input_shape: ${dataset.observation_shape}
+include_top: false
