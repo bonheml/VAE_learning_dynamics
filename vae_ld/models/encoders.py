@@ -1,5 +1,7 @@
 import tensorflow as tf
+from keras.models import load_model
 from tensorflow.keras import layers
+from tensorflow.python.keras.models import Model
 
 
 class Sampling(layers.Layer):
@@ -171,6 +173,8 @@ class PreTrainedEncoder(tf.keras.Model):
     def __init__(self, output_shape, pre_trained_model, use_dense=False):
         super(PreTrainedEncoder, self).__init__()
         self.pre_trained = pre_trained_model
+        # Ensure that the pre-trained model will not be retrained
+        self.pre_trained.trainable = False
         self.flatten = layers.Flatten(name="encoder/flatten")
         if use_dense:
             self.dense = layers.Dense(256, activation="relu", name="encoder/dense")
@@ -187,3 +191,9 @@ class PreTrainedEncoder(tf.keras.Model):
         z_log_var = self.z_log_var(x1)
         z = self.sampling([z_mean, z_log_var])
         return x, x1, z_mean, z_log_var, z
+
+
+def load_pre_trained_encoder(model_path):
+    model = load_model(model_path)
+    # Remove the mean, variance and sampling layers before returning
+    return Model(inputs=model.input, outputs=[l.output for l in model.layers[:-3]])

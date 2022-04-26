@@ -1,0 +1,2 @@
+_target_: vae_ld.models.encoders.load_pre_trained_encoder
+model_path: ${oc.env:XP_PATH}/train/classifier/${dataset.name}/${seed}/final_model
