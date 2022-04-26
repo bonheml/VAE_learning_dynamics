@@ -178,15 +178,25 @@ def plot_tsne(input_dir, save_file, target, overwrite):
     to_drop = ["m1_seed", "m2_seed", "m1_epoch", "m2_epoch", "p1_name", "p2_name", "p1_value", "p2_value",
                "m1_name", "m2_name"]
     X, m1_labels, m2_labels = [], [], []
+
     if target == "seed":
         l1, l2 = "m1_seed", "m1_epoch"
         hue, style = "Seed", "Epoch"
-    else:
+    elif target == "regularisation":
         l1, l2 = "p1_value", "m1_epoch"
         hue, style = "Regularisation", "Epoch"
+    elif target == "classification":
+        l1, l2 = "m2_name", "p2_value"
+        hue, style = "Model name", "Regularisation"
+    else:
+        raise NotImplementedError("Target {} is not implemented. Available targets are seed, regularisation and "
+                                  "classification".format(target))
     for f in files:
         df = pd.read_csv(f, sep="\t", header=0, index_col=0)
-        df = df[(df["m1_name"] == df["m2_name"]) & (df["m1_epoch"] == df["m2_epoch"]) & (df["p1_value"] == df["p2_value"])]
+        if target != "classification":
+            df = df[(df["m1_name"] == df["m2_name"]) & (df["m1_epoch"] == df["m2_epoch"]) & (df["p1_value"] == df["p2_value"])]
+        else:
+            df = df[(df["m1_epoch"] == df["m2_epoch"])]
         if not df.empty:
             m1_labels.append(df[l1].values[0])
             m2_labels.append(df[l2].values[0])
