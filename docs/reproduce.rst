@@ -36,15 +36,25 @@ Multi-run can be performed with the `-m` option:
    $ train -m dataset=cars model=beta_vae param_value=2 seed=0,1,2,3,4
 
 This will train beta-VAE on Cars3D dataset with beta of 2 using seeds 0 to 4.
+One can change the frequency with which the model is saved. For example,
+
+.. code-block::
+
+   $ train -m dataset=smallnorb model=beta_vae param_value=2 seed=0,1,2,3,4 callbacks.checkpoint.save_freq=100
 
 The complete set of models trained for this paper could be retrained with
 
 .. code-block::
 
-   $ train -m dataset=cars,dsprites,smallnorb model=beta_vae param_value=1,2,4,6,8 seed=0,1,2,3,4
-   $ train -m dataset=cars,dsprites,smallnorb model=beta_tc_vae param_value=1,2,4,6,8 seed=0,1,2,3,4
-   $ train -m dataset=cars,dsprites,smallnorb model=annealed_vae param_value=5,10,25,50,75 seed=0,1,2,3,4
-   $ train -m dataset=cars,dsprites,smallnorb model=dip_vae_ii param_value=1,2,5,10,20 seed=0,1,2,3,4
+   $ train -m dataset=cars model=beta_vae,beta_tc_vae param_value=1,2,4,6,8 seed=0,1,2,3,4
+   $ train -m dataset=smallnorb model=beta_vae,beta_tc_vae param_value=1,2,4,6,8 seed=0,1,2,3,4 callbacks.checkpoint.save_freq=100
+   $ train -m dataset=dsprites model=beta_vae,beta_tc_vae param_value=1,2,4,6,8 seed=0,1,2,3,4 callbacks.checkpoint.save_freq=11520
+   $ train -m dataset=cars model=annealed_vae param_value=5,10,25,50,75 seed=0,1,2,3,4
+   $ train -m dataset=smallnorb model=annealed_vae param_value=5,10,25,50,75 seed=0,1,2,3,4 callbacks.checkpoint.save_freq=100
+   $ train -m dataset=dsprites model=annealed_vae param_value=5,10,25,50,75 seed=0,1,2,3,4 callbacks.checkpoint.save_freq=11520
+   $ train -m dataset=cars model=dip_vae_ii param_value=1,2,5,10,20 seed=0,1,2,3,4
+   $ train -m dataset=smallnorb model=dip_vae_ii param_value=1,2,5,10,20 seed=0,1,2,3,4 callbacks.checkpoint.save_freq=100
+   $ train -m dataset=dsprites model=dip_vae_ii param_value=1,2,5,10,20 seed=0,1,2,3,4 callbacks.checkpoint.save_freq=11520
 
 This can also be done using the corresponding individual commands.
 
