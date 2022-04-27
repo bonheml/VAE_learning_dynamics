@@ -41,8 +41,9 @@ def get_file_list(model_path, keep_n=0, selection_type="even"):
     ----------
     model_path : str
         The path containing the files to select
-    keep_n : int, optional
-        How many files to select. If 0, select all files. Default 0
+    keep_n : int or list optional
+        How many files to select. If 0, select all files. If selection type is "custom", this a list of substrings
+        corresponding to the files to keep. Default 0
     selection_type : str, optional
         Can be "even" or "first". If "first", select the first `n` files. Otherwise, select evenly spaced indexes from
         the file list. Default "even".
@@ -54,10 +55,12 @@ def get_file_list(model_path, keep_n=0, selection_type="even"):
     """
     m_files = glob(model_path)
     m_files.sort(key=natural_sort)
-    if keep_n > 0 and selection_type == "even":
+    if selection_type == "custom" and type(keep_n) == list:
+        m_files = [f for f in m_files for e in keep_n if e in f]
+    elif selection_type == "even" and keep_n > 0:
         to_keep = np.linspace(0, len(m_files) - 1, num=keep_n, dtype=np.int32)
         m_files = [m_files[i] for i in to_keep]
-    elif keep_n > 0 and selection_type == "first":
+    elif selection_type == "first" and keep_n > 0:
         return m_files[:keep_n]
     return m_files
 
