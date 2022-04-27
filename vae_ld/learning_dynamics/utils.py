@@ -86,11 +86,17 @@ def get_activations(data, model_path):
         A tuple containing the loaded model, list of activations, and list of layer names.
     """
     model = tf.keras.models.load_model(model_path)
-    acts = (data,) + model.encoder.predict(data)
-    acts += model.decoder.predict(acts[-1])
-    # Note that one could get weights using l.get_weights() instead of l.name here
-    layer_names = ["input"] + [l.name for l in model.encoder.layers]
-    layer_names += [l.name for l in model.decoder.layers]
+    if hasattr(model, "encoder"):
+        acts = (data,) + model.encoder.predict(data)
+        acts += model.decoder.predict(acts[-1])
+        layer_names = ["input"] + [l.name for l in model.encoder.layers]
+        layer_names += [l.name for l in model.decoder.layers]
+    elif hasattr(model, "clf"):
+        acts = (data,) + model.clf.predict(data)
+        layer_names = ["input"] + [l.name for l in model.clf.layers]
+    else:
+        raise NotImplementedError("Unknown model type. The model should contain either an encoder and decoder "
+                                  "or a classifier named clf.")
     return model, acts, layer_names
 
 
