@@ -1,6 +1,8 @@
 batch_size: 64
 training_steps: 300000
 seed: 0
+param_value: null
+latent_shape: null
 
 defaults:
   - _self_
@@ -14,9 +16,9 @@ defaults:
 
 hydra:
   run:
-    dir: ${oc.env:XP_PATH}/${hydra.job.name}/${model.name}/${dataset.name}/${seed}
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_shape}/${model.name}/${dataset.name}/${param_value}/${seed}
   sweep:
-    dir: ${oc.env:XP_PATH}/${hydra.job.name}/${model.name}/${dataset.name}/
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_shape}/${model.name}/${dataset.name}/${param_value}
     subdir: ${seed}
   job:
     config:

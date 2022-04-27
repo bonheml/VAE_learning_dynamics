@@ -9,14 +9,16 @@ m1_name: beta_vae
 p1_name: beta
 p1_value: 1
 m1_seed: 0
+m1_latent_dim: ${latent_dim}
 
 m2_name: ${m1_name}
 p2_name: ${p1_name}
 p2_value: ${p1_value}
 m2_seed: ${m1_seed}
+m2_latent_dim: ${latent_dim}
 
-m1_path: ${oc.env:XP_PATH}/train/latent_${latent_dim}/${m1_name}/${dataset.name}/${p1_value}/${m1_seed}/checkpoint/*
-m2_path: ${oc.env:XP_PATH}/train/latent_${latent_dim}/${m2_name}/${dataset.name}/${p2_value}/${m2_seed}/checkpoint/*
+m1_path: ${oc.env:XP_PATH}/train/latent_${m1_latent_dim}/${m1_name}/${dataset.name}/${p1_value}/${m1_seed}/checkpoint/*
+m2_path: ${oc.env:XP_PATH}/train/latent_${m2_latent_dim}/${m2_name}/${dataset.name}/${p2_value}/${m2_seed}/checkpoint/*
 
 
 defaults:
