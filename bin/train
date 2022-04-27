@@ -46,6 +46,12 @@ def train(cfg):
                 checkpoint = checkpoint[-1] if checkpoint != [] else None
 
     steps_per_epochs = train_sampler.data.data_size // cfg.batch_size
+
+    # TODO remove this after computation of cars3d, this is for consistency with the previous XP where the number of data
+    # example was off by 30 or so
+    if train_sampler.data.name == "cars3d":
+        steps_per_epochs = 17600 // cfg.batch_size
+
     epochs = max(cfg.training_steps // steps_per_epochs, 1)
 
     logger.info("Creating the model...")
