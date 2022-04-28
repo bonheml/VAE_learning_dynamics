@@ -23,6 +23,14 @@ def almost_sim(shape, shape2, seed = 0, seed2 = 1):
     return X
 
 
+def save_fig(res, fname):
+    df = pd.DataFrame.from_dict(res)
+    df.set_index("n", inplace=True)
+    fig = df.plot.line(ylim=(0, 1), style=["-", "--"]).get_figure()
+    plt.tight_layout()
+    fig.savefig(fname)
+
+
 def test_sim():
     mats = []
     dims = list(range(50, 1000, 40))
@@ -38,11 +46,7 @@ def test_sim():
         D = p.center(mats[i][1])
         res["Procrustes"].append(p(C, D))
         res["CKA"].append(c(C.dot(C.T), D.dot(D.T)))
-    df = pd.DataFrame.from_dict(res)
-    df.set_index("n", inplace=True)
-    fig = df.plot.line(ylim=(0, 1)).get_figure()
-    plt.tight_layout()
-    fig.savefig("different_ab.pdf")
+    save_fig(res, "different_ab.pdf")
 
     res = {"n": [], "Procrustes": [], "CKA": []}
     for i, n in enumerate(dims):
@@ -51,11 +55,7 @@ def test_sim():
         D = p.center(mats[i][2])
         res["Procrustes"].append(p(C, D))
         res["CKA"].append(c(C.dot(C.T), D.dot(D.T)))
-    df = pd.DataFrame.from_dict(res)
-    df.set_index("n", inplace=True)
-    fig = df.plot.line(ylim=(0, 1)).get_figure()
-    plt.tight_layout()
-    fig.savefig('similar_ab.pdf')
+    save_fig(res, "similar_ab.pdf")
 
     res = {"n": [], "Procrustes": [], "CKA": []}
     for i, n in enumerate(dims):
@@ -64,11 +64,7 @@ def test_sim():
         D = p.center(mats[i][3])
         res["Procrustes"].append(p(C, D))
         res["CKA"].append(c(C.dot(C.T), D.dot(D.T)))
-    df = pd.DataFrame.from_dict(res)
-    df.set_index("n", inplace=True)
-    fig = df.plot.line(ylim=(0, 1)).get_figure()
-    plt.tight_layout()
-    fig.savefig('mid_similar_ab.pdf')
+    save_fig(res, "mid_similar_ab.pdf")
 
 
 if __name__ == "__main__":
