@@ -148,7 +148,7 @@ def avg_similarity_layer_list(metric_name, input_file, regularisation, layer, ta
                       style="{} layer".format(target.capitalize()))
     ax.set(ylim=(0, 1))
     plt.legend(loc="center right")
-    ax.legend().texts[0].set_text("{} layer".format(target.capitalize()))
+    ax.legend().set_title("{} layer".format(target.capitalize()))
     save_figure(save_file)
 
 
