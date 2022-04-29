@@ -190,7 +190,7 @@ class PreTrainedEncoder(tf.keras.Model):
         z_mean = self.z_mean(x1)
         z_log_var = self.z_log_var(x1)
         z = self.sampling([z_mean, z_log_var])
-        return x, x1, z_mean, z_log_var, z
+        return (*x, x1, z_mean, z_log_var, z)
 
 
 def load_pre_trained_encoder(model_path):
