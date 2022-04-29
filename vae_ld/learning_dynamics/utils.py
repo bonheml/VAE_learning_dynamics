@@ -4,6 +4,8 @@ import numpy as np
 from vae_ld.data.util import natural_sort
 import tensorflow as tf
 
+from vae_ld.learning_dynamics import logger
+
 
 def get_model_filename(model, model_name, param_value):
     """ Generate the filename of a model given its path, name, and parameter value.
@@ -53,15 +55,20 @@ def get_file_list(model_path, keep_n=0, selection_type="even"):
     list
         A list of file names
     """
+    logger.debug("Retrieving files using {} selection strategy".format(selection_type))
     m_files = glob(model_path)
     m_files.sort(key=natural_sort)
     if selection_type == "custom" and type(keep_n) == list:
+        logger.debug("Retrieving files containing any of {}".format(keep_n))
         m_files = [f for f in m_files for e in keep_n if e in f]
     elif selection_type == "even" and keep_n > 0:
+        logger.debug("Retrieving {} files evenly distributed".format(keep_n))
         to_keep = np.linspace(0, len(m_files) - 1, num=keep_n, dtype=np.int32)
         m_files = [m_files[i] for i in to_keep]
     elif selection_type == "first" and keep_n > 0:
+        logger.debug("Retrieving the first {} files".format(keep_n))
         return m_files[:keep_n]
+    logger.debug("The files selected are {}".format(m_files))
     return m_files
 
 
