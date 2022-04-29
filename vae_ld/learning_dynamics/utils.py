@@ -58,7 +58,7 @@ def get_file_list(model_path, keep_n=0, selection_type="even"):
     logger.debug("Retrieving files using {} selection strategy".format(selection_type))
     m_files = glob(model_path)
     m_files.sort(key=natural_sort)
-    logger.debug("keep_n value is {}".format(keep_n))
+    logger.debug("keep_n value is {}, keep_n type is {}".format(keep_n, type(keep_n)))
     if selection_type == "custom" and type(keep_n) == list:
         logger.debug("Retrieving files containing any of {}".format(keep_n))
         m_files = [f for f in m_files for e in keep_n if e in f]
