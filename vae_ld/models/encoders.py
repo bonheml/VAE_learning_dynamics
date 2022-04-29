@@ -193,7 +193,21 @@ class PreTrainedEncoder(tf.keras.Model):
         return (*x, x1, z_mean, z_log_var, z)
 
 
-def load_pre_trained_encoder(model_path):
+def load_pre_trained_classifier(model_path):
+    """ Load a pre-trained classifier. All the layers used for classification should contain `output` in their name
+    to be removed before plugging the model to a mean and variance layer. If this is not the case, they will be kept
+    when creating the encoder and this may worsen the performances.
+
+    Parameters
+    ----------
+    model_path : str
+        Path to the trained classifier
+
+    Returns
+    -------
+    tensorflow.keras.model
+        The loaded classifier
+    """
     model = load_model(model_path)
-    # Remove the mean, variance and sampling layers before returning
-    return Model(inputs=model.input, outputs=[l.output for l in model.layers[:-3]])
+    # Remove the output layers of the pre-trained classifier
+    return Model(inputs=model.input, outputs=[l.output for l in model.layers if "output" not in l.name])
