@@ -95,9 +95,10 @@ def get_activations(data, model_path):
         layer_names = ["input"] + [l.name for l in model.encoder.layers]
         layer_names += [l.name for l in model.decoder.layers]
     elif hasattr(model, "clf"):
-        acts = (data,) + model.clf.predict(data)
+        acts = [data] + list(model.clf.predict(data))
         # Flatten the list of activations from to the classification layers
         acts += acts.pop()
+        acts = tuple(acts)
         layer_names = ["input"] + [l.name for l in model.clf.layers]
     else:
         raise NotImplementedError("Unknown model type. The model should contain either an encoder and decoder "
