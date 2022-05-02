@@ -12,9 +12,9 @@ import pandas as pd
 logger = logging.getLogger("similarity_metric")
 
 
-def compute_similarity_metric(metric, data, m1_path, m2_path, save_path, models_info):
-    m1, acts1, layers1 = get_activations(data, m1_path)
-    m2, acts2, layers2 = get_activations(data, m2_path)
+def compute_similarity_metric(metric, data, m1_path, m2_path, save_path, models_info, force_cpu_inference):
+    m1, acts1, layers1 = get_activations(data, m1_path, force_cpu_inference)
+    m2, acts2, layers2 = get_activations(data, m2_path, force_cpu_inference)
     logger.info("Preparing layer activations of {}".format(m1_path))
     acts1 = [metric.center(prepare_activations(act)) for act in acts1]
     logger.info("Preparing layer activations of {}".format(m2_path))
@@ -60,7 +60,7 @@ def compute_sim(cfg):
             if pathlib.Path(save_path).exists() and cfg.overwrite is False:
                 logger.info("Skipping already computed similarity for {}".format(save_path))
                 continue
-            compute_similarity_metric(metric, samples, m1, m2, save_path, models_info)
+            compute_similarity_metric(metric, samples, m1, m2, save_path, models_info, cfg.force_cpu_inference)
 
 
 if __name__ == "__main__":
