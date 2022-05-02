@@ -235,14 +235,18 @@ def aggregate_similarity(metric_name, input_dir, save_file, overwrite):
         logger.info("Skipping already computed aggregation of {}".format(save_file))
         return
     files = glob("{}/*.tsv".format(input_dir))
+    logger.debug("Files to process are {}".format(files))
     cleaned_dfs = []
     dfs = [pd.read_csv(f, sep="\t", header=0, index_col=0) for f in files]
     logger.info("Preparing dataframes for aggregation...")
     for df in dfs:
+        logger.debug("Processing dataframe:\n{}".format(df))
+        df.fillna(value=np.nan, inplace=True)
         df = df.reset_index()
         df = df.melt(id_vars=["m1_seed", "m2_seed", "m1_epoch", "m2_epoch", "p1_name", "p2_name", "p1_value",
                               "p2_value", "m2", "m1_name", "m2_name"],
                      var_name="m1", value_name=metric_name)
+        logger.debug("Cleaned dataframe:\n{}".format(df))
         cleaned_dfs.append(df)
     logger.info("Aggregating the dataframes...")
     df = pd.concat(cleaned_dfs)
