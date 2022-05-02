@@ -241,7 +241,6 @@ def aggregate_similarity(metric_name, input_dir, save_file, overwrite):
     logger.info("Preparing dataframes for aggregation...")
     for df in dfs:
         logger.debug("Processing dataframe:\n{}".format(df))
-        df.fillna(value=np.nan, inplace=True)
         df = df.reset_index()
         df = df.melt(id_vars=["m1_seed", "m2_seed", "m1_epoch", "m2_epoch", "p1_name", "p2_name", "p1_value",
                               "p2_value", "m2", "m1_name", "m2_name"],
