@@ -17,15 +17,13 @@ def check_exists(save_file):
     return save_file, pathlib.Path(save_file).exists()
 
 
-def similarity_heatmap(metric_name, input_file, overwrite):
+def similarity_heatmap(input_dir, overwrite):
     """ Compute heatmaps of similarity scores obtained with `metric_name` for each model.
 
     Parameters
     ----------
-    metric_name : str
-        Name of the similarity metric used
-    input_file : str
-        Name of the file containing the aggregated results
+    input_dir : str
+        Name of the directory containing the similarity scores
     overwrite : bool
         If True, overwrite any existing file, else skip them.
 
@@ -33,34 +31,29 @@ def similarity_heatmap(metric_name, input_file, overwrite):
     -------
     None
     """
-    df = pd.read_csv(input_file, sep="\t", header=0)
-    # Sampling layer is named differently on linear architectures
-    df.replace("encoder/z", "sampling", inplace=True)
-    grouped_df = df.groupby(["m1_name", "p1_value", "m1_seed", "m1_epoch", "m2_name", "p2_value", "m2_seed",
-                             "m2_epoch"])
-    group_names = grouped_df.groups.keys()
-    # Handle different number of layers for different encoder/decoder architectures.
-    encoder_layers1 = ["encoder/{}".format(i) for i in range(1, 7) if "encoder/{}".format(i) in df["m1"].values]
-    decoder_layers1 = ["decoder/{}".format(i) for i in range(1, 7) if "decoder/{}".format(i) in df["m1"].values]
-    col_order1 = (["input"] + encoder_layers1 + ["encoder/z_mean", "encoder/z_log_var", "sampling"] + decoder_layers1)
+    files = glob("{}/*.tsv".format(input_dir))
+    to_drop = ["m1_name", "p1_value", "m1_seed", "m1_epoch", "m2_name", "p2_value", "m2_seed", "m2_epoch"]
+    p_names = ["p1_name", "p2_name"]
 
-    encoder_layers2 = ["encoder/{}".format(i) for i in range(1, 7) if "encoder/{}".format(i) in df["m2"].values]
-    decoder_layers2 = ["decoder/{}".format(i) for i in range(1, 7) if "decoder/{}".format(i) in df["m2"].values]
-    col_order2 = (["input"] + encoder_layers2 + ["encoder/z_mean", "encoder/z_log_var", "sampling"] + decoder_layers2)
-
-    for group_name in group_names:
-        cfg = "{}, param={}, seed={}, epoch={} and {}, param={}, seed={}, epoch={}".format(*group_name)
-        save_path = "{}_{}_seed_{}_epoch_{}_{}_{}_seed_{}_epoch_{}.pdf".format(*group_name)
+    for f in files:
+        df = pd.read_csv(f, sep="\t", header=0, index_col=0)
+        info = df[to_drop].values[0]
+        p1_name, p2_name = df[p_names].values[0]
+        save_path = "{}_{}_seed_{}_epoch_{}_{}_{}_seed_{}_epoch_{}.pdf".format(*info)
 
         if overwrite is False and pathlib.Path(save_path).exists():
-            logger.info("Skipping already plotted heatmap of {}".format(cfg))
+            logger.info("Skipping already plotted heatmap of {}, param={}, seed={}, epoch={} and {}, param={},"
+                        " seed={}, epoch={}".format(*info))
             continue
 
-        group = grouped_df.get_group(group_name)
-        logger.info("Plotting heatmap of {}".format(cfg))
-        ax = sns.heatmap(group.pivot("m1", "m2", metric_name).reindex(index=col_order1, columns=col_order2), vmin=0, vmax=1)
-        ax.set(ylabel="{}, {}={}, seed={}, epoch={}".format(group_name[0], group["p1_name"].values[0], *group_name[1:4]),
-               xlabel="{}, {}={}, seed={}, epoch={}".format(group_name[4], group["p2_name"].values[0], *group_name[5:]))
+        logger.info("Plotting heatmap of {}, param={}, seed={}, epoch={} and {}, param={}, seed={}, "
+                    "epoch={}".format(*info))
+        df.rename(columns={"encoder/z": "sampling"}, index={"encoder/z": "sampling"}, inplace=True, errors="ignore")
+        df.drop(columns=to_drop + p_names + ["decoder/reshape"], inplace=True, errors="ignore")
+        df.drop(index=to_drop + p_names + ["decoder/reshape"], inplace=True, errors="ignore")
+        ax = sns.heatmap(df, vmin=0, vmax=1)
+        ax.set(ylabel="{}, {}={}, seed={}, epoch={}".format(info[0], p1_name, *info[1:4]),
+               xlabel="{}, {}={}, seed={}, epoch={}".format(info[4], p2_name, *info[5:]))
         save_figure(save_path)
 
 
