@@ -23,7 +23,7 @@ class Procrustes:
            Testing. arXiv preprint arXiv:2108.01661.
     """
 
-    def __init__(self, name="procrustes", use_gpu=False):
+    def __init__(self, name="procrustes", use_gpu=False, force_cpu_inference=False):
         """
 
         Parameters
@@ -32,6 +32,7 @@ class Procrustes:
         use_gpu
         """
         self._name = name
+        self._force_cpu_inference = force_cpu_inference
         self._gpu = use_gpu
 
     @property
@@ -54,8 +55,13 @@ class Procrustes:
         # Here when self.normalised is True, we use the same normalisation as in
         # "Grounding Representation Similarity with Statistical Testing", Ding et al. 2021
         if self._gpu:
-            X_norm = X - tnp.mean(X, axis=0, keepdims=True)
-            X_norm /= tf.norm(X_norm)
+            if self._force_cpu_inference:
+                with tf.device("/CPU:0"):
+                    X_norm = X - tnp.mean(X, axis=0, keepdims=True)
+                    X_norm /= tf.norm(X_norm)
+            else:
+                X_norm = X - tnp.mean(X, axis=0, keepdims=True)
+                X_norm /= tf.norm(X_norm)
         else:
             X = np.asfortranarray(X, dtype=np.float32)
             X_norm = X - np.mean(X, axis=0, keepdims=True)
@@ -82,8 +88,13 @@ class Procrustes:
         """
         m = tnp if self._gpu else np
         logger.debug("Shape of X : {}, shape of Y: {}".format(X.shape, Y.shape))
-        A_sq_frob = m.sum(X ** 2)
-        B_sq_frob = m.sum(Y ** 2)
+        if self._gpu and self._force_cpu_inference:
+            with tf.device("/CPU:0"):
+                A_sq_frob = m.sum(X ** 2)
+                B_sq_frob = m.sum(Y ** 2)
+        else:
+            A_sq_frob = m.sum(X ** 2)
+            B_sq_frob = m.sum(Y ** 2)
 
         if self._gpu:
             AB = m.transpose(X) @ Y

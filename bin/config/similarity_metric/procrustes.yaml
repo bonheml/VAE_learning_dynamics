@@ -1,3 +1,4 @@
 _target_: vae_ld.learning_dynamics.procrustes.Procrustes
 name: procrustes
 use_gpu: true
+force_cpu_inference: ${force_cpu_inference}
