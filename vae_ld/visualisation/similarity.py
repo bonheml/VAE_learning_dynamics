@@ -52,9 +52,7 @@ def similarity_heatmap(input_dir, overwrite):
         df.rename(columns={"encoder/z": "sampling"}, index={"encoder/z": "sampling"}, inplace=True, errors="ignore")
         df.drop(columns=to_drop + p_names + layers_to_drop, inplace=True, errors="ignore")
         df.drop(index=to_drop + p_names + layers_to_drop, inplace=True, errors="ignore")
-        # For heatmap, index are mapped to cols and columns to rows. We transpose to get model 1 (df columns)
-        # information as y labels.
-        ax = sns.heatmap(df.T, vmin=0, vmax=1)
+        ax = sns.heatmap(df, vmin=0, vmax=1)
         ax.set(ylabel="{}, {}={}, seed={}, epoch={}".format(info[0], p1_name, *info[1:4]),
                xlabel="{}, {}={}, seed={}, epoch={}".format(info[4], p2_name, *info[5:]))
         save_figure(save_path)
