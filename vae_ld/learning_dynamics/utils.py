@@ -80,34 +80,7 @@ def get_model_epoch(model):
     return epoch
 
 
-def get_activations(data, model_path, force_cpu_inference=False):
-    """ Load a model and generate a dictionary of the activations obtained from `data`.
-    We assume that the activations of each layers are exposed.
-
-    Parameters
-    ----------
-    data : np.array
-        A (n_examples, n_features) data matrix
-    model_path : str
-        The path of the model to load
-    force_cpu_inference : bool
-        If True, force cpu usage to get the activations else use the current device selected by tensorflow.
-        Default, False
-
-    Returns
-    -------
-    tuple
-        A tuple containing the loaded model, list of activations, and list of layer names.
-    """
-    if force_cpu_inference:
-        with tf.device("/CPU:0"):
-            model, acts, layer_names = _get_activations(data, model_path)
-    else:
-        model, acts, layer_names = _get_activations(data, model_path)
-    return model, acts, layer_names
-
-
-def _get_activations(data, model_path):
+def get_activations(data, model_path):
     """ Load a model and generate a dictionary of the activations obtained from `data`.
     We assume that the activations of each layers are exposed.
 
