@@ -160,42 +160,7 @@ def get_weights(model_path):
     return layer_weights
 
 
-def prepare_activations(x, force_cpu_inference=False):
-    """ Flatten the activation values to get a 2D array and values very close to 0 (e.g., 1e-15) to 0.
-
-    Parameters
-    ----------
-    x : tf.tensor or np.array
-        A (n_example, n_features) matrix of activations
-    force_cpu_inference : bool
-        If True, force cpu usage to get the activations else use the current device selected by tensorflow.
-        Default, False
-
-    Returns
-    -------
-    A (n_example, n_features) tensor of activations. If len(n_features) was initially greater than 1,
-    n_features = np.prod(n_features).
-
-    Examples
-    --------
-    >>> A = np.random.random((1000, 2, 2, 2))
-    >>> B = prepare_activations(A)
-    >>> B.shape
-        (1000, 8)
-    >>> C = np.array([[1.e-15, 1.e-4], [4.2, 2.e-8]])
-    >>> prepare_activations(C)
-        array([[0, 1e-4],
-               [4.2, 0]])
-    """
-    if force_cpu_inference:
-        with tf.device("/CPU:0"):
-            x = _prepare_activations(x)
-    else:
-        x = _prepare_activations(x)
-    return x
-
-
-def _prepare_activations(x):
+def prepare_activations(x):
     """ Flatten the activation values to get a 2D array and values very close to 0 (e.g., 1e-15) to 0.
 
     Parameters
