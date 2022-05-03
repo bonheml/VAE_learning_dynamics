@@ -34,6 +34,7 @@ def similarity_heatmap(input_dir, overwrite):
     files = glob("{}/*.tsv".format(input_dir))
     to_drop = ["m1_name", "p1_value", "m1_seed", "m1_epoch", "m2_name", "p2_value", "m2_seed", "m2_epoch"]
     p_names = ["p1_name", "p2_name"]
+    layers_to_drop = ["decoder/reshape", "decoder/output"]
 
     for f in files:
         df = pd.read_csv(f, sep="\t", header=0, index_col=0)
@@ -49,8 +50,8 @@ def similarity_heatmap(input_dir, overwrite):
         logger.info("Plotting heatmap of {}, param={}, seed={}, epoch={} and {}, param={}, seed={}, "
                     "epoch={}".format(*info))
         df.rename(columns={"encoder/z": "sampling"}, index={"encoder/z": "sampling"}, inplace=True, errors="ignore")
-        df.drop(columns=to_drop + p_names + ["decoder/reshape"], inplace=True, errors="ignore")
-        df.drop(index=to_drop + p_names + ["decoder/reshape"], inplace=True, errors="ignore")
+        df.drop(columns=to_drop + p_names + layers_to_drop, inplace=True, errors="ignore")
+        df.drop(index=to_drop + p_names + layers_to_drop, inplace=True, errors="ignore")
         ax = sns.heatmap(df, vmin=0, vmax=1)
         ax.set(ylabel="{}, {}={}, seed={}, epoch={}".format(info[0], p1_name, *info[1:4]),
                xlabel="{}, {}={}, seed={}, epoch={}".format(info[4], p2_name, *info[5:]))
