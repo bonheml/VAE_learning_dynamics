@@ -49,10 +49,12 @@ def similarity_heatmap(input_dir, overwrite):
 
         logger.info("Plotting heatmap of {}, param={}, seed={}, epoch={} and {}, param={}, seed={}, "
                     "epoch={}".format(*info))
-        df.rename(columns={"encoder/z": "sampling"}, index={"encoder/z": "sampling"}, inplace=True, errors="ignore")
+        df.rename(columns={"encoder/z": "sampled", "encoder/z_mean": "mean", "encoder/z_log_var": "log_var"},
+                  index={"encoder/z": "sampled", "encoder/z_mean": "mean", "encoder/z_log_var": "log_var"},
+                  inplace=True, errors="ignore")
         df.drop(columns=to_drop + p_names + layers_to_drop, inplace=True, errors="ignore")
         df.drop(index=to_drop + p_names + layers_to_drop, inplace=True, errors="ignore")
-        ax = sns.heatmap(df, vmin=0, vmax=1)
+        ax = sns.heatmap(df, vmin=0, vmax=1, annot_kws={"fontsize": 13})
         ax.set(ylabel="{}, {}={}, seed={}, epoch={}".format(info[0], p1_name, *info[1:4]),
                xlabel="{}, {}={}, seed={}, epoch={}".format(info[4], p2_name, *info[5:]))
         save_figure(save_path)
