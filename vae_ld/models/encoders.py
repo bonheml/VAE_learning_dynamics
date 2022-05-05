@@ -1,7 +1,7 @@
 import tensorflow as tf
 from keras.models import load_model
 from tensorflow.keras import layers
-from tensorflow.python.keras.models import Model
+from tensorflow import keras
 
 from vae_ld.models import logger
 
@@ -213,12 +213,18 @@ def load_pre_trained_classifier(model_path, input_shape):
         The loaded classifier
     """
     model = load_model(model_path)
-    logger.debug("Model is built: {}, Submodel is built: {}".format(model.built, model.clf.built))
-    logger.debug(model.clf.layers)
-    logger.debug([l.input for l in model.clf.layers])
-    logger.debug([l.output for l in model.clf.layers])
     # Remove the output layers of the pre-trained classifier
-    outputs = [l.output for l in model.clf.layers if "output" not in l.name]
+    layers_to_add = [l.name for l in model.layers if "output" not in l.name]
     # Remove the fully connected layer just before the output layers
-    outputs.pop()
-    return Model(inputs=model.clf.input, outputs=outputs)
+    layers_to_add.pop()
+
+    inputs = keras.Input(shape=input_shape)
+    outputs = []
+    prev_output = inputs
+
+    for l in layers_to_add:
+        logger.debug("Adding pre-trained layer {} to the model".format(l))
+        prev_output = model.get_layer(l)(prev_output)
+        outputs.append(prev_output)
+
+    return keras.Model(inputs=model.clf.input, outputs=outputs, name="pretrained_model")
