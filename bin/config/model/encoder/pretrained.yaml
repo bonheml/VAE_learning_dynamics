@@ -2,6 +2,6 @@ defaults:
   - _self_
   - pre_trained_model: convolutional
 
-_target_: vae_ld.models.vaes.PreTrainedEncoder
+_target_: vae_ld.models.encoders.PreTrainedEncoder
 output_shape: ${latent_shape}
 use_dense: true
