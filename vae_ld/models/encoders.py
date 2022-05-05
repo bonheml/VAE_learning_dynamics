@@ -214,7 +214,7 @@ def load_pre_trained_classifier(model_path, input_shape):
     """
     model = load_model(model_path)
     input_layer = tf.keras.Input(shape=input_shape)
-    model.call(input_layer)
+    model.build((None, *input_layer))
     logger.debug(model.clf.layers)
     # Remove the output layers of the pre-trained classifier
     outputs = [l.output for l in model.clf.layers if "output" not in l.name]
