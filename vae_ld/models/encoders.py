@@ -213,7 +213,8 @@ def load_pre_trained_classifier(model_path, input_shape):
         The loaded classifier
     """
     model = load_model(model_path)
-    #model.clf.build((None, *input_shape))
+    logger.debug("Model is built: {}, Submodel is built: {}".format(model.built, model.clf.built))
+    #model.build((None, *input_shape))
     logger.debug(model.clf.layers)
     # Remove the output layers of the pre-trained classifier
     outputs = [l.output for l in model.clf.layers if "output" not in l.name]
