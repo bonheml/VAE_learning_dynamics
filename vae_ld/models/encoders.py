@@ -219,4 +219,4 @@ def load_pre_trained_classifier(model_path, input_shape):
     outputs = [l.output for l in model.clf.layers if "output" not in l.name]
     # Remove the fully connected layer just before the output layers
     outputs.pop()
-    return Model(inputs=model.input, outputs=outputs)
+    return Model(inputs=model.clf.input, outputs=outputs)
