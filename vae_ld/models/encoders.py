@@ -178,8 +178,8 @@ class PreTrainedEncoder(tf.keras.Model):
         self.pre_trained.summary(print_fn=logger.debug)
         if use_dense:
             self.dense = layers.Dense(256, name="encoder/dense")
-        self.z_mean = layers.Dense(output_shape, name="encoder/z_mean")
-        self.z_log_var = layers.Dense(output_shape, name="encoder/z_log_var")
+        self.z_mean = layers.Dense(output_shape, name="encoder/z_mean", kernel_initializer="zeros")
+        self.z_log_var = layers.Dense(output_shape, name="encoder/z_log_var", kernel_initializer="zeros")
         self.sampling = Sampling()
 
     def call(self, inputs):
