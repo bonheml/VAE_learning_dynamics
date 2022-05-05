@@ -227,4 +227,4 @@ def load_pre_trained_classifier(model_path, input_shape):
         prev_output = model.get_layer(l)(prev_output)
         outputs.append(prev_output)
 
-    return keras.Model(inputs=model.clf.input, outputs=outputs, name="pretrained_model")
+    return keras.Model(inputs=inputs, outputs=outputs, name="pretrained_model")
