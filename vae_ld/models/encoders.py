@@ -211,7 +211,7 @@ def load_pre_trained_classifier(model_path, input_shape):
     tensorflow.keras.model
         The loaded classifier
     """
-    model = keras.models.load_model(model_path)
+    model = keras.models.load_model(model_path).clf
     # Remove the output layers of the pre-trained classifier
     layers_to_add = [l.name for l in model.layers if "output" not in l.name]
     # Remove the fully connected layer just before the output layers
