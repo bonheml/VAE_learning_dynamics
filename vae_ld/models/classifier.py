@@ -18,7 +18,7 @@ class Classifier(tf.keras.Model):
         super(Classifier, self).__init__(**kwargs)
         self.clf = clf
         self.clf.build((None, *input_shape))
-        self.clf.summary()
+        self.clf.summary(print_fn=logger.info)
         # This is needed to save the model properly
         self.built = True
         self.classification_loss_fn = tf.keras.losses.SparseCategoricalCrossentropy()
