@@ -213,11 +213,10 @@ def load_pre_trained_classifier(model_path, input_shape):
         The loaded classifier
     """
     model = load_model(model_path)
-    input_layer = tf.keras.Input(shape=input_shape)
-    model.build((None, *input_layer))
+    model.build((None, *input_shape))
     logger.debug(model.clf.layers)
     # Remove the output layers of the pre-trained classifier
     outputs = [l.output for l in model.clf.layers if "output" not in l.name]
     # Remove the fully connected layer just before the output layers
     outputs.pop()
-    return Model(inputs=input_layer, outputs=outputs)
+    return Model(inputs=model.input, outputs=outputs)
