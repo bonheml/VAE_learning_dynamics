@@ -3,6 +3,8 @@ from keras.models import load_model
 from tensorflow.keras import layers
 from tensorflow.python.keras.models import Model
 
+from vae_ld.models import logger
+
 
 class Sampling(layers.Layer):
     """ Sampling layer
@@ -209,8 +211,9 @@ def load_pre_trained_classifier(model_path):
         The loaded classifier
     """
     model = load_model(model_path)
+    logger.debug(model.clf.layers)
     # Remove the output layers of the pre-trained classifier
-    outputs = [l.output for l in model.layers if "output" not in l.name]
+    outputs = [l.output for l in model.clf.layers if "output" not in l.name]
     # Remove the fully connected layer just before the output layers
     outputs.pop()
     return Model(inputs=model.input, outputs=outputs)
