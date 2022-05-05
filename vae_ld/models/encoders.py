@@ -170,7 +170,7 @@ class PreTrainedEncoder(tf.keras.Model):
     use_dense: bool, optional
         If True, add a fully connected layer after the pre-trained model. Default True
     """
-    def __init__(self, output_shape, pre_trained_model, use_dense=True):
+    def __init__(self, output_shape, pre_trained_model, use_dense=False):
         super(PreTrainedEncoder, self).__init__()
         self.pre_trained = pre_trained_model
         # Ensure that the pre-trained model will not be retrained
