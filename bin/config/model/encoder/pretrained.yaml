@@ -1,7 +1,7 @@
 defaults:
   - _self_
-  - pre_trained_model: vgg19
+  - pre_trained_model: convolutional
 
 _target_: vae_ld.models.vaes.PreTrainedEncoder
 output_shape: ${latent_shape}
-use_dense: false
+use_dense: true

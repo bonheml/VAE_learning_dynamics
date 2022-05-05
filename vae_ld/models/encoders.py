@@ -168,9 +168,9 @@ class PreTrainedEncoder(tf.keras.Model):
     pre_trained_model: tf.keras.Model
         A pre-trained model which will be used as feature extractor
     use_dense: bool, optional
-        If True, add a dense layer after the pre-trained model. Default False
+        If True, add a fully connected layer after the pre-trained model. Default True
     """
-    def __init__(self, output_shape, pre_trained_model, use_dense=False):
+    def __init__(self, output_shape, pre_trained_model, use_dense=True):
         super(PreTrainedEncoder, self).__init__()
         self.pre_trained = pre_trained_model
         # Ensure that the pre-trained model will not be retrained
@@ -210,4 +210,7 @@ def load_pre_trained_classifier(model_path):
     """
     model = load_model(model_path)
     # Remove the output layers of the pre-trained classifier
-    return Model(inputs=model.input, outputs=[l.output for l in model.layers if "output" not in l.name])
+    outputs = [l.output for l in model.layers if "output" not in l.name]
+    # Remove the fully connected layer just before the output layers
+    outputs.pop()
+    return Model(inputs=model.input, outputs=outputs)
