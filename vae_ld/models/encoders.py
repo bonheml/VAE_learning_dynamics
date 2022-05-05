@@ -214,8 +214,9 @@ def load_pre_trained_classifier(model_path, input_shape):
     """
     model = load_model(model_path)
     logger.debug("Model is built: {}, Submodel is built: {}".format(model.built, model.clf.built))
-    #model.build((None, *input_shape))
     logger.debug(model.clf.layers)
+    logger.debug([l.input for l in model.clf.layers])
+    logger.debug([l.output for l in model.clf.layers])
     # Remove the output layers of the pre-trained classifier
     outputs = [l.output for l in model.clf.layers if "output" not in l.name]
     # Remove the fully connected layer just before the output layers
