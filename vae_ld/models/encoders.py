@@ -53,7 +53,7 @@ class ConvolutionalEncoder(tf.keras.Model):
     .. [2] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
            Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
     """
-    def __init__(self, input_shape, output_shape):
+    def __init__(self, input_shape, output_shape, zero_init=False):
         super(ConvolutionalEncoder, self).__init__()
         self.e1 = layers.Conv2D(input_shape=input_shape, filters=32, kernel_size=4, strides=2, activation="relu",
                                 padding="same", name="encoder/1")
@@ -65,8 +65,9 @@ class ConvolutionalEncoder(tf.keras.Model):
                                 name="encoder/4")
         self.e5 = layers.Flatten(name="encoder/5")
         self.e6 = layers.Dense(256, activation="relu", name="encoder/6")
-        self.z_mean = layers.Dense(output_shape, name="encoder/z_mean")
-        self.z_log_var = layers.Dense(output_shape, name="encoder/z_log_var")
+        kernel_initializer = "zeros" if zero_init else "glorot_uniform"
+        self.z_mean = layers.Dense(output_shape, name="encoder/z_mean", kernel_initializer=kernel_initializer)
+        self.z_log_var = layers.Dense(output_shape, name="encoder/z_log_var", kernel_initializer=kernel_initializer)
         self.sampling = Sampling()
 
     def call(self, inputs):
