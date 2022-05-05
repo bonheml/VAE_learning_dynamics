@@ -36,10 +36,10 @@ class VAE(tf.keras.Model):
         super(VAE, self).__init__(**kwargs)
         self.encoder = encoder
         self.encoder.build((None, *input_shape))
-        self.encoder.summary()
+        self.encoder.summary(print_fn=logger.info)
         self.decoder = decoder
         self.decoder.build((None, latent_shape))
-        self.decoder.summary()
+        self.decoder.summary(print_fn=logger.info)
         self.reconstruction_loss_fn = reconstruction_loss_fn
         self.kl_loss_tracker = tf.keras.metrics.Mean(name="kl_loss")
         self.elbo_loss_tracker = tf.keras.metrics.Mean(name="elbo_loss")
