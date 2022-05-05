@@ -177,6 +177,7 @@ class PreTrainedEncoder(tf.keras.Model):
         self.pre_trained = pre_trained_model
         # Ensure that the pre-trained model will not be retrained
         self.pre_trained.trainable = False
+        self.pre_trained.summary(print_fn=logger.debug)
         if use_dense:
             self.dense = layers.Dense(256, activation="relu", name="encoder/dense")
         self.z_mean = layers.Dense(output_shape, name="encoder/z_mean")
@@ -185,6 +186,7 @@ class PreTrainedEncoder(tf.keras.Model):
 
     def call(self, inputs):
         x = self.pre_trained(inputs, training=False)
+        # We only feed the output of the last layer to the flatten layer
         x1 = x[-1]
         if hasattr(self, 'dense'):
             x1 = self.dense(x1)
