@@ -186,5 +186,5 @@ Lineplots visualisations are generated with:
 		dpsrites: 02, 07, 14, 19, 26
 		cars3d: 25_, 292, 559, 826, 1090
 		smallnorb: 10_, 110, 210, 311, 410
-	train a VAE with a custom pre-trained classifier: training model/encoder=pretrained model.name="beta_vae_pretrained"
-	train a VAE with an external pre-trained classifier (e.g. VGG19): training model/encoder=pretrained model/encoder/pre_trained_model=vgg19 model.name="beta_vae_pretrained"
+	train a VAE with a custom pre-trained classifier: training model/encoder=pretrained model.name="beta_vae_pretrained_custom"
+	train a VAE with an external pre-trained classifier (e.g. VGG19): training model/encoder=pretrained model/encoder/pre_trained_model=vgg19 model.name="beta_vae_pretrained_vgg19"
