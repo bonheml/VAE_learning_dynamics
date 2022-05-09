@@ -185,8 +185,8 @@ class PreTrainedEncoder(tf.keras.Model):
 
     def call(self, inputs):
         x = self.pre_trained(inputs, training=False)
-        # We only feed the output of the last layer to the flatten layer
-        x1 = x[-1]
+        # Custom classifiers need preprocessing as we only feed the output of the last layer to the flatten layer
+        x1 = x[-1] if self.pre_trained.name == "pretrained_model" else x
         if hasattr(self, 'dense'):
             x1 = self.dense(x1)
         z_mean = self.z_mean(x1)
