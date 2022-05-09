@@ -1,5 +1,5 @@
 model_name: beta_vae
-model_epoch: 1069
+model_epoch: 1090
 model_seed: 0
 param_value: 1
 random_z: false

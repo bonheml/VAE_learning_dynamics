@@ -6,14 +6,16 @@ import tensorflow as tf
 from hydra.utils import instantiate
 from tensorflow import sigmoid
 import numpy as np
-from vae_ld.visualisation.images import plot_and_save, plot_conv_layers
-from tensorflow import image
+from vae_ld.visualisation.images import plot_and_save
 
 logger = logging.getLogger("visualise_images")
 
 
 @hydra.main(config_path="config", config_name="img_visualisation")
 def visualise_images(cfg):
+    tf.random.set_seed(cfg.seed)
+    random_state = np.random.RandomState(cfg.seed)
+
     model_path = glob(cfg.model_path)[0]
     model = tf.keras.models.load_model(model_path)
     greyscale = cfg.dataset.observation_shape[2] == 1
@@ -23,22 +25,12 @@ def visualise_images(cfg):
         z = tf.random.normal(shape=(cfg.n_samples, cfg.latent_dim))
     else:
         dataset = instantiate(cfg.dataset)
-        random_state = np.random.RandomState(cfg.seed)
         samples = dataset.sample(cfg.n_samples, random_state, unique=True)[1]
         enc_out = model.encoder(samples, training=False)
         z = enc_out[-1]
-        for outputs, l in zip(enc_out[:4], model.encoder.layers[:4]):
-            fname = "{}_{}".format(l.name.replace("/", "_"), cfg.fname)
-            plot_conv_layers(outputs, fname)
 
-    dec_out = model.decoder(z, training=False)
-    for outputs, l in zip(dec_out[2:-1], model.decoder.layers[2:-1]):
-        fname = "{}_{}".format(l.name.replace("/", "_"), cfg.fname)
-        plot_conv_layers(outputs, fname)
-
-    imgs_out = sigmoid(dec_out[-1])
-    imgs_out = image.resize(imgs_out, cfg.dataset.observation_shape)
-    plot_and_save(imgs_out, cfg.fname, greyscale, samples)
+    generated_images = sigmoid(model.decoder(z, training=False))
+    plot_and_save(generated_images, cfg.fname, greyscale, samples)
 
 
 if __name__ == "__main__":
