@@ -31,7 +31,7 @@ def visualise_images(cfg):
         enc_out = model.encoder(samples, training=False)
         z = enc_out[-1]
 
-    generated_images = sigmoid(model.decoder(z, training=False))
+    generated_images = sigmoid(model.decoder(z, training=False)[-1])
     plot_and_save(generated_images, cfg.fname, greyscale, samples)
 
 
