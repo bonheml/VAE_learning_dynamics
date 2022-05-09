@@ -7,7 +7,7 @@ latent_dim: 10
 n_samples: 16
 seed: 0
 
-model_path: ${oc.env:XP_PATH}/train/latent_${latent_dim}/${model_name}/${dataset.name}/${param_value}/${model_seed}/checkpoint/epoch_${model_epoch}_*
+model_path: ${oc.env:XP_PATH}/train/latent_${latent_dim}/${model_name}/${dataset.name}/${param_value}/${model_seed}/checkpoint/epoch_${model_epoch}*
 fname: epoch_${model_epoch}_random_z_${random_z}.pdf
 
 defaults:
