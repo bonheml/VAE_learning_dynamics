@@ -1,3 +1,4 @@
 _target_: tensorflow.keras.applications.resnet_v2.ResNet50V2
 input_shape: ${dataset.observation_shape}
 include_top: false
+pooling: avg
