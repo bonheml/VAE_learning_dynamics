@@ -177,3 +177,14 @@ Lineplots visualisations are generated with:
     $ visualise_similarity -m metric_name=procrustes visualisation_tool=layer_list visualisation_tool.fn.regularisation=5,10,25,50,75 m1_name=annealed_vae
     $ visualise_similarity -m visualisation_tool=layer_list visualisation_tool.fn.regularisation=1,2,5,10,20 m1_name=dip_vae_ii dataset_name=cars3d,dsprites,smallnorb
     $ visualise_similarity -m metric_name=procrustes visualisation_tool=layer_list visualisation_tool.fn.regularisation=1,2,5,10,20 m1_name=dip_vae_ii
+
+..
+	For the next experiment:
+	training classifier:
+	computing similarity with encoders: compute_similarity -m n_samples=5000 selection_type="custom" m1_name=classifier p1_name=None p1_value=None m1_latent_dim=None m2_name=beta_tc_vae,beta_vae p2_name=beta p2_value=1 m1_seed=0,1,2,3,4 m2_seed=0,1,2,3,4 dataset=dsprites keep_n=["epoch_02","epoch_07","epoch_14","epoch_19","epoch_26"]
+    keep_n for the different datasets:
+		dpsrites: 02, 07, 14, 19, 26
+		cars3d: 25_, 292, 559, 826, 1090
+		smallnorb: 10_, 110, 210, 311, 410
+	train a VAE with a custom pre-trained classifier: training model/encoder=pretrained model.name="beta_vae_pretrained"
+	train a VAE with an external pre-trained classifier (e.g. VGG19): training model/encoder=pretrained model.encoder/pre_trained_model=vgg19 model.name="beta_vae_pretrained"
