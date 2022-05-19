@@ -5,6 +5,10 @@ from vae_ld.visualisation.utils import save_figure
 
 
 def plot_and_save(imgs, fname, greyscale, samples=None):
+    plot_images(imgs, greyscale, samples=samples)
+    save_figure(fname, tight=False)
+
+def plot_images(imgs, greyscale, samples=None, show=False):
     r = int(np.floor(np.sqrt(len(imgs))))
     c = r if samples is None else r * 2
     fig = plt.figure(figsize=(10., 10.))
@@ -25,7 +29,8 @@ def plot_and_save(imgs, fname, greyscale, samples=None):
             ax.imshow(im)
 
     fig.subplots_adjust(wspace=0, hspace=0)
-    save_figure(fname, tight=False)
+    if show is True:
+        plt.show()
 
 
 def plot_conv_layers(outputs, base_fname):

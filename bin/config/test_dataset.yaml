@@ -1,0 +1,12 @@
+defaults:
+  - _self_
+  - dataset: cars
+  - sampling: sampler
+
+batch_size: 16
+seed: 0
+
+
+hydra:
+  run:
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/${dataset.name}/

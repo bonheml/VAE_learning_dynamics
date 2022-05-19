@@ -4,31 +4,29 @@ import PIL
 import hydra
 import numpy as np
 from hydra.utils import instantiate
+from vae_ld.visualisation.images import plot_images
+import matplotlib.pyplot as plt
 
 logger = logging.getLogger("test_dataset")
 
 
 def to_image(dataset, X):
     for x in X:
-        x = x.reshape(dataset.observation_shape)
+        x = x.reshape(dataset.observation_shape) * 255.
         if x.shape[2] == 1:
             x = np.repeat(x, 3, axis=2)
         img = PIL.Image.fromarray(x.astype(np.uint8))
         img.show()
 
 
-@hydra.main(config_path="config", config_name="data_ide")
+@hydra.main(config_path="config", config_name="test_dataset")
 def test_dataset(cfg):
-    seed = np.random.RandomState(cfg.seed)
     logger.info("Loading {}".format(cfg.dataset.name))
-    dataset = instantiate(cfg.dataset)
+    sampler = instantiate(cfg.sampling)
 
-    X = dataset.sample(cfg.n_samples, seed, unique=True, normalised=True)[1]
-    to_image(dataset, X)
-
-    X = dataset[:cfg.n_samples]
-    X *= 255.
-    to_image(dataset, X)
+    X = sampler[0][0]
+    greyscale = X[0].shape[2] == 1
+    plot_images(X, greyscale, show=True)
 
 
 if __name__ == "__main__":

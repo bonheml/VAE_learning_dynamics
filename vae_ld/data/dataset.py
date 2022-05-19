@@ -41,8 +41,8 @@ class Data:
         self._data_size = data_size
         self._factors_shape = factors_shape
         self._factors_nb = len(self._factors_shape)
-        features = extmath.cartesian([np.array(list(range(i))) for i in self.factors_shape])
-        self.index = util.StateSpaceAtomIndex(self.factors_shape, features)
+        features = extmath.cartesian([np.array(list(range(i))) for i in self.factors_shape]) if self._factors_nb > 0 else None
+        self.index = util.StateSpaceAtomIndex(self.factors_shape, features) if self._factors_nb > 0 else None
         self._data = []
         self._url = url
         self.name = name
@@ -284,7 +284,7 @@ class DataSampler(Sequence):
             stop_idx = len(idxs_map) - 1
 
         logger.debug("Retrieving indexes in range ({},{})".format(start_idx, stop_idx))
-        idxs = idxs_map[start_idx:stop_idx]
+        idxs = sorted(idxs_map[start_idx:stop_idx])
         logger.debug("Getting data from indexes {}".format(idxs))
         data = self.data[idxs]
         logger.debug("Return batch of size {}".format(data.shape))

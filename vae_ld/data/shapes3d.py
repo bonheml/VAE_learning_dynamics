@@ -38,8 +38,7 @@ class Shapes3D(Data):
     def __getitem__(self, key):
         # Beware, because of the limitations of h5py, this will only work for indexes and contiguous slicing.
         data = self._data[key].astype(np.float32) / 255.
-        imgs = np.array(np.asarray(PIL.Image.fromarray(x).resize(self.observation_shape[:2])) for x in data)
-        return imgs
+        return data
 
     def load_data(self):
         if not self.path.exists():
