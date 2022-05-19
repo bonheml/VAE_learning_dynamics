@@ -1,43 +1,54 @@
 #!/usr/bin/env python
 import logging
 import hydra
-import numpy as np
 import pandas as pd
 from hydra.utils import instantiate
 from omegaconf import OmegaConf
-
+from math import ceil
 from vae_ld.learning_dynamics.intrinsic_dimension_estimators import TwoNN, MLE
+import tensorflow as tf
+from vae_ld.learning_dynamics.utils import get_activations, prepare_activations
 
 logger = logging.getLogger("get_data_ide")
 
 
-def estimate_id(dataset, ides, n_batches, n_samples, seed, normalised=True):
-    res = {k: [] for k in ides.keys()}
-
-    for i in range(0, n_batches):
-        logger.info("Iteration {}/{}: sampling {} images".format(i+1, n_batches, n_samples))
-        X = dataset.sample(n_samples, seed, unique=True, flatten=True, normalised=normalised)[1]
-        logger.info("Discarding duplicate examples. Final size is {}".format(len(X)))
-        for name, ide in ides.items():
-            res[name].append(ide.fit_transform(X))
-            logger.info("{} estimate is {}".format(name, res[name][-1]))
-    return res
+def compute_ides(model, model_info, sampler, ides, n_iter, save_file):
+    res = []
+    for i in range(0, n_iter):
+        X = sampler.next()[0]
+        _, acts, layers = get_activations(X, None, model=model)
+        acts = prepare_activations(acts)
+        for j, l1 in enumerate(layers):
+            for name, ide in ides.items():
+                res.append({"estimator": name, "layer": l1, "batch": i,
+                            "IDE": ceil(ide.fit_transform(acts[j]))})
+    logger.info("Saving the results to {}".format(save_file))
+    df = pd.DataFrame(res)
+    for k, v in model_info:
+        df[k] = v
+    df.to_csv(save_file, sep="\t")
 
 
 @hydra.main(config_path="config", config_name="data_ide")
 def get_all_ides(cfg):
-    seed = np.random.RandomState(cfg.seed)
-    logger.info("Model config:\n{}".format(OmegaConf.to_yaml(cfg)))
-    ides = {"MLE_{}".format(k): MLE(k, seed, anchor=cfg.mle_anchor) for k in [3, 5, 10, 20]}
+    logger.info("Experiment config:\n{}".format(OmegaConf.to_yaml(cfg)))
+
+    logger.info("Instantiating intrinsic dimension estimators")
+    ides = {"MLE_{}".format(k): MLE(k, cfg.seed, anchor=cfg.mle_anchor)
+            for k in [3, 5, 10, 20]}
     ides["TwoNN"] = TwoNN()
 
-    logger.info("Loading {}".format(cfg.dataset.name))
-    dataset = instantiate(cfg.dataset)
-    res = estimate_id(dataset, ides, cfg.n_iter, cfg.n_samples, seed, cfg.normalized)
+    logger.info("Instantiating {} dataset".format(cfg.dataset.name))
+    sampler = instantiate(cfg.sampling)
+    model_info = {"model_name": cfg.model_name, "param_name": cfg.param_name,
+                  "param_value": cfg.param_value, "model_seed": cfg.model_seed,
+                  "seed": cfg.seed, "latent_dim": cfg.latent_dim}
 
-    logger.info("Saving the results to {}".format(cfg.save_file))
-    df = pd.DataFrame.from_dict(res)
-    df.to_csv(cfg.save_file, sep="\t")
+    logger.info("Loading model from {}".format(cfg.model_path))
+    model = tf.keras.models.load_model(cfg.model_path)
+
+    logger.info("Computing IDEs")
+    compute_ides(model, model_info, sampler, ides, cfg.n_iter, cfg.save_file)
 
 
 if __name__ == "__main__":

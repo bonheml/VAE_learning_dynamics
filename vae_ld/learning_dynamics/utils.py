@@ -80,7 +80,7 @@ def get_model_epoch(model):
     return epoch
 
 
-def get_activations(data, model_path):
+def get_activations(data, model_path, model=None):
     """ Load a model and generate a dictionary of the activations obtained from `data`.
     We assume that the activations of each layers are exposed.
 
@@ -88,15 +88,19 @@ def get_activations(data, model_path):
     ----------
     data : np.array
         A (n_examples, n_features) data matrix
-    model_path : str
-        The path of the model to load
+    model_path : str or None
+        The path of the model to load, or None if model is not None.
+         ignored if model is not None
+    model : tf.keras.Model or None
+        The model to use, if None, load the model using model_path
 
     Returns
     -------
     tuple
         A tuple containing the loaded model, list of activations, and list of layer names.
     """
-    model = tf.keras.models.load_model(model_path)
+    if model is None:
+        model = tf.keras.models.load_model(model_path)
     if hasattr(model, "encoder"):
         acts = (data,) + model.encoder.predict(data)
         acts += model.decoder.predict(acts[-1])
