@@ -26,6 +26,7 @@ def compute_ides(model, model_info, sampler, ides, n_iter, save_file):
             for name, ide in ides.items():
                 res.append({"estimator": name, "layer": l1, "batch": i,
                             "IDE": ceil(ide.fit_transform(acts[j]))})
+                logger.debug("IDE for {} on batch {} using {} = {}".format(l1, i, name, res[-1]["IDE"]))
     logger.info("Saving the results to {}".format(save_file))
     df = pd.DataFrame(res)
     for k, v in model_info.items():
