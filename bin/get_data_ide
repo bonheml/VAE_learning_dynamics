@@ -17,7 +17,7 @@ logger = logging.getLogger("get_data_ide")
 def compute_ides(model, model_info, sampler, ides, n_iter, save_file):
     res = []
     for i in range(0, n_iter):
-        X = sampler.next()[0]
+        X = sampler[i][0]
         _, acts, layers = get_activations(X, None, model=model)
         acts = prepare_activations(acts)
         for j, l1 in enumerate(layers):
