@@ -19,7 +19,8 @@ def compute_ides(model, model_info, sampler, ides, n_iter, save_file):
     for i in range(0, n_iter):
         X = sampler[i][0]
         _, acts, layers = get_activations(X, None, model=model)
-        acts = prepare_activations(acts)
+        logger.debug("Batch shape is: {}".format(X.shape))
+        acts = [prepare_activations(act) for act in acts]
         for j, l1 in enumerate(layers):
             for name, ide in ides.items():
                 res.append({"estimator": name, "layer": l1, "batch": i,
