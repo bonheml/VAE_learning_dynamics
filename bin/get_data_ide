@@ -10,6 +10,7 @@ from vae_ld.data.util import natural_sort
 from vae_ld.learning_dynamics.intrinsic_dimension_estimators import TwoNN, MLE
 import tensorflow as tf
 from vae_ld.learning_dynamics.utils import get_activations, prepare_activations
+import numpy as np
 
 logger = logging.getLogger("get_data_ide")
 
@@ -17,7 +18,7 @@ logger = logging.getLogger("get_data_ide")
 def compute_ides(model, model_info, sampler, ides, n_iter, save_file):
     res = []
     for i in range(0, n_iter):
-        X = sampler[i][0]
+        X = np.unique(sampler[i][0], axis=0)
         _, acts, layers = get_activations(X, None, model=model)
         logger.debug("Batch shape is: {}".format(X.shape))
         acts = [prepare_activations(act) for act in acts]
