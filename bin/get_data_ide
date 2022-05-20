@@ -39,7 +39,7 @@ def get_all_ides(cfg):
     logger.info("Experiment config:\n{}".format(OmegaConf.to_yaml(cfg)))
 
     logger.info("Instantiating intrinsic dimension estimators")
-    ides = {"MLE_{}".format(k): MLE(k, cfg.seed, anchor=cfg.mle_anchor)
+    ides = {"MLE_{}".format(k): MLE(k, cfg.seed, runs=cfg.mle_runs, anchor=cfg.mle_anchor)
             for k in [3, 5, 10, 20]}
     ides["TwoNN"] = TwoNN()
 
