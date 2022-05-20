@@ -19,6 +19,11 @@ def compute_ides(model, model_info, sampler, ides, n_iter, save_file):
     res = []
     for i in range(0, n_iter):
         X = np.unique(sampler[i][0], axis=0)
+
+        if X.size == 0:
+            logger.info("The entire dataset used in {} steps. Skipping the remaining steps.".format(i+1))
+            break
+
         _, acts, layers = get_activations(X, None, model=model)
         logger.debug("Batch shape is: {}".format(X.shape))
         acts = [prepare_activations(act) for act in acts]
