@@ -180,8 +180,8 @@ class MLE:
         dist = self._knn.kneighbors(X)[0][:, 1:]
 
         if not np.all(dist > 0.):
-            logger.info(np.argwhere(dist <= 0.))
-            logger.info(dist[np.argwhere(dist <= 0.)])
+            logger.error("The distance with a neighbour is 0 for items at indexes {}".format(np.argwhere(dist <= 0.)))
+            logger.error("The distance with a neighbour is 0 for {}".format(dist[np.argwhere(dist <= 0.)]))
 
         assert np.all(dist > 0.)
 
