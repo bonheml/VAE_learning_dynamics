@@ -5,9 +5,12 @@ import pandas as pd
 from hydra.utils import instantiate
 from omegaconf import OmegaConf
 from math import ceil
+from glob import glob
+from vae_ld.data.util import natural_sort
 from vae_ld.learning_dynamics.intrinsic_dimension_estimators import TwoNN, MLE
 import tensorflow as tf
 from vae_ld.learning_dynamics.utils import get_activations, prepare_activations
+import numpy as np
 
 logger = logging.getLogger("get_data_ide")
 
@@ -15,16 +18,23 @@ logger = logging.getLogger("get_data_ide")
 def compute_ides(model, model_info, sampler, ides, n_iter, save_file):
     res = []
     for i in range(0, n_iter):
-        X = sampler.next()[0]
+        X = np.unique(sampler[i][0], axis=0)
+
+        if X.size == 0:
+            logger.info("The entire dataset used in {} steps. Skipping the remaining steps.".format(i+1))
+            break
+
         _, acts, layers = get_activations(X, None, model=model)
-        acts = prepare_activations(acts)
+        logger.debug("Batch shape is: {}".format(X.shape))
+        acts = [prepare_activations(act) for act in acts]
         for j, l1 in enumerate(layers):
             for name, ide in ides.items():
                 res.append({"estimator": name, "layer": l1, "batch": i,
                             "IDE": ide.fit_transform(acts[j])})
+                logger.debug("IDE for {} on batch {} using {} = {}".format(l1, i, name, res[-1]["IDE"]))
     logger.info("Saving the results to {}".format(save_file))
     df = pd.DataFrame(res)
-    for k, v in model_info:
+    for k, v in model_info.items():
         df[k] = v
     df.to_csv(save_file, sep="\t")
 
@@ -34,7 +44,7 @@ def get_all_ides(cfg):
     logger.info("Experiment config:\n{}".format(OmegaConf.to_yaml(cfg)))
 
     logger.info("Instantiating intrinsic dimension estimators")
-    ides = {"MLE_{}".format(k): MLE(k, cfg.seed, anchor=cfg.mle_anchor)
+    ides = {"MLE_{}".format(k): MLE(k, cfg.seed, runs=cfg.mle_runs, anchor=cfg.mle_anchor)
             for k in [3, 5, 10, 20]}
     ides["TwoNN"] = TwoNN()
 
@@ -43,9 +53,10 @@ def get_all_ides(cfg):
     model_info = {"model_name": cfg.model_name, "param_name": cfg.param_name,
                   "param_value": cfg.param_value, "model_seed": cfg.model_seed,
                   "seed": cfg.seed, "latent_dim": cfg.latent_dim}
-
     logger.info("Loading model from {}".format(cfg.model_path))
-    model = tf.keras.models.load_model(cfg.model_path)
+    # Keep only the last epoch
+    model_file = sorted(glob(cfg.model_path), key=natural_sort)[-1]
+    model = tf.keras.models.load_model(model_file)
 
     logger.info("Computing IDEs")
     compute_ides(model, model_info, sampler, ides, cfg.n_iter, cfg.save_file)

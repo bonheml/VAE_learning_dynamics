@@ -3,22 +3,20 @@ defaults:
   - sampling: sampler
   - _self_
 
-epoch: 26
 model_name: beta_vae
 param_name: beta
 param_value: 1
 model_seed: 0
 latent_dim: 10
-base_path: latent_${latent_dim}/${model_name}/${dataset.name}/${param_value}/${model_seed}/checkpoint/epoch_${epoch}
-model_path: ${oc.env:XP_PATH}/train/${base_path}
+model_path: ${oc.env:XP_PATH}/train/latent_${latent_dim}/${model_name}/${dataset.name}/${param_value}/${model_seed}/checkpoint/*
 
-sampling.validation_split: 0
-batch_size: 100000
+batch_size: 10000
 seed: 0
 n_iter: 10
+mle_runs: 5
 mle_anchor: 0.8
-save_file: IDE_${dataset.name}_${n_samples}_samples.tsv
+save_file: IDE_${dataset.name}_${model_name}_${param_name}_${param_value}_seed_${model_seed}_${batch_size}_samples.tsv
 
 hydra:
   run:
-    dir: ${oc.env:XP_PATH}/${hydra.job.name}/${base_path}
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_dim}/${dataset.name}
