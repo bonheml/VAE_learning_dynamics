@@ -1,10 +1,13 @@
 import shutil
 import tarfile
+
+import PIL.Image
 import numpy as np
 import requests
 from vae_ld.data import logger
 from vae_ld.data.dataset import Data
 
+#TODO:  check if I resized the images here
 
 class Stl(Data):
     """
@@ -29,6 +32,9 @@ class Stl(Data):
         return dataset
 
     def save_images(self, images):
+        # Resize images before saving the numpy file
+        images = np.array([np.array(PIL.Image.fromarray(img).thumbnail(self.observation_shape[:2]))
+                           for img in images])
         logger.info("Saving images to {}".format(self.path))
         np.save("{}/stl.npy".format(self.path), images)
 
