@@ -1,4 +1,7 @@
-_target_: tensorflow.keras.applications.vgg19.VGG19
-input_shape: ${dataset.observation_shape}
-include_top: false
-pooling: avg
+_target_: vae_ld.models.encoders.load_external_classifier
+n_layers: ${n_layers}
+model:
+  _target_: tensorflow.keras.applications.vgg19.VGG19
+  input_shape: ${dataset.observation_shape}
+  include_top: false
+  pooling: avg

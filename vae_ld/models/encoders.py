@@ -177,6 +177,7 @@ class PreTrainedEncoder(tf.keras.Model):
         # Ensure that the pre-trained model will not be retrained
         self.pre_trained.trainable = False
         self.pre_trained.summary(print_fn=logger.debug)
+        self.flatten = layers.Flatten()
         if use_dense:
             self.dense = layers.Dense(256, name="encoder/dense")
         self.z_mean = layers.Dense(output_shape, name="encoder/z_mean", kernel_initializer="zeros")
@@ -196,7 +197,7 @@ class PreTrainedEncoder(tf.keras.Model):
         return (*x, x1, z_mean, z_log_var, z)
 
 
-def load_pre_trained_classifier(model_path, input_shape):
+def load_pre_trained_classifier(model_path, input_shape, n_layers=None):
     """ Load a pre-trained classifier. All the layers used for classification should contain `output` in their name
     to be removed before plugging the model to a mean and variance layer. If this is not the case, they will be kept
     when creating the encoder and this may worsen the performances.
@@ -207,6 +208,9 @@ def load_pre_trained_classifier(model_path, input_shape):
         Path to the trained classifier
     input_shape : tuple or list
         The shape of the input used for the pretrained model
+    n_layers: int or None
+        The index of the last layer to select, can be positive or negative, similarity to Python slicing.
+        If None, selects everything except the output layers.
 
     Returns
     -------
@@ -216,8 +220,7 @@ def load_pre_trained_classifier(model_path, input_shape):
     model = keras.models.load_model(model_path).clf
     # Remove the output layers of the pre-trained classifier
     layers_to_add = [l.name for l in model.layers if "output" not in l.name]
-    # Remove the fully connected layer just before the output layers
-    layers_to_add.pop()
+    layers_to_add = layers_to_add[:n_layers]
 
     inputs = keras.Input(shape=input_shape)
     outputs = []
@@ -229,3 +232,23 @@ def load_pre_trained_classifier(model_path, input_shape):
         outputs.append(prev_output)
 
     return keras.Model(inputs=inputs, outputs=outputs, name="pretrained_model")
+
+
+def load_external_classifier(model, n_layers=None):
+    """ Create a truncated version of an external classifier where the intermediate activation values are exposed.
+
+    Parameters
+    ----------
+    model: tensorflow.keras.model
+        The loaded classifier
+    n_layers: int or None
+        The index of the last layer to select, can be positive or negative, similarity to Python slicing.
+        If None, selects everything except the output and last dense layer.
+
+    Returns
+    -------
+    tensorflow.keras.model
+        The classifier where the activation until n_layers is exposed
+    """
+    outputs = [layer.output for layer in model.layers[:n_layers]]
+    return keras.Model(inputs=model.inputs, outputs=outputs, name="pretrained_model")

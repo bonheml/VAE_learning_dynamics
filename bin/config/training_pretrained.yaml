@@ -1,0 +1,30 @@
+# Use this config file with training --config-name=training_pretrained to train from pretrained models.
+
+batch_size: 64
+training_steps: 300000
+latent_shape: 10
+seed: 0
+param_value: 1
+n_layers: null
+
+defaults:
+  - _self_
+  - dataset: cars
+  - sampling: sampler
+  - optimizer: adam
+  - model: pretrained_vae
+  - callbacks:
+    - tensorboard
+    - image_generator
+
+hydra:
+  run:
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/pretrained/latent_${latent_shape}/${model.name}/${dataset.name}/${param_value}/${seed}
+  sweep:
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/pretrained/latent_${latent_shape}/${model.name}/${dataset.name}/${param_value}
+    subdir: ${seed}
+  job:
+    config:
+      override_dirname:
+        kv_sep: _
+        item_sep: /

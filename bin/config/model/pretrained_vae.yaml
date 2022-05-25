@@ -1,0 +1,12 @@
+name: beta_vae
+
+defaults:
+  - _self_
+  - encoder: pretrained
+  - decoder: convolutional
+  - reconstruction_loss_fn: bernoulli
+
+_target_: vae_ld.models.vaes.BetaVAE
+beta: ${param_value}
+input_shape: ${dataset.observation_shape}
+latent_shape: ${latent_shape}
