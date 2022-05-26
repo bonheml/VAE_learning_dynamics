@@ -32,14 +32,17 @@ class Stl(Data):
 
     def save_images(self, images):
         # Resize images before saving the numpy file
-        images = np.array([np.array(PIL.Image.fromarray(img).thumbnail(self.observation_shape[:2]))
-                           for img in images])
+        arr = np.zeros((images.shape[0], *self.observation_shape))
+        for i, img in enumerate(images):
+            img = PIL.Image.fromarray(img)
+            img.thumbnail(self.observation_shape[:2])
+            arr[i] = np.array(img)
         logger.info("Saving images to {}".format(self.path))
         np.save("{}/stl.npy".format(self.path), images)
 
     def read_files(self):
         logger.info("Loading Stl dataset.")
-        return np.load("{}/stl.npy".format(self.path), allow_pickle=True) / 255.
+        return np.load("{}/stl.npy".format(self.path)) / 255.
 
     def download(self):
         logger.info("Downloading Stl dataset. This will happen only once.")
