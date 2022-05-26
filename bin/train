@@ -43,7 +43,8 @@ def train(cfg):
     callbacks = []
     for k, v in cfg.callbacks.items():
         if k == "image_generator":
-            data_callback = train_sampler.data.sample(v.nb_samples, random_state)[1]
+            data_callback = train_sampler[0][0][:v.nb_samples]
+            logger.debug("Add data of shape {} to image_generator".format(data_callback))
             greyscale = cfg.dataset.observation_shape[2] == 1
             callbacks.append(instantiate(v, data=data_callback, greyscale=greyscale))
         else:
