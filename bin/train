@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import copy
 import glob
 import logging
 from pathlib import Path
@@ -24,9 +25,13 @@ def train(cfg):
     optimizer = instantiate(cfg.optimizer)
 
     logger.info("Retrieving the data...")
-    train_sampler = instantiate(cfg.sampling)
-    test_sampler = instantiate(cfg.sampling)
+    data = instantiate(cfg.dataset)
+    cfg.sampling.data = data
+    train_sampler = instantiate(cfg.sampling, data=data)
+    test_sampler = copy.deepcopy(train_sampler)
     test_sampler.validation = True
+    test_sampler.train_idxs = None
+    train_sampler.validation_idxs = None
 
     logger.info("Instantiating callbacks and creating subdirectories for callback logs...")
     callbacks = []

@@ -251,6 +251,22 @@ class DataSampler(Sequence):
         self._get_labels = get_labels
 
     @property
+    def validation_idxs(self):
+        return self._validation_idxs
+
+    @validation_idxs.setter
+    def validation_idxs(self, idxs):
+        self._validation_idxs = idxs
+
+    @property
+    def train_idxs(self):
+        return self._train_idxs
+
+    @train_idxs.setter
+    def train_idxs(self, idxs):
+        self._train_idxs = idxs
+
+    @property
     def data(self):
         return self._data
 
