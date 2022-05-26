@@ -25,11 +25,14 @@ def train(cfg):
     optimizer = instantiate(cfg.optimizer)
 
     logger.info("Retrieving the data...")
-    data = instantiate(cfg.dataset)
-    cfg.sampling.data = data
-    train_sampler = instantiate(cfg.sampling, data=data)
-    test_sampler = copy.deepcopy(train_sampler)
+    # We create a partial instantiation first to share the same dataset between samplers
+    sampler = instantiate(cfg.sampling, _partial_=True)
+    train_sampler = sampler()
+    test_sampler = sampler()
+    # We update the test_sampler with the validation indexes from the train sampler
     test_sampler.validation = True
+    test_sampler.validation_idxs = train_sampler.validation_idxs
+    # Remove unused index list to avoid unneeded memory usage
     test_sampler.train_idxs = None
     train_sampler.validation_idxs = None
 
