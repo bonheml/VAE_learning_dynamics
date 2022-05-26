@@ -40,7 +40,7 @@ class Stl(Data):
 
     def read_files(self):
         logger.info("Loading Stl dataset.")
-        return np.load("{}/stl.npy".format(self.path)) / 255.
+        return np.load("{}/stl.npy".format(self.path), allow_pickle=True) / 255.
 
     def download(self):
         logger.info("Downloading Stl dataset. This will happen only once.")
