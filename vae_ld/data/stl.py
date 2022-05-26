@@ -7,7 +7,6 @@ import requests
 from vae_ld.data import logger
 from vae_ld.data.dataset import Data
 
-#TODO:  check if I resized the images here
 
 class Stl(Data):
     """
