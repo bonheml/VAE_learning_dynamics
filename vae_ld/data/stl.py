@@ -39,7 +39,7 @@ class Stl(Data):
             img.thumbnail(self.observation_shape[:2])
             arr[i] = np.array(img)
         logger.info("Saving images to {}".format(self.path))
-        np.save("{}/stl.npy".format(self.path), images)
+        np.save("{}/stl.npy".format(self.path), arr)
         return arr
 
     def read_files(self):
