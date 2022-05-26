@@ -188,8 +188,9 @@ class PreTrainedEncoder(tf.keras.Model):
         x = self.pre_trained(inputs, training=False)
         # If we use a custom classifier, all the layers output are return but this is not the case for other pretrained
         # models, thus we need to handle both cases differently
-        x1, x = (x[-1], x) if self.pre_trained.name == "pretrained_model" else (x, [x])
+        x1 = self.flatten(x[-1])
         if hasattr(self, 'dense'):
+            logger.debug("Using additional dense layer.")
             x1 = self.dense(x1)
         z_mean = self.z_mean(x1)
         z_log_var = self.z_log_var(x1)
