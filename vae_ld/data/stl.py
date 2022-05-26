@@ -25,7 +25,7 @@ class Stl(Data):
         if not self.path.exists():
             self.path.mkdir(parents=True, exist_ok=True)
             dataset = self.download()
-            self.save_images(dataset)
+            dataset = self.save_images(dataset)
         else:
             dataset = self.read_files()
         return dataset
@@ -40,6 +40,7 @@ class Stl(Data):
             arr[i] = np.array(img)
         logger.info("Saving images to {}".format(self.path))
         np.save("{}/stl.npy".format(self.path), images)
+        return arr
 
     def read_files(self):
         logger.info("Loading Stl dataset.")
