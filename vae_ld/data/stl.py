@@ -33,6 +33,7 @@ class Stl(Data):
     def save_images(self, images):
         # Resize images before saving the numpy file
         arr = np.zeros((images.shape[0], *self.observation_shape))
+        logger.debug("Resize dataset from {} to {}".format(images.shape(), self.observation_shape))
         for i, img in enumerate(images):
             img = PIL.Image.fromarray(img)
             img.thumbnail(self.observation_shape[:2])
