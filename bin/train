@@ -27,8 +27,11 @@ def train(cfg):
     logger.info("Retrieving the data...")
     # We create a partial instantiation first to share the same dataset between samplers
     sampler = instantiate(cfg.sampling, _partial_=True)
+    logger.debug("The partial sampler is {}".format(sampler))
     train_sampler = sampler()
+    logger.debug("The train sampler is {}".format(train_sampler))
     test_sampler = sampler()
+    logger.debug("The test sampler is {}".format(test_sampler))
     # We update the test_sampler with the validation indexes from the train sampler
     test_sampler.validation = True
     test_sampler.validation_idxs = train_sampler.validation_idxs
