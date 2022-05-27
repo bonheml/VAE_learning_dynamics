@@ -303,9 +303,11 @@ class DataSampler(Sequence):
         idxs = sorted(idxs_map[start_idx:stop_idx])
         logger.debug("Getting data from indexes {}".format(idxs))
         data = self.data[idxs]
+        # We want to sort the data for slicing, but we shuffle it again afterwards
+        p = self._random_state.permutation(len(data))
         logger.debug("Return batch of size {}".format(data.shape))
         if self._get_labels:
             labels = self.data.index.index_to_features(idxs).T
             logger.debug("Factors for indexes {}: {}".format(idxs, labels))
-            return data, labels
-        return (data,)
+            return data[p], labels[p]
+        return (data[p],)
