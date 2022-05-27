@@ -227,6 +227,39 @@ class AnnealedVAE(VAE):
         return tf.add(reconstruction_loss, reg_kl_loss)
 
 
+class AnnealedVAEB(VAE):
+    """ Creates a VAE with linear annealing as in NLP [1] where beta is linearly increased, contrary to Annealed-VAE
+    from disentanglement [2], where beta is penalised over time.
+
+    Parameters
+    ----------
+    gamma : float
+        The amount by which beta is increased after each epoch until it reaches 1.
+
+    iteration_threshold : int
+        Number of iterations to perform before reaching max_capacity
+
+    References
+    ----------
+    .. [1] Bowman, S., Vilnis, L., Vinyals, O., Dai, A., Jozefowicz, R., & Bengio, S. (2016, August).
+           Generating Sentences from a Continuous Space. In Proceedings of The 20th SIGNLL Conference on Computational
+           Natural Language Learning (pp. 10-21).
+    .. [2] Burgess, C. P., Higgins, I., Pal, A., Matthey, L., Watters, N., Desjardins, G., & Lerchner, A. (2018).
+           Understanding disentangling in $\beta $-VAE. arXiv preprint arXiv:1804.03599.
+    """
+    def __init__(self, *, iteration_threshold, **kwargs):
+        super(AnnealedVAEB, self).__init__(**kwargs)
+        self.gamma = 0.
+        self.iteration_threshold = iteration_threshold
+
+    def compute_model_loss(self, reconstruction_loss, kl_loss, z_mean, z_log_var, z):
+        reg_kl_loss = self.gamma * kl_loss
+        # We increase gamma for the next step
+        if self.gamma < 1.:
+            self.gamma += min(1., 1 / self.iteration_threshold)
+        return tf.add(reconstruction_loss, reg_kl_loss)
+
+
 class BetaTCVAE(VAE):
     """ Creates a Beta-TCVAE model [1] based on Locatello et al. [2]
     `implementation <https://github.com/google-research/disentanglement_lib>`_.
