@@ -4,7 +4,8 @@ batch_size: 64
 training_steps: 300000
 latent_shape: 10
 seed: 0
-param_value: 1
+# We annealed from 0 to 1 in param_value steps
+param_value: 100000
 n_layers: null
 
 defaults:

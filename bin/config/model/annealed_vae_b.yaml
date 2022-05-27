@@ -7,6 +7,6 @@ defaults:
 name: annealed_vae_b
 
 _target_: vae_ld.models.vaes.AnnealedVAEB
-iteration_threshold: 100000
+iteration_threshold: ${param_value}
 input_shape: ${dataset.observation_shape}
 latent_shape: ${latent_shape}
