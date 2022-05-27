@@ -19,7 +19,7 @@ def train(cfg):
     logger.info("Model config:\n{}".format(OmegaConf.to_yaml(cfg)))
     logger.info("Ensuring Tensorflow and Numpy are seeded...")
     tf.random.set_seed(cfg.seed)
-    random_state = np.random.RandomState(cfg.seed)
+    rng = np.random.RandomState(cfg.seed)
 
     logger.info("Creating the optimiser...")
     optimizer = instantiate(cfg.optimizer)
@@ -43,7 +43,8 @@ def train(cfg):
     callbacks = []
     for k, v in cfg.callbacks.items():
         if k == "image_generator":
-            data_callback = train_sampler[0][0][:v.nb_samples]
+            idxs = rng.choice(len(train_sampler.data) - 1, v.nb_samples, replace=False)
+            data_callback = train_sampler.data[idxs]
             logger.debug("Add data of shape {} to image_generator".format(data_callback))
             greyscale = cfg.dataset.observation_shape[2] == 1
             callbacks.append(instantiate(v, data=data_callback, greyscale=greyscale))
