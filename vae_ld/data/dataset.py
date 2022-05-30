@@ -212,7 +212,7 @@ class DataSampler(Sequence):
 
     Attributes
     ----------
-    data : str
+    data : Data
         The dataset to sample from
 
     batch_size : int
