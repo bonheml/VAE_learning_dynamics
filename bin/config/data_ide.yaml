@@ -23,3 +23,8 @@ hydra:
   sweep:
     dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_dim}
     subdir: ${dataset.name}
+  job:
+    config:
+      override_dirname:
+        kv_sep: _
+        item_sep: /
