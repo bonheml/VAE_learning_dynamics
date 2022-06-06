@@ -5,7 +5,6 @@ import hydra
 import numpy as np
 from hydra.utils import instantiate
 from vae_ld.visualisation.images import plot_images
-import matplotlib.pyplot as plt
 
 logger = logging.getLogger("test_dataset")
 

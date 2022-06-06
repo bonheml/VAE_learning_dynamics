@@ -59,7 +59,7 @@ class TwoNN:
         .. [2] Ansuini, A., Laio, A., Macke, J. H., & Zoccolan, D. (2019). Intrinsic dimension of data representations
                in deep neural networks. Advances in Neural Information Processing Systems, 32.
         """
-        logger.info("Computing TwoNN with {}% of the data kept.".format(self._to_keep * 100))
+        logger.debug("Computing TwoNN with {}% of the data kept.".format(self._to_keep * 100))
         self._knn.fit(X)
         # 1. Compute the pairwise distances for each point in the dataset
         logger.debug("Computing the pairwise distance between each point of the dataset")
@@ -168,7 +168,7 @@ class MLE:
         self._knn.fit(X)
 
         for i in range(self._n_runs):
-            logger.info("Computing iteration {} of MLE with k={}".format(i, self._k))
+            logger.debug("Computing iteration {} of MLE with k={}".format(i, self._k))
             np.random.shuffle(data_idxs)
             anchor_idxs = data_idxs[:anchor_samples]
             res[i] = self._compute_mle(X[anchor_idxs])
@@ -256,7 +256,7 @@ class Hidalgo:
         n, d = np.shape(X)
         nns_mat = np.zeros((n, n))
 
-        logger.info("Getting the {} nearest neighbours from each point".format(self.q))
+        logger.debug("Getting the {} nearest neighbours from each point".format(self.q))
         if self.metric == "predefined":
             distances = np.sort(X)[:, :self.q + 1]
             indices_in = np.argsort(X)[:, :self.q + 1]
@@ -279,7 +279,7 @@ class Hidalgo:
 
         threshold = -1.E10
         for i in range(self.replicas):
-            logger.info("Doing Gibbs sampling {}/{}".format(i + 1, self.replicas))
+            logger.debug("Doing Gibbs sampling {}/{}".format(i + 1, self.replicas))
             sampling = 2 * np.ones(self.n_samples * n_par)
             gibbs.GibbsSampling(self.iters, self.k, self.fixed_z, self.use_local_z_interaction, self.update_z, self.q,
                                 self.zeta, self.sampling_rate, self.burn_in, i, mu, indices_in.astype(float),
@@ -288,7 +288,7 @@ class Hidalgo:
             sampling = np.reshape(sampling, (self.n_samples, n_par))
             lik = np.mean(sampling[:, -1], axis=0)
             if lik > threshold:
-                logger.info("Better likelihood obtained with replica {}".format(i + 1))
+                logger.debug("Better likelihood obtained with replica {}".format(i + 1))
                 best_sampling = sampling
                 threshold = lik
 

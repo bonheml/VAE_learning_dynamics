@@ -28,6 +28,7 @@ def compute_ides(model, model_info, sampler, ides, n_iter, save_file):
         logger.debug("Batch shape is: {}".format(X.shape))
         acts = [prepare_activations(act) for act in acts]
         for j, l1 in enumerate(layers):
+            logger.info("Iteration {}/{}: computing IDE of layer {}".format(i + 1, n_iter, l1))
             for name, ide in ides.items():
                 res.append({"estimator": name, "layer": l1, "batch": i,
                             "IDE": ide.fit_transform(acts[j])})
