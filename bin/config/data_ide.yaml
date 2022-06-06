@@ -12,7 +12,7 @@ model_path: ${oc.env:XP_PATH}/train/latent_${latent_dim}/${model_name}/${dataset
 
 batch_size: 10000
 seed: 0
-n_iter: 10
+n_iter: 3
 mle_runs: 5
 mle_anchor: 0.8
 save_file: IDE_${dataset.name}_${model_name}_${param_name}_${param_value}_seed_${model_seed}_${batch_size}_samples.tsv
