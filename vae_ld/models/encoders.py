@@ -83,6 +83,85 @@ class ConvolutionalEncoder(tf.keras.Model):
         return x1, x2, x3, x4, x5, x6, z_mean, z_log_var, z
 
 
+class VGG19Encoder(tf.keras.Model):
+    """ Convolutional encoder based on VGG19 architecture, based on Keras' implementation
+    (https://github.com/keras-team/keras-applications/blob/master/keras_applications/vgg19.py)
+    """
+    def __init__(self, input_shape, output_shape, zero_init=False):
+        super(VGG19Encoder, self).__init__()
+        self.img_input = layers.Input(shape=input_shape)
+        
+        # Block 1
+        self.e11 = layers.Conv2D(64, (3, 3), activation='relu', padding='same', name='encoder/11')
+        self.e12 = layers.Conv2D(64, (3, 3), activation='relu', padding='same', name='encoder/12')
+        self.e13 = layers.MaxPooling2D((2, 2), strides=(2, 2), name='encoder/13')
+
+        # Block 2
+        self.e21 = layers.Conv2D(128, (3, 3), activation='relu', padding='same', name='encoder/21')
+        self.e22 = layers.Conv2D(128, (3, 3), activation='relu', padding='same', name='encoder/22')
+        self.e23 = layers.MaxPooling2D((2, 2), strides=(2, 2), name='encoder/23')
+
+        # Block 3
+        self.e31 = layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='encoder/31')
+        self.e32 = layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='encoder/32')
+        self.e33 = layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='encoder/33')
+        self.e34 = layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='encoder/34')
+        self.e35 = layers.MaxPooling2D((2, 2), strides=(2, 2), name='encoder/35')
+
+        # Block 4
+        self.e41 = layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='encoder/41')
+        self.e42 = layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='encoder/42')
+        self.e43 = layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='encoder/43')
+        self.e44 = layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='encoder/44')
+        self.e45 = layers.MaxPooling2D((2, 2), strides=(2, 2), name='encoder/45')
+
+        # Fully connected block
+        self.e51 = layers.Flatten(name='encoder/51')
+        self.e52 = layers.Dense(4096, activation='relu', name='encoder/52')
+        self.e53 = layers.Dense(4096, activation='relu', name='encoder/53')
+
+        kernel_initializer = "zeros" if zero_init else "glorot_uniform"
+        self.z_mean = layers.Dense(output_shape, name="encoder/z_mean", kernel_initializer=kernel_initializer)
+        self.z_log_var = layers.Dense(output_shape, name="encoder/z_log_var", kernel_initializer=kernel_initializer)
+        self.sampling = Sampling()
+
+    def call(self, inputs):
+        x0 = self.img_input(inputs)
+        # Block 1
+        x11 = self.e11(x0)
+        x12 = self.e12(x11)
+        x13 = self.e13(x12)
+
+        # Block 2
+        x21 = self.e11(x13)
+        x22 = self.e11(x21)
+        x23 = self.e11(x22)
+
+        # Block 3
+        x31 = self.e11(x23)
+        x32 = self.e11(x31)
+        x33 = self.e11(x32)
+        x34 = self.e11(x33)
+        x35 = self.e11(x34)
+
+        # Block 4
+        x41 = self.e11(x34)
+        x42 = self.e11(x41)
+        x43 = self.e11(x42)
+        x44 = self.e11(x43)
+        x45 = self.e11(x44)
+
+        # Fully connected block
+        x51 = self.e11(x45)
+        x52 = self.e11(x51)
+        x53 = self.e11(x52)
+
+        z_mean = self.z_mean(x53)
+        z_log_var = self.z_log_var(x53)
+        z = self.sampling([z_mean, z_log_var])
+        return x13, x23, x35, x45, x51, x52, x53, z_mean, z_log_var, z
+
+
 class FullyConnectedEncoder(tf.keras.Model):
     """ Fully connected encoder initially used in beta-VAE [1]. Based on Locatello et al. [2]
     `implementation <https://github.com/google-research/disentanglement_lib>`_.
