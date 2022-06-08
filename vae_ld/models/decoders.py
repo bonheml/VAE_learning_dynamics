@@ -120,7 +120,7 @@ class DeepConvDecoder(tf.keras.Model):
         out = self.d6(x5)
         logger.debug("Final output shape is {}".format(out.shape))
 
-        out = self.d8(out)
+        out = self.d7(out)
         logger.debug("Reshaped to {}".format(out.shape))
 
         # We only return the activation at the end of each block + FC layers
