@@ -45,10 +45,10 @@ class DeconvolutionalDecoder(tf.keras.Model):
 
 
 class DeepConvDecoder(tf.keras.Model):
-    """ Deeper convolutional decoder. Each Convolutional block is composed of n convolutional layers where the last
-    have a stride of 2 and the other have a stride of 1 (and thus the same output shape as the previous layers in the
-    block). The fully connected block is composed of n fully connected layers where the output size is multiplied by 2
-    after each iteration.
+    """ Deeper convolutional decoder. Each Convolutional block is composed of n convolutional transpose layers where the
+    last have a stride of 2 and the other have a stride of 1 (and thus the same output shape as the previous layers in
+    the block). The fully connected block is composed of n fully connected layers where the output size is multiplied
+    by 2 after each iteration.
     """
 
     def __init__(self, input_shape, output_shape):
@@ -76,8 +76,8 @@ class DeepConvDecoder(tf.keras.Model):
         for i in range(n):
             if (i + 1) == n:
                 strides += 1
-            block.append(layers.Conv2D(filters=filters, kernel_size=kernel_size, activation=activation, padding=padding,
-                                       strides=strides, name="{}{}".format(name, i + 1)))
+            block.append(layers.Conv2DTranspose(filters=filters, kernel_size=kernel_size, activation=activation,
+                                                padding=padding, strides=strides, name="{}{}".format(name, i + 1)))
         return block
 
     def _build_fc_block(self, n, start_size, name, activation="relu", input_shape=None):
