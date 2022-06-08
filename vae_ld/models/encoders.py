@@ -93,35 +93,35 @@ class VGG19Encoder(tf.keras.Model):
         super(VGG19Encoder, self).__init__(name="vgg_19_encoder")
 
         # Block 1
-        self.e11 = layers.Conv2D(input_shape=input_shape, filters=64, kernel_size=3, activation='relu', padding='same',
+        self.e11 = layers.Conv2D(input_shape=input_shape, filters=64, kernel_size=3, activation='gelu', padding='same',
                                  name='encoder/11')
-        self.e12 = layers.Conv2D(filters=64, kernel_size=3, activation='relu', padding='same', name='encoder/12')
+        self.e12 = layers.Conv2D(filters=64, kernel_size=3, activation='gelu', padding='same', name='encoder/12')
         # Use default (2,2) pool size and strides
         self.e13 = layers.MaxPooling2D(name='encoder/13')
 
         # Block 2
-        self.e21 = layers.Conv2D(filters=128, kernel_size=3, activation='relu', padding='same', name='encoder/21')
+        self.e21 = layers.Conv2D(filters=128, kernel_size=3, activation='gelu', padding='same', name='encoder/21')
         self.e22 = layers.Conv2D(filters=128, kernel_size=3, activation='relu', padding='same', name='encoder/22')
         self.e23 = layers.MaxPooling2D(name='encoder/23')
 
         # Block 3
-        self.e31 = layers.Conv2D(filters=256, kernel_size=3, activation='relu', padding='same', name='encoder/31')
-        self.e32 = layers.Conv2D(filters=256, kernel_size=3, activation='relu', padding='same', name='encoder/32')
-        self.e33 = layers.Conv2D(filters=256, kernel_size=3, activation='relu', padding='same', name='encoder/33')
-        self.e34 = layers.Conv2D(filters=256, kernel_size=3, activation='relu', padding='same', name='encoder/34')
+        self.e31 = layers.Conv2D(filters=256, kernel_size=3, activation='gelu', padding='same', name='encoder/31')
+        self.e32 = layers.Conv2D(filters=256, kernel_size=3, activation='gelu', padding='same', name='encoder/32')
+        self.e33 = layers.Conv2D(filters=256, kernel_size=3, activation='gelu', padding='same', name='encoder/33')
+        self.e34 = layers.Conv2D(filters=256, kernel_size=3, activation='gelu', padding='same', name='encoder/34')
         self.e35 = layers.MaxPooling2D(name='encoder/35')
 
         # Block 4
-        self.e41 = layers.Conv2D(filters=512, kernel_size=3, activation='relu', padding='same', name='encoder/41')
-        self.e42 = layers.Conv2D(filters=512, kernel_size=3, activation='relu', padding='same', name='encoder/42')
-        self.e43 = layers.Conv2D(filters=512, kernel_size=3, activation='relu', padding='same', name='encoder/43')
-        self.e44 = layers.Conv2D(filters=512, kernel_size=3, activation='relu', padding='same', name='encoder/44')
+        self.e41 = layers.Conv2D(filters=512, kernel_size=3, activation='gelu', padding='same', name='encoder/41')
+        self.e42 = layers.Conv2D(filters=512, kernel_size=3, activation='gelu', padding='same', name='encoder/42')
+        self.e43 = layers.Conv2D(filters=512, kernel_size=3, activation='gelu', padding='same', name='encoder/43')
+        self.e44 = layers.Conv2D(filters=512, kernel_size=3, activation='gelu', padding='same', name='encoder/44')
         self.e45 = layers.MaxPooling2D(name='encoder/45')
 
         # Fully connected block
         self.e51 = layers.Flatten(name='encoder/51')
-        self.e52 = layers.Dense(4096, activation='relu', name='encoder/52')
-        self.e53 = layers.Dense(4096, activation='relu', name='encoder/53')
+        self.e52 = layers.Dense(4096, activation='gelu', name='encoder/52')
+        self.e53 = layers.Dense(4096, activation='gelu', name='encoder/53')
 
         kernel_initializer = "zeros" if zero_init else "glorot_uniform"
         self.z_mean = layers.Dense(output_shape, name="encoder/z_mean", kernel_initializer=kernel_initializer)

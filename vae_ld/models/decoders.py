@@ -65,31 +65,31 @@ class VGG19Decoder(tf.keras.Model):
         # Reverse of Block 4
         # Use default (2,2) up sampling size
         self.d21 = layers.UpSampling2D(name='decoder/21')
-        self.d22 = layers.Conv2D(filters=512, kernel_size=3, activation='relu', padding='same', name='decoder/22')
-        self.d23 = layers.Conv2D(filters=512, kernel_size=3, activation='relu', padding='same', name='decoder/23')
-        self.d24 = layers.Conv2D(filters=512, kernel_size=3, activation='relu', padding='same', name='decoder/24')
-        self.d25 = layers.Conv2D(filters=512, kernel_size=3, activation='relu', padding='same', name='decoder/25')
+        self.d22 = layers.Conv2D(filters=512, kernel_size=3, activation='gelu', padding='same', name='decoder/22')
+        self.d23 = layers.Conv2D(filters=512, kernel_size=3, activation='gelu', padding='same', name='decoder/23')
+        self.d24 = layers.Conv2D(filters=512, kernel_size=3, activation='gelu', padding='same', name='decoder/24')
+        self.d25 = layers.Conv2D(filters=512, kernel_size=3, activation='gelu', padding='same', name='decoder/25')
 
         # Reverse of Block 3
         self.d31 = layers.UpSampling2D(name='decoder/31')
-        self.d32 = layers.Conv2D(filters=256, kernel_size=3, activation='relu', padding='same', name='decoder/32')
-        self.d33 = layers.Conv2D(filters=512, kernel_size=3, activation='relu', padding='same', name='decoder/33')
-        self.d34 = layers.Conv2D(filters=512, kernel_size=3, activation='relu', padding='same', name='decoder/34')
-        self.d35 = layers.Conv2D(filters=512, kernel_size=3, activation='relu', padding='same', name='decoder/35')
+        self.d32 = layers.Conv2D(filters=256, kernel_size=3, activation='gelu', padding='same', name='decoder/32')
+        self.d33 = layers.Conv2D(filters=512, kernel_size=3, activation='gelu', padding='same', name='decoder/33')
+        self.d34 = layers.Conv2D(filters=512, kernel_size=3, activation='gelu', padding='same', name='decoder/34')
+        self.d35 = layers.Conv2D(filters=512, kernel_size=3, activation='gelu', padding='same', name='decoder/35')
 
         # Reverse of Block 2
         self.d41 = layers.UpSampling2D(name='decoder/41')
-        self.d42 = layers.Conv2D(filters=128, kernel_size=3, activation='relu', padding='same', name='decoder/42')
-        self.d43 = layers.Conv2D(filters=128, kernel_size=3, activation='relu', padding='same', name='decoder/43')
+        self.d42 = layers.Conv2D(filters=128, kernel_size=3, activation='gelu', padding='same', name='decoder/42')
+        self.d43 = layers.Conv2D(filters=128, kernel_size=3, activation='gelu', padding='same', name='decoder/43')
 
         # Reverse of Block 1
         self.d51 = layers.UpSampling2D(name='decoder/51')
-        self.d52 = layers.Conv2D(filters=64, kernel_size=3, activation='relu', padding='same', name='decoder/52')
-        self.d53 = layers.Conv2D(filters=64, kernel_size=3, activation='relu', padding='same', name='decoder/53')
+        self.d52 = layers.Conv2D(filters=64, kernel_size=3, activation='gelu', padding='same', name='decoder/52')
+        self.d53 = layers.Conv2D(filters=64, kernel_size=3, activation='gelu', padding='same', name='decoder/53')
 
         # Resizing to the correct output size
         self.d61 = layers.Flatten(name='decoder/51')
-        self.d62 = layers.Dense(np.prod(output_shape), activation='relu', name='decoder/52')
+        self.d62 = layers.Dense(np.prod(output_shape), activation='gelu', name='decoder/52')
         self.d63 = layers.Reshape(output_shape, name='decoder/53')
 
     def call(self, inputs):
