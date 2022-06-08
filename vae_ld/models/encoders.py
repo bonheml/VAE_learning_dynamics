@@ -117,7 +117,7 @@ class DeepConvEncoder(tf.keras.Model):
     def _iterate_on_block(self, inputs, block):
         x = inputs
         for i in range(len(block)):
-            x = block(x)
+            x = block[i](x)
         return x
 
     def _build_conv_block(self, n, filters, name, kernel_size=4, activation="relu", padding="same", input_shape=None):

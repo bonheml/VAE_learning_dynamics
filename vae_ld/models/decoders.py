@@ -91,7 +91,7 @@ class DeepConvDecoder(tf.keras.Model):
     def _iterate_on_block(self, inputs, block):
         x = inputs
         for i in range(len(block)):
-            x = block(x)
+            x = block[i](x)
         return x
 
     def call(self, inputs):
