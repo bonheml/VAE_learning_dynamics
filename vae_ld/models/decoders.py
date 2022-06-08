@@ -63,28 +63,29 @@ class VGG19Decoder(tf.keras.Model):
         self.d13 = layers.Reshape((2, 2, 512), name="decoder/reshape")
 
         # Reverse of Block 4
-        self.d21 = layers.UpSampling2D((2, 2), name='decoder/21')
-        self.d22 = layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='decoder/22')
-        self.d23 = layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='decoder/23')
-        self.d24 = layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='decoder/24')
-        self.d25 = layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='decoder/25')
+        # Use default (2,2) up sampling size
+        self.d21 = layers.UpSampling2D(name='decoder/21')
+        self.d22 = layers.Conv2D(filters=512, kernel_size=3, activation='relu', padding='same', name='decoder/22')
+        self.d23 = layers.Conv2D(filters=512, kernel_size=3, activation='relu', padding='same', name='decoder/23')
+        self.d24 = layers.Conv2D(filters=512, kernel_size=3, activation='relu', padding='same', name='decoder/24')
+        self.d25 = layers.Conv2D(filters=512, kernel_size=3, activation='relu', padding='same', name='decoder/25')
 
         # Reverse of Block 3
-        self.d21 = layers.UpSampling2D((2, 2), name='decoder/31')
-        self.d22 = layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='decoder/32')
-        self.d23 = layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='decoder/33')
-        self.d24 = layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='decoder/34')
-        self.d25 = layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='decoder/35')
+        self.d21 = layers.UpSampling2D(name='decoder/31')
+        self.d22 = layers.Conv2D(filters=256, kernel_size=3, activation='relu', padding='same', name='decoder/32')
+        self.d23 = layers.Conv2D(filters=512, kernel_size=3, activation='relu', padding='same', name='decoder/33')
+        self.d24 = layers.Conv2D(filters=512, kernel_size=3, activation='relu', padding='same', name='decoder/34')
+        self.d25 = layers.Conv2D(filters=512, kernel_size=3, activation='relu', padding='same', name='decoder/35')
 
         # Reverse of Block 2
-        self.d41 = layers.UpSampling2D((2, 2), name='decoder/41')
-        self.d42 = layers.Conv2D(128, (3, 3), activation='relu', padding='same', name='decoder/42')
-        self.d43 = layers.Conv2D(128, (3, 3), activation='relu', padding='same', name='decoder/43')
+        self.d41 = layers.UpSampling2D(name='decoder/41')
+        self.d42 = layers.Conv2D(filters=128, kernel_size=3, activation='relu', padding='same', name='decoder/42')
+        self.d43 = layers.Conv2D(filters=128, kernel_size=3, activation='relu', padding='same', name='decoder/43')
 
         # Reverse of Block 1
-        self.d51 = layers.UpSampling2D((2, 2), name='decoder/51')
-        self.d52 = layers.Conv2D(64, (3, 3), activation='relu', padding='same', name='decoder/52')
-        self.d53 = layers.Conv2D(64, (3, 3), activation='relu', padding='same', name='decoder/53')
+        self.d51 = layers.UpSampling2D(name='decoder/51')
+        self.d52 = layers.Conv2D(filters=64, kernel_size=3, activation='relu', padding='same', name='decoder/52')
+        self.d53 = layers.Conv2D(filters=64, kernel_size=3, activation='relu', padding='same', name='decoder/53')
 
         # Resizing to the correct output size
         self.d61 = layers.Flatten(name='decoder/51')
@@ -126,6 +127,7 @@ class VGG19Decoder(tf.keras.Model):
         x62 = self.d52(x61)
         x63 = self.d53(x62)
 
+        # We only return the activation at the end of each block + FC layers
         return x11, x12, x25, x35, x43, x53, x62, x63
 
 

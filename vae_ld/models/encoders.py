@@ -89,31 +89,31 @@ class VGG19Encoder(tf.keras.Model):
     """
     def __init__(self, input_shape, output_shape, zero_init=False):
         super(VGG19Encoder, self).__init__()
-        self.img_input = layers.Input(shape=input_shape)
-        
         # Block 1
-        self.e11 = layers.Conv2D(64, (3, 3), activation='relu', padding='same', name='encoder/11')
-        self.e12 = layers.Conv2D(64, (3, 3), activation='relu', padding='same', name='encoder/12')
-        self.e13 = layers.MaxPooling2D((2, 2), strides=(2, 2), name='encoder/13')
+        self.e11 = layers.Conv2D(input_shape=input_shape, filters=64, kernel_size=3, activation='relu', padding='same',
+                                 name='encoder/11')
+        self.e12 = layers.Conv2D(filters=64, kernel_size=3, activation='relu', padding='same', name='encoder/12')
+        # Use default (2,2) pool size and strides
+        self.e13 = layers.MaxPooling2D(name='encoder/13')
 
         # Block 2
-        self.e21 = layers.Conv2D(128, (3, 3), activation='relu', padding='same', name='encoder/21')
-        self.e22 = layers.Conv2D(128, (3, 3), activation='relu', padding='same', name='encoder/22')
-        self.e23 = layers.MaxPooling2D((2, 2), strides=(2, 2), name='encoder/23')
+        self.e21 = layers.Conv2D(filters=128, kernel_size=3, activation='relu', padding='same', name='encoder/21')
+        self.e22 = layers.Conv2D(filters=128, kernel_size=3, activation='relu', padding='same', name='encoder/22')
+        self.e23 = layers.MaxPooling2D(name='encoder/23')
 
         # Block 3
-        self.e31 = layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='encoder/31')
-        self.e32 = layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='encoder/32')
-        self.e33 = layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='encoder/33')
-        self.e34 = layers.Conv2D(256, (3, 3), activation='relu', padding='same', name='encoder/34')
-        self.e35 = layers.MaxPooling2D((2, 2), strides=(2, 2), name='encoder/35')
+        self.e31 = layers.Conv2D(filters=256, kernel_size=3, activation='relu', padding='same', name='encoder/31')
+        self.e32 = layers.Conv2D(filters=256, kernel_size=3, activation='relu', padding='same', name='encoder/32')
+        self.e33 = layers.Conv2D(filters=256, kernel_size=3, activation='relu', padding='same', name='encoder/33')
+        self.e34 = layers.Conv2D(filters=256, kernel_size=3, activation='relu', padding='same', name='encoder/34')
+        self.e35 = layers.MaxPooling2D(name='encoder/35')
 
         # Block 4
-        self.e41 = layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='encoder/41')
-        self.e42 = layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='encoder/42')
-        self.e43 = layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='encoder/43')
-        self.e44 = layers.Conv2D(512, (3, 3), activation='relu', padding='same', name='encoder/44')
-        self.e45 = layers.MaxPooling2D((2, 2), strides=(2, 2), name='encoder/45')
+        self.e41 = layers.Conv2D(filters=512, kernel_size=3, activation='relu', padding='same', name='encoder/41')
+        self.e42 = layers.Conv2D(filters=512, kernel_size=3, activation='relu', padding='same', name='encoder/42')
+        self.e43 = layers.Conv2D(filters=512, kernel_size=3, activation='relu', padding='same', name='encoder/43')
+        self.e44 = layers.Conv2D(filters=512, kernel_size=3, activation='relu', padding='same', name='encoder/44')
+        self.e45 = layers.MaxPooling2D(name='encoder/45')
 
         # Fully connected block
         self.e51 = layers.Flatten(name='encoder/51')
@@ -126,9 +126,8 @@ class VGG19Encoder(tf.keras.Model):
         self.sampling = Sampling()
 
     def call(self, inputs):
-        x0 = self.img_input(inputs)
         # Block 1
-        x11 = self.e11(x0)
+        x11 = self.e11(inputs)
         x12 = self.e12(x11)
         x13 = self.e13(x12)
 
@@ -159,6 +158,7 @@ class VGG19Encoder(tf.keras.Model):
         z_mean = self.z_mean(x53)
         z_log_var = self.z_log_var(x53)
         z = self.sampling([z_mean, z_log_var])
+        # We only return the activation at the end of each block + FC layers and Sampling
         return x13, x23, x35, x45, x51, x52, x53, z_mean, z_log_var, z
 
 
