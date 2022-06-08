@@ -82,7 +82,7 @@ class DeepConvDecoder(tf.keras.Model):
         for i in range(n):
             if i == 0 and input_shape is not None:
                 block.append(layers.Dense(start_size, activation=activation, name="{}{}".format(name, i + 1),
-                                          input_shape=input_shape))
+                                          input_shape=(input_shape,)))
             else:
                 block.append(layers.Dense(start_size, activation=activation, name="{}{}".format(name, i + 1)))
             start_size *= 2
