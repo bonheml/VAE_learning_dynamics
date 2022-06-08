@@ -98,15 +98,15 @@ class DeepConvEncoder(tf.keras.Model):
         super(DeepConvEncoder, self).__init__()
 
         # Convolutional Blocks
-        self.block_1 = self.build_conv_block(2, 32, "encoder/1", input_shape=input_shape)
-        self.block_2 = self.build_conv_block(2, 64, "encoder/2")
-        self.block_3 = self.build_conv_block(4, 128, "encoder/3")
-        self.block_4 = self.build_conv_block(4, 256, "encoder/4")
+        self.block_1 = self._build_conv_block(2, 32, "encoder/1", input_shape=input_shape)
+        self.block_2 = self._build_conv_block(2, 64, "encoder/2")
+        self.block_3 = self._build_conv_block(4, 128, "encoder/3")
+        self.block_4 = self._build_conv_block(4, 256, "encoder/4")
 
         self.flatten = layers.Flatten(name='encoder/flatten')
 
         # Fully Connected Block
-        self.block_5 = self.build_fc_block(4, 4096, "encoder/5")
+        self.block_5 = self._build_fc_block(4, 4096, "encoder/5")
 
         # Mean, variance, and sampling layers
         kernel_initializer = "zeros" if zero_init else "glorot_uniform"
