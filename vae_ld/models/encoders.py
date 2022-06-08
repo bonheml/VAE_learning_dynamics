@@ -90,7 +90,7 @@ class VGG19Encoder(tf.keras.Model):
     (https://github.com/keras-team/keras-applications/blob/master/keras_applications/vgg19.py)
     """
     def __init__(self, input_shape, output_shape, zero_init=False):
-        super(VGG19Encoder, self).__init__()
+        super(VGG19Encoder, self).__init__(name="vgg_19_encoder")
 
         # Block 1
         self.e11 = layers.Conv2D(input_shape=input_shape, filters=64, kernel_size=3, activation='relu', padding='same',

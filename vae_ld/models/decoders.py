@@ -53,7 +53,7 @@ class VGG19Decoder(tf.keras.Model):
     """
 
     def __init__(self, input_shape, output_shape):
-        super(VGG19Decoder, self).__init__()
+        super(VGG19Decoder, self).__init__(name="vgg_19_decoder")
         # Reverse of FC Block
         # The first FC layer has a lower dimensionality than in the encoder
         # because the next FC layer is only 2048
