@@ -2,8 +2,6 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras import layers
 
-from vae_ld.models.vae_utils import build_decoder_vgg_block
-
 
 class DeconvolutionalDecoder(tf.keras.Model):
     """ Deconvolutional decoder initially used in beta-VAE [1]. Based on Locatello et al. [2]

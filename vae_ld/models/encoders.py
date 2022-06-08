@@ -2,7 +2,6 @@ import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow import keras
 from vae_ld.models import logger
-from vae_ld.models.vae_utils import build_encoder_vgg_block
 
 
 class Sampling(layers.Layer):
