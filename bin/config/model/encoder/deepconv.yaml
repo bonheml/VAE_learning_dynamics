@@ -1,4 +1,4 @@
-_target_: vae_ld.models.encoders.VGG19Encoder
+_target_: vae_ld.models.encoders.DeepConvEncoder
 input_shape: ${dataset.observation_shape}
 output_shape: ${latent_shape}
 zero_init: false

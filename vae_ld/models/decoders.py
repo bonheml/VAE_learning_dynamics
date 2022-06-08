@@ -2,6 +2,8 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras import layers
 
+from vae_ld.models.vae_utils import build_decoder_vgg_block
+
 
 class DeconvolutionalDecoder(tf.keras.Model):
     """ Deconvolutional decoder initially used in beta-VAE [1]. Based on Locatello et al. [2]
@@ -42,93 +44,76 @@ class DeconvolutionalDecoder(tf.keras.Model):
         return x1, x2, x3, x4, x5, x6, x7, x8
 
 
-class VGG19Decoder(tf.keras.Model):
-    """ Convolutional decoder based on VGG19 architecture. Based on the encoder version proposed by [1] and
-    adapted for VGG19 with some an additional fully connected block.
-
-    References
-    ----------
-    .. [1] Kebir, A., Taibi, M., & Serradilla, F. (2021). Compressed VGG16 Auto-Encoder for Road Segmentation
-     from Aerial Images with Few Data Training.
+class DeepConvDecoder(tf.keras.Model):
+    """ Deeper convolutional decoder. Each Convolutional block is composed of n convolutional layers where the last
+    have a stride of 2 and the other have a stride of 1 (and thus the same output shape as the previous layers in the
+    block). The fully connected block is composed of n fully connected layers where the output size is multiplied by 2
+    after each iteration.
     """
 
     def __init__(self, input_shape, output_shape):
-        super(VGG19Decoder, self).__init__(name="vgg_19_decoder")
+        super(DeepConvDecoder, self).__init__()
         # Reverse of FC Block
-        # The first FC layer has a lower dimensionality than in the encoder
-        # because the next FC layer is only 2048
-        self.d11 = layers.Dense(1024, activation='relu', name='decoder/11', input_shape=(input_shape,))
-        # This is equivalent to Dense + Flatten in the decoder
-        self.d12 = layers.Dense(2048, activation='relu', name='decoder/22')
-        self.d13 = layers.Reshape((2, 2, 512), name="decoder/reshape")
+        self.block_1 = self._build_fc_block(4, 512, "decoder/1", input_shape=input_shape)
 
-        # Reverse of Block 4
-        # Use default (2,2) up sampling size
-        self.d21 = layers.UpSampling2D(name='decoder/21')
-        self.d22 = layers.Conv2D(filters=512, kernel_size=3, activation='gelu', padding='same', name='decoder/22')
-        self.d23 = layers.Conv2D(filters=512, kernel_size=3, activation='gelu', padding='same', name='decoder/23')
-        self.d24 = layers.Conv2D(filters=512, kernel_size=3, activation='gelu', padding='same', name='decoder/24')
-        self.d25 = layers.Conv2D(filters=512, kernel_size=3, activation='gelu', padding='same', name='decoder/25')
+        # Reshape to 3D
+        self.reshape = layers.Reshape((2, 2, 512), name="decoder/reshape")
 
-        # Reverse of Block 3
-        self.d31 = layers.UpSampling2D(name='decoder/31')
-        self.d32 = layers.Conv2D(filters=256, kernel_size=3, activation='gelu', padding='same', name='decoder/32')
-        self.d33 = layers.Conv2D(filters=512, kernel_size=3, activation='gelu', padding='same', name='decoder/33')
-        self.d34 = layers.Conv2D(filters=512, kernel_size=3, activation='gelu', padding='same', name='decoder/34')
-        self.d35 = layers.Conv2D(filters=512, kernel_size=3, activation='gelu', padding='same', name='decoder/35')
+        # Reverse of Conv Blocks 4 to 1
+        self.block_2 = self._build_conv_block(4, 256, "decoder/2")
+        self.block_3 = self._build_conv_block(4, 128, "decoder/3")
+        self.block_4 = self._build_conv_block(2, 64, "decoder/4")
+        self.block_5 = self._build_conv_block(2, 32, "decoder/5")
 
-        # Reverse of Block 2
-        self.d41 = layers.UpSampling2D(name='decoder/41')
-        self.d42 = layers.Conv2D(filters=128, kernel_size=3, activation='gelu', padding='same', name='decoder/42')
-        self.d43 = layers.Conv2D(filters=128, kernel_size=3, activation='gelu', padding='same', name='decoder/43')
+        # Reducing the number of filter to the original image channel number
+        self.d6 = layers.Conv2DTranspose(filters=output_shape[2], kernel_size=4, strides=1, padding="same",
+                                         name="decoder/output")
 
-        # Reverse of Block 1
-        self.d51 = layers.UpSampling2D(name='decoder/51')
-        self.d52 = layers.Conv2D(filters=64, kernel_size=3, activation='gelu', padding='same', name='decoder/52')
-        self.d53 = layers.Conv2D(filters=64, kernel_size=3, activation='gelu', padding='same', name='decoder/53')
+    def _build_conv_block(self, n, filters, name, kernel_size=4, activation="relu", padding="same"):
+        block = []
+        strides = 1
+        for i in range(n):
+            if (i + 1) == n:
+                strides += 1
+            block.append(layers.Conv2D(filters=filters, kernel_size=kernel_size, activation=activation, padding=padding,
+                                       strides=strides, name="{}{}".format(name, i + 1)))
+        return block
 
-        # Resizing to the correct output size
-        self.d61 = layers.Flatten(name='decoder/51')
-        self.d62 = layers.Dense(np.prod(output_shape), activation='gelu', name='decoder/52')
-        self.d63 = layers.Reshape(output_shape, name='decoder/53')
+    def _build_fc_block(self, n, start_size, name, activation="relu", input_shape=None):
+        block = []
+        for i in range(n):
+            if i == 0 and input_shape is not None:
+                block.append(layers.Dense(start_size, activation=activation, name="{}{}".format(name, i + 1),
+                                          input_shape=input_shape))
+            else:
+                block.append(layers.Dense(start_size, activation=activation, name="{}{}".format(name, i + 1)))
+            start_size *= 2
+        return block
+
+    def _iterate_on_block(self, inputs, block):
+        x = inputs
+        for i in range(len(block)):
+            x = block(x)
+        return x
 
     def call(self, inputs):
         # Reverse of FC Block
-        x11 = self.d11(inputs)
-        x12 = self.d12(x11)
-        x13 = self.d13(x12)
+        x1 = self._iterate_on_block(inputs, self.block_1)
 
-        # Reverse of Block 4
-        x21 = self.d21(x13)
-        x22 = self.d22(x21)
-        x23 = self.d23(x22)
-        x24 = self.d24(x23)
-        x25 = self.d25(x24)
+        # Reshape to 3D
+        x1r = self.reshape(x1)
 
-        # Reverse of Block 3
-        x31 = self.d31(x25)
-        x32 = self.d32(x31)
-        x33 = self.d33(x32)
-        x34 = self.d34(x33)
-        x35 = self.d35(x34)
+        # Reverse of Conv blocks 4 - 1
+        x2 = self._iterate_on_block(x1r, self.block_2)
+        x3 = self._iterate_on_block(x2, self.block_3)
+        x4 = self._iterate_on_block(x3, self.block_4)
+        x5 = self._iterate_on_block(x4, self.block_5)
 
-        # Reverse of Block 2
-        x41 = self.d41(x35)
-        x42 = self.d42(x41)
-        x43 = self.d43(x42)
-
-        # Reverse of Block 1
-        x51 = self.d51(x43)
-        x52 = self.d52(x51)
-        x53 = self.d53(x52)
-
-        # Resizing to the correct output size
-        x61 = self.d61(x53)
-        x62 = self.d62(x61)
-        x63 = self.d63(x62)
+        # Reducing the number of filter to the original image channel number
+        out = self.d6(x5)
 
         # We only return the activation at the end of each block + FC layers
-        return x11, x12, x25, x35, x43, x53, x62, x63
+        return x1, x2, x3, x4, x5, out
 
 
 class FullyConnectedDecoder(tf.keras.Model):

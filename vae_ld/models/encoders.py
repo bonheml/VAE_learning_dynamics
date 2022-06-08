@@ -2,11 +2,13 @@ import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow import keras
 from vae_ld.models import logger
+from vae_ld.models.vae_utils import build_encoder_vgg_block
 
 
 class Sampling(layers.Layer):
     """ Sampling layer
     """
+
     def call(self, inputs, **kwargs):
         """ Uses the reparametrisation trick to sample z = mean + exp(0.5 * log_var) * eps
         where eps ~ N(0,I).
@@ -53,6 +55,7 @@ class ConvolutionalEncoder(tf.keras.Model):
     .. [2] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
            Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
     """
+
     def __init__(self, input_shape, output_shape, zero_init=False):
         logger.debug("Expected input shape is {}".format(input_shape))
         super(ConvolutionalEncoder, self).__init__()
@@ -85,84 +88,77 @@ class ConvolutionalEncoder(tf.keras.Model):
         return x1, x2, x3, x4, x5, x6, z_mean, z_log_var, z
 
 
-class VGG19Encoder(tf.keras.Model):
-    """ Convolutional encoder based on VGG19 architecture, based on Keras' implementation
-    (https://github.com/keras-team/keras-applications/blob/master/keras_applications/vgg19.py)
+class DeepConvEncoder(tf.keras.Model):
+    """ Deeper convolutional encoder. Each Convolutional block is composed of n convolutional layers where the first
+    have a stride of 2 and the other have a stride of 1 (and thus the same output shape as the previous layers in the
+    block). The fully connected block is composed of n fully connected layers where the output size is divided by 2
+    after each iteration.
     """
+
     def __init__(self, input_shape, output_shape, zero_init=False):
-        super(VGG19Encoder, self).__init__(name="vgg_19_encoder")
+        super(DeepConvEncoder, self).__init__()
 
-        # Block 1
-        self.e11 = layers.Conv2D(input_shape=input_shape, filters=64, kernel_size=3, activation='gelu', padding='same',
-                                 name='encoder/11')
-        self.e12 = layers.Conv2D(filters=64, kernel_size=3, activation='gelu', padding='same', name='encoder/12')
-        # Use default (2,2) pool size and strides
-        self.e13 = layers.MaxPooling2D(name='encoder/13')
+        # Convolutional Blocks
+        self.block_1 = self.build_conv_block(2, 32, "encoder/1", input_shape=input_shape)
+        self.block_2 = self.build_conv_block(2, 64, "encoder/2")
+        self.block_3 = self.build_conv_block(4, 128, "encoder/3")
+        self.block_4 = self.build_conv_block(4, 256, "encoder/4")
 
-        # Block 2
-        self.e21 = layers.Conv2D(filters=128, kernel_size=3, activation='gelu', padding='same', name='encoder/21')
-        self.e22 = layers.Conv2D(filters=128, kernel_size=3, activation='relu', padding='same', name='encoder/22')
-        self.e23 = layers.MaxPooling2D(name='encoder/23')
+        self.flatten = layers.Flatten(name='encoder/flatten')
 
-        # Block 3
-        self.e31 = layers.Conv2D(filters=256, kernel_size=3, activation='gelu', padding='same', name='encoder/31')
-        self.e32 = layers.Conv2D(filters=256, kernel_size=3, activation='gelu', padding='same', name='encoder/32')
-        self.e33 = layers.Conv2D(filters=256, kernel_size=3, activation='gelu', padding='same', name='encoder/33')
-        self.e34 = layers.Conv2D(filters=256, kernel_size=3, activation='gelu', padding='same', name='encoder/34')
-        self.e35 = layers.MaxPooling2D(name='encoder/35')
+        # Fully Connected Block
+        self.block_5 = self.build_fc_block(4, 4096, "encoder/5")
 
-        # Block 4
-        self.e41 = layers.Conv2D(filters=512, kernel_size=3, activation='gelu', padding='same', name='encoder/41')
-        self.e42 = layers.Conv2D(filters=512, kernel_size=3, activation='gelu', padding='same', name='encoder/42')
-        self.e43 = layers.Conv2D(filters=512, kernel_size=3, activation='gelu', padding='same', name='encoder/43')
-        self.e44 = layers.Conv2D(filters=512, kernel_size=3, activation='gelu', padding='same', name='encoder/44')
-        self.e45 = layers.MaxPooling2D(name='encoder/45')
-
-        # Fully connected block
-        self.e51 = layers.Flatten(name='encoder/51')
-        self.e52 = layers.Dense(4096, activation='gelu', name='encoder/52')
-        self.e53 = layers.Dense(4096, activation='gelu', name='encoder/53')
-
+        # Mean, variance, and sampling layers
         kernel_initializer = "zeros" if zero_init else "glorot_uniform"
         self.z_mean = layers.Dense(output_shape, name="encoder/z_mean", kernel_initializer=kernel_initializer)
         self.z_log_var = layers.Dense(output_shape, name="encoder/z_log_var", kernel_initializer=kernel_initializer)
         self.sampling = Sampling()
 
+    def _iterate_on_block(self, inputs, block):
+        x = inputs
+        for i in range(len(block)):
+            x = block(x)
+        return x
+
+    def _build_conv_block(self, n, filters, name, kernel_size=4, activation="relu", padding="same", input_shape=None):
+        block = []
+        strides = 2
+        for i in range(n):
+            if i == 0 and input_shape is not None:
+                block.append(layers.Conv2D(filters=filters, kernel_size=kernel_size, activation=activation,
+                                           padding=padding, strides=strides, name="{}{}".format(name, i + 1),
+                                           input_shape=input_shape))
+            else:
+                block.append(layers.Conv2D(filters=filters, kernel_size=kernel_size, activation=activation,
+                                           padding=padding, strides=strides, name="{}{}".format(name, i + 1)))
+            if i == 0:
+                strides -= 1
+        return block
+
+    def _build_fc_block(self, n, start_size, name, activation="relu"):
+        block = []
+        for i in range(n):
+            block.append(layers.Dense(start_size, activation=activation, name="{}{}".format(name, i + 1)))
+            start_size /= 2
+        return block
+
     def call(self, inputs):
-        # Block 1
-        x11 = self.e11(inputs)
-        x12 = self.e12(x11)
-        x13 = self.e13(x12)
+        x1 = self._iterate_on_block(inputs, self.block_1)
+        x2 = self._iterate_on_block(x1, self.block_2)
+        x3 = self._iterate_on_block(x2, self.block_3)
+        x4 = self._iterate_on_block(x3, self.block_4)
 
-        # Block 2
-        x21 = self.e21(x13)
-        x22 = self.e22(x21)
-        x23 = self.e23(x22)
+        fx4 = self.flatten(x4)
 
-        # Block 3
-        x31 = self.e31(x23)
-        x32 = self.e32(x31)
-        x33 = self.e33(x32)
-        x34 = self.e34(x33)
-        x35 = self.e35(x34)
+        x5 = self._iterate_on_block(fx4, self.block_5)
 
-        # Block 4
-        x41 = self.e41(x35)
-        x42 = self.e42(x41)
-        x43 = self.e43(x42)
-        x44 = self.e44(x43)
-        x45 = self.e45(x44)
-
-        # Fully connected block
-        x51 = self.e51(x45)
-        x52 = self.e52(x51)
-        x53 = self.e53(x52)
-
-        z_mean = self.z_mean(x53)
-        z_log_var = self.z_log_var(x53)
+        z_mean = self.z_mean(x5)
+        z_log_var = self.z_log_var(x5)
         z = self.sampling([z_mean, z_log_var])
+
         # We only return the activation at the end of each block + FC layers and Sampling
-        return x13, x23, x35, x45, x51, x52, x53, z_mean, z_log_var, z
+        return x1, x2, x3, x4, x5, z_mean, z_log_var, z
 
 
 class FullyConnectedEncoder(tf.keras.Model):
@@ -177,6 +173,7 @@ class FullyConnectedEncoder(tf.keras.Model):
     .. [2] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
            Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
     """
+
     def __init__(self, input_shape, output_shape):
         super(FullyConnectedEncoder, self).__init__()
         self.e1 = layers.Flatten(name="encoder/1", input_shape=input_shape)
@@ -253,6 +250,7 @@ class PreTrainedEncoder(tf.keras.Model):
     use_dense: bool, optional
         If True, add a fully connected layer after the pre-trained model. Default True
     """
+
     def __init__(self, output_shape, pre_trained_model, use_dense=True):
         super(PreTrainedEncoder, self).__init__()
         self.pre_trained = pre_trained_model
