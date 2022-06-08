@@ -2,8 +2,6 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras import layers
 
-from vae_ld.models import logger
-
 
 class DeconvolutionalDecoder(tf.keras.Model):
     """ Deconvolutional decoder initially used in beta-VAE [1]. Based on Locatello et al. [2]
@@ -68,7 +66,6 @@ class DeepConvDecoder(tf.keras.Model):
         # Reducing the number of filter to the original image channel number
         self.d6 = layers.Conv2DTranspose(filters=output_shape[2], kernel_size=4, strides=1, padding="same",
                                          name="decoder/output")
-        self.d7 = layers.Reshape(output_shape, name="decoder/output")
 
     def _build_conv_block(self, n, filters, name, kernel_size=4, activation="relu", padding="same"):
         block = []
@@ -100,28 +97,18 @@ class DeepConvDecoder(tf.keras.Model):
     def call(self, inputs):
         # Reverse of FC Block
         x1 = self._iterate_on_block(inputs, self.block_1)
-        logger.debug("Block 1 output shape is {}".format(x1.shape))
 
         # Reshape to 3D
         x1r = self.reshape(x1)
-        logger.debug("Now reshaped to {}".format(x1r.shape))
 
         # Reverse of Conv blocks 4 - 1
         x2 = self._iterate_on_block(x1r, self.block_2)
-        logger.debug("Block 2 output shape is {}".format(x2.shape))
         x3 = self._iterate_on_block(x2, self.block_3)
-        logger.debug("Block 3 output shape is {}".format(x3.shape))
         x4 = self._iterate_on_block(x3, self.block_4)
-        logger.debug("Block 4 output shape is {}".format(x4.shape))
         x5 = self._iterate_on_block(x4, self.block_5)
-        logger.debug("Block 5 output shape is {}".format(x5.shape))
 
         # Reducing the number of filter to the original image channel number
         out = self.d6(x5)
-        logger.debug("Final output shape is {}".format(out.shape))
-
-        out = self.d7(out)
-        logger.debug("Reshaped to {}".format(out.shape))
 
         # We only return the activation at the end of each block + FC layers
         return x1, x2, x3, x4, x5, out

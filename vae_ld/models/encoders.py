@@ -103,6 +103,7 @@ class DeepConvEncoder(tf.keras.Model):
         self.block_3 = self._build_conv_block(4, 128, "encoder/3")
         self.block_4 = self._build_conv_block(4, 256, "encoder/4")
 
+        # Flatten to 1D
         self.flatten = layers.Flatten(name='encoder/flatten')
 
         # Fully Connected Block
@@ -143,21 +144,19 @@ class DeepConvEncoder(tf.keras.Model):
         return block
 
     def call(self, inputs):
+        # Convolutional Blocks
         x1 = self._iterate_on_block(inputs, self.block_1)
-        logger.debug("Block 1 output shape is {}".format(x1.shape))
         x2 = self._iterate_on_block(x1, self.block_2)
-        logger.debug("Block 2 output shape is {}".format(x2.shape))
         x3 = self._iterate_on_block(x2, self.block_3)
-        logger.debug("Block 3 output shape is {}".format(x3.shape))
         x4 = self._iterate_on_block(x3, self.block_4)
-        logger.debug("Block 4 output shape is {}".format(x4.shape))
 
+        # Flatten to 1D
         x4f = self.flatten(x4)
-        logger.debug("Now reshaped to {}".format(x4f.shape))
 
+        # Fully Connected Block
         x5 = self._iterate_on_block(x4f, self.block_5)
-        logger.debug("Block 5 output shape is {}".format(x5.shape))
 
+        # Mean, variance, and sampling layers
         z_mean = self.z_mean(x5)
         z_log_var = self.z_log_var(x5)
         z = self.sampling([z_mean, z_log_var])
