@@ -54,6 +54,7 @@ class ConvolutionalEncoder(tf.keras.Model):
            Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
     """
     def __init__(self, input_shape, output_shape, zero_init=False):
+        logger.debug("Expected input shape is {}".format(input_shape))
         super(ConvolutionalEncoder, self).__init__()
         self.e1 = layers.Conv2D(input_shape=input_shape, filters=32, kernel_size=4, strides=2, activation="relu",
                                 padding="same", name="encoder/1")
@@ -71,6 +72,7 @@ class ConvolutionalEncoder(tf.keras.Model):
         self.sampling = Sampling()
 
     def call(self, inputs):
+        logger.debug("Received input shape is {}".format(inputs.shape))
         x1 = self.e1(inputs)
         x2 = self.e2(x1)
         x3 = self.e3(x2)
@@ -89,6 +91,7 @@ class VGG19Encoder(tf.keras.Model):
     """
     def __init__(self, input_shape, output_shape, zero_init=False):
         super(VGG19Encoder, self).__init__()
+
         # Block 1
         self.e11 = layers.Conv2D(input_shape=input_shape, filters=64, kernel_size=3, activation='relu', padding='same',
                                  name='encoder/11')
@@ -132,28 +135,28 @@ class VGG19Encoder(tf.keras.Model):
         x13 = self.e13(x12)
 
         # Block 2
-        x21 = self.e11(x13)
-        x22 = self.e11(x21)
-        x23 = self.e11(x22)
+        x21 = self.e21(x13)
+        x22 = self.e22(x21)
+        x23 = self.e23(x22)
 
         # Block 3
-        x31 = self.e11(x23)
-        x32 = self.e11(x31)
-        x33 = self.e11(x32)
-        x34 = self.e11(x33)
-        x35 = self.e11(x34)
+        x31 = self.e31(x23)
+        x32 = self.e32(x31)
+        x33 = self.e33(x32)
+        x34 = self.e34(x33)
+        x35 = self.e35(x34)
 
         # Block 4
-        x41 = self.e11(x34)
-        x42 = self.e11(x41)
-        x43 = self.e11(x42)
-        x44 = self.e11(x43)
-        x45 = self.e11(x44)
+        x41 = self.e41(x35)
+        x42 = self.e42(x41)
+        x43 = self.e43(x42)
+        x44 = self.e44(x43)
+        x45 = self.e45(x44)
 
         # Fully connected block
-        x51 = self.e11(x45)
-        x52 = self.e11(x51)
-        x53 = self.e11(x52)
+        x51 = self.e51(x45)
+        x52 = self.e52(x51)
+        x53 = self.e53(x52)
 
         z_mean = self.z_mean(x53)
         z_log_var = self.z_log_var(x53)

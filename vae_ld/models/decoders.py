@@ -57,7 +57,7 @@ class VGG19Decoder(tf.keras.Model):
         # Reverse of FC Block
         # The first FC layer has a lower dimensionality than in the encoder
         # because the next FC layer is only 2048
-        self.d11 = layers.Dense(1024, activation='relu', name='decoder/11')
+        self.d11 = layers.Dense(1024, activation='relu', name='decoder/11', input_shape=(input_shape,))
         # This is equivalent to Dense + Flatten in the decoder
         self.d12 = layers.Dense(2048, activation='relu', name='decoder/22')
         self.d13 = layers.Reshape((2, 2, 512), name="decoder/reshape")
@@ -71,11 +71,11 @@ class VGG19Decoder(tf.keras.Model):
         self.d25 = layers.Conv2D(filters=512, kernel_size=3, activation='relu', padding='same', name='decoder/25')
 
         # Reverse of Block 3
-        self.d21 = layers.UpSampling2D(name='decoder/31')
-        self.d22 = layers.Conv2D(filters=256, kernel_size=3, activation='relu', padding='same', name='decoder/32')
-        self.d23 = layers.Conv2D(filters=512, kernel_size=3, activation='relu', padding='same', name='decoder/33')
-        self.d24 = layers.Conv2D(filters=512, kernel_size=3, activation='relu', padding='same', name='decoder/34')
-        self.d25 = layers.Conv2D(filters=512, kernel_size=3, activation='relu', padding='same', name='decoder/35')
+        self.d31 = layers.UpSampling2D(name='decoder/31')
+        self.d32 = layers.Conv2D(filters=256, kernel_size=3, activation='relu', padding='same', name='decoder/32')
+        self.d33 = layers.Conv2D(filters=512, kernel_size=3, activation='relu', padding='same', name='decoder/33')
+        self.d34 = layers.Conv2D(filters=512, kernel_size=3, activation='relu', padding='same', name='decoder/34')
+        self.d35 = layers.Conv2D(filters=512, kernel_size=3, activation='relu', padding='same', name='decoder/35')
 
         # Reverse of Block 2
         self.d41 = layers.UpSampling2D(name='decoder/41')
@@ -123,9 +123,9 @@ class VGG19Decoder(tf.keras.Model):
         x53 = self.d53(x52)
 
         # Resizing to the correct output size
-        x61 = self.d51(x53)
-        x62 = self.d52(x61)
-        x63 = self.d53(x62)
+        x61 = self.d61(x53)
+        x62 = self.d62(x61)
+        x63 = self.d63(x62)
 
         # We only return the activation at the end of each block + FC layers
         return x11, x12, x25, x35, x43, x53, x62, x63
