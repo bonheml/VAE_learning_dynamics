@@ -52,7 +52,7 @@ class DeepConvDecoder(tf.keras.Model):
     def __init__(self, input_shape, output_shape):
         super(DeepConvDecoder, self).__init__()
         # Reverse of FC Block
-        self.block_1 = self._build_fc_block(4, 512, "decoder/1", input_shape=input_shape)
+        self.block_1 = self._build_fc_block(5, 256, "decoder/1", input_shape=input_shape)
 
         # Reshape to 3D
         self.reshape = layers.Reshape((4, 4, 256), name="decoder/reshape")

@@ -107,7 +107,7 @@ class DeepConvEncoder(tf.keras.Model):
         self.flatten = layers.Flatten(name='encoder/flatten')
 
         # Fully Connected Block
-        self.block_5 = self._build_fc_block(4, 4096, "encoder/5")
+        self.block_5 = self._build_fc_block(5, 4096, "encoder/5")
 
         # Mean, variance, and sampling layers
         kernel_initializer = "zeros" if zero_init else "glorot_uniform"
