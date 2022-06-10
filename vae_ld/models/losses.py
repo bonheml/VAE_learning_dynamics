@@ -1,5 +1,6 @@
 import tensorflow as tf
 import numpy as np
+from tensorflow import math as tfm
 
 
 class BernoulliLoss:
@@ -75,4 +76,6 @@ class SSIMLoss:
 
     def __call__(self, y_true, y_pred):
         norm_ssim = 1 - (tf.image.ssim(y_pred, y_true, 1.0) + 1) / 2
+        # In case of underflow, replace with 0
+        norm_ssim = tf.where(tfm.is_nan(norm_ssim), 0., norm_ssim)
         return self.mult * norm_ssim
