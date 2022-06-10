@@ -1,1 +1,1 @@
-_target_: vae_ld.models.vae_utils.compute_gaussian_hellinger
+_target_: vae_ld.models.divergences.Hellinger
