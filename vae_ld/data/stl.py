@@ -46,14 +46,11 @@ class Stl(Data):
         logger.info("Loading Stl dataset.")
         return np.load("{}/stl.npy".format(self.path)) / 255.
 
-    def download(self):
+    def download(self, fname=None):
         logger.info("Downloading Stl dataset. This will happen only once.")
         fname = self.path / "tmp" / self._url.split("/")[-1]
         fname.parent.mkdir(parents=True, exist_ok=True)
-        response = requests.get(self._url, stream=True)
-        response.raise_for_status()
-        with open(str(fname), 'wb') as f:
-            f.write(response.raw.read())
+        super(Stl, self).download(fname=fname)
 
         logger.info("Decompressing the dataset")
         tfile = tarfile.open(str(fname))

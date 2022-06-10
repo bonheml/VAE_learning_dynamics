@@ -189,7 +189,7 @@ class Data:
         """
         return self.sample(batch_size, seed)[1]
 
-    def download(self):
+    def download(self, fname=None):
         """ Download the dataset.
 
         Note
@@ -200,7 +200,8 @@ class Data:
         -------
         None
         """
-        fname = self.path / self._url.split("/")[-1]
+        if fname is None:
+            fname = self.path / self._url.split("/")[-1]
         response = requests.get(self._url, stream=True, allow_redirects=True)
         response.raise_for_status()
         with open(str(fname), 'wb') as f:

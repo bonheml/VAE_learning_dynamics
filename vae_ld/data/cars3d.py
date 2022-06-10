@@ -79,15 +79,12 @@ class Cars3D(Data):
             rescaled_mesh[i, :, :, :] = np.array(pic)
         return rescaled_mesh * 1. / 255
 
-    def download(self):
+    def download(self, fname=None):
         logger.info("Downloading Cars3D dataset. This will happen only once.")
         fname = self.path / "tmp" / self._url.split("/")[-1]
         fname.parent.mkdir(parents=True, exist_ok=True)
 
-        response = requests.get(self._url, stream=True)
-        response.raise_for_status()
-        with open(str(fname), 'wb') as f:
-            f.write(response.raw.read())
+        super(Cars3D, self).download(fname=fname)
 
         tfile = tarfile.open(str(fname))
         tfile.extractall(path=str(self.path / "tmp"))

@@ -78,7 +78,7 @@ class DSprites(Data):
     def _sample_factor(self, i, num, random_state):
         return random_state.randint(self.factors_shape[i], size=num)
 
-    def download(self):
+    def download(self, fname=None):
         logger.info("Downloading Dsprites dataset. This will happen only once.")
         super().download()
 

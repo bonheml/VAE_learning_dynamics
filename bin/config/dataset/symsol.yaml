@@ -2,7 +2,7 @@ _target_: vae_ld.data.symsol.SymSol
 path: ${oc.env:DATA_PATH}/symsol_reduced
 observation_shape: [64,64,1]
 # TODO: Update this for anonymised version
-url: https://data.kent.ac.uk/436/
+url: https://data.kent.ac.uk/436/1/symsol_reduced.zip
 data_size: 112791
 name: symsol
 factors_shape: []

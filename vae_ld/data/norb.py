@@ -61,7 +61,7 @@ class SmallNORB(Data):
         features[:, 3] = features[:, 3] / 2  # azimuth values are 0, 2, 4, ..., 24
         return np.concatenate(list_of_images, axis=0), features
 
-    def download(self):
+    def download(self, fname=None):
         logger.info("Downloading smallNorb dataset. This will happen only once.")
         self.path.parent.mkdir(parents=True, exist_ok=True)
 
