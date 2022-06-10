@@ -67,7 +67,7 @@ class DeepConvDecoder(tf.keras.Model):
         self.d6 = layers.Conv2DTranspose(filters=output_shape[2], kernel_size=4, strides=1, padding="same",
                                          name="decoder/output")
 
-    def _build_conv_block(self, n, filters, name, kernel_size=4, activation="gelu", padding="same"):
+    def _build_conv_block(self, n, filters, name, kernel_size=4, activation="relu", padding="same"):
         block = []
         strides = 1
         for i in range(n):
@@ -77,7 +77,7 @@ class DeepConvDecoder(tf.keras.Model):
                                                 padding=padding, strides=strides, name="{}{}".format(name, i + 1)))
         return block
 
-    def _build_fc_block(self, n, start_size, name, activation="gelu", input_shape=None):
+    def _build_fc_block(self, n, start_size, name, activation="relu", input_shape=None):
         block = []
         for i in range(n):
             if i == 0 and input_shape is not None:

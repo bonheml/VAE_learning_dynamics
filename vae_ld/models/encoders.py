@@ -121,7 +121,7 @@ class DeepConvEncoder(tf.keras.Model):
             x = block[i](x)
         return x
 
-    def _build_conv_block(self, n, filters, name, kernel_size=4, activation="gelu", padding="same", input_shape=None):
+    def _build_conv_block(self, n, filters, name, kernel_size=4, activation="relu", padding="same", input_shape=None):
         block = []
         strides = 2
         for i in range(n):
@@ -136,7 +136,7 @@ class DeepConvEncoder(tf.keras.Model):
                 strides -= 1
         return block
 
-    def _build_fc_block(self, n, start_size, name, activation="gelu"):
+    def _build_fc_block(self, n, start_size, name, activation="relu"):
         block = []
         for i in range(n):
             block.append(layers.Dense(start_size, activation=activation, name="{}{}".format(name, i + 1)))
