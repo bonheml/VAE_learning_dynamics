@@ -42,6 +42,8 @@ class Hellinger:
     .. math::
       0 \leq D_H(P,Q) \leq 1
 
+    To avoid underflow, we multiply the results by 100 by default and get a score between 0 and 100
+
     Parameters
     ----------
     z_log_var : tf.Tensor
@@ -65,10 +67,12 @@ class Hellinger:
     >>> hd(log_var, mean)
     <tf.Tensor: shape=(1,), dtype=float32, numpy=array([0.68171734], dtype=float32)>
     """
+    def __init__(self, mult=100):
+        self.mult = mult
 
     def __call__(self, z_log_var, z_mean):
         z_var_plus_1 = tfm.exp(z_log_var) + 1
         n = z_mean.shape[1] / 2
         exp_term = tfm.reduce_sum(z_log_var - 2 * tfm.log(z_var_plus_1) - tfm.square(z_mean) / z_var_plus_1, axis=1)
         hellinger_square = 1 - 2 ** n * tfm.exp(0.25 * exp_term)
-        return tfm.sqrt(hellinger_square)
+        return self.mult * tfm.sqrt(hellinger_square)

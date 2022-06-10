@@ -39,6 +39,8 @@ class SSIMLoss:
     .. math::
        SSIM_loss(y_true, y_pred) = 1 - (SSIM(y_true, y_pred) + 1) / 2
 
+    To avoid underflow, we multiply the results by 100 by default and get a score between 0 and 100
+
     Parameters
     ----------
     y_true : tf.Tensor
@@ -68,6 +70,9 @@ class SSIMLoss:
     .. [1]  Wang, Z., Bovik, A. C., Sheikh, H. R., & Simoncelli, E. P. (2004). Image quality assessment:
             from error visibility to structural similarity. IEEE transactions on image processing.
     """
+    def __init__(self, mult=100):
+        self.mult = mult
+
     def __call__(self, y_true, y_pred):
         norm_ssim = 1 - (tf.image.ssim(y_pred, y_true, 1.0) + 1) / 2
-        return norm_ssim
+        return self.mult * norm_ssim
