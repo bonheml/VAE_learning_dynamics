@@ -3,6 +3,7 @@ defaults:
   - encoder: convolutional
   - decoder: convolutional
   - reconstruction_loss_fn: bernoulli
+  - regularisation_loss_fn: kld
 
 name: dip_vae_i
 

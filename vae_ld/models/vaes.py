@@ -2,7 +2,7 @@ import tensorflow as tf
 from tensorflow import math as tfm
 
 from vae_ld.models import logger
-from vae_ld.models.vae_utils import compute_gaussian_kl, compute_batch_tc, compute_covariance, shuffle_z
+from vae_ld.models.vae_utils import compute_batch_tc, compute_covariance, shuffle_z
 
 
 class VAE(tf.keras.Model):
@@ -32,7 +32,7 @@ class VAE(tf.keras.Model):
     The encoder and decoder are assumed to be initialised beforehand.
     """
 
-    def __init__(self, *, encoder, decoder, reconstruction_loss_fn, input_shape, latent_shape, **kwargs):
+    def __init__(self, *, encoder, decoder, reconstruction_loss_fn, regularisation_loss_fn, input_shape, latent_shape, **kwargs):
         super(VAE, self).__init__(**kwargs)
         self.encoder = encoder
         self.encoder.build((None, *input_shape))
@@ -41,7 +41,8 @@ class VAE(tf.keras.Model):
         self.decoder.build((None, latent_shape))
         self.decoder.summary(print_fn=logger.info)
         self.reconstruction_loss_fn = reconstruction_loss_fn
-        self.kl_loss_tracker = tf.keras.metrics.Mean(name="kl_loss")
+        self.regularisation_loss_fn = regularisation_loss_fn
+        self.regularisation_loss_tracker = tf.keras.metrics.Mean(name="regularisation_loss")
         self.elbo_loss_tracker = tf.keras.metrics.Mean(name="elbo_loss")
         self.reconstruction_loss_tracker = tf.keras.metrics.Mean(name="reconstruction_loss")
         self.model_loss_tracker = tf.keras.metrics.Mean(name="model_loss")
@@ -56,16 +57,16 @@ class VAE(tf.keras.Model):
 
     @property
     def metrics(self):
-        return [self.model_loss_tracker, self.elbo_loss_tracker, self.kl_loss_tracker, self.reconstruction_loss_tracker]
+        return [self.model_loss_tracker, self.elbo_loss_tracker, self.regularisation_loss_tracker, self.reconstruction_loss_tracker]
 
-    def compute_model_loss(self, reconstruction_loss, kl_loss, z_mean, z_log_var, z):
+    def compute_model_loss(self, reconstruction_loss, regularisation_loss, z_mean, z_log_var, z):
         """ Compute the loss specific to the learning objective used.
 
         Parameters
         ----------
         reconstruction_loss : tf.Tensor
             The reconstruction error
-        kl_loss : tf.Tensor
+        regularisation_loss : tf.Tensor
             The kl divergence
         z_mean : tf.Tensor
             The (batch_size, latent_dim) activations of the mean layer
@@ -79,7 +80,7 @@ class VAE(tf.keras.Model):
         tf.Tensor
             The model loss
         """
-        return tf.add(reconstruction_loss, kl_loss)
+        return tf.add(reconstruction_loss, regularisation_loss)
 
     def get_gradient_step_output(self, data, training=True):
         """ Do one gardient step.
@@ -100,9 +101,9 @@ class VAE(tf.keras.Model):
         z_mean, z_log_var, z = self.encoder(data, training=training)[-3:]
         reconstruction = self.decoder(z, training=training)[-1]
         losses["reconstruction_loss"] = tf.reduce_mean(self.reconstruction_loss_fn(data, reconstruction))
-        losses["kl_loss"] = tf.reduce_mean(compute_gaussian_kl(z_log_var, z_mean))
-        losses["elbo_loss"] = -tf.add(losses["reconstruction_loss"], losses["kl_loss"])
-        losses["model_loss"] = self.compute_model_loss(losses["reconstruction_loss"], losses["kl_loss"], z_mean,
+        losses["regularisation_loss"] = tf.reduce_mean(self.regularisation_loss_fn(z_log_var, z_mean))
+        losses["elbo_loss"] = -tf.add(losses["reconstruction_loss"], losses["regularisation_loss"])
+        losses["model_loss"] = self.compute_model_loss(losses["reconstruction_loss"], losses["regularisation_loss"], z_mean,
                                                        z_log_var, z)
         return losses
 
@@ -188,9 +189,9 @@ class BetaVAE(VAE):
         super(BetaVAE, self).__init__(**kwargs)
         self.beta = beta
 
-    def compute_model_loss(self, reconstruction_loss, kl_loss, z_mean, z_log_var, z):
-        reg_kl_loss = self.beta * kl_loss
-        return tf.add(reconstruction_loss, reg_kl_loss)
+    def compute_model_loss(self, reconstruction_loss, regularisation_loss, z_mean, z_log_var, z):
+        reg_regularisation_loss = self.beta * regularisation_loss
+        return tf.add(reconstruction_loss, reg_regularisation_loss)
 
 
 class AnnealedVAE(VAE):
@@ -219,12 +220,12 @@ class AnnealedVAE(VAE):
         self.max_capacity = max_capacity * 1.
         self.iteration_threshold = iteration_threshold
 
-    def compute_model_loss(self, reconstruction_loss, kl_loss, z_mean, z_log_var, z):
+    def compute_model_loss(self, reconstruction_loss, regularisation_loss, z_mean, z_log_var, z):
         current_step = tf.cast(self.optimizer.iterations, dtype=tf.float32)
         current_capacity = self.max_capacity * current_step / self.iteration_threshold
         c = tf.minimum(self.max_capacity, current_capacity)
-        reg_kl_loss = self.gamma * tf.abs(kl_loss - c)
-        return tf.add(reconstruction_loss, reg_kl_loss)
+        reg_regularisation_loss = self.gamma * tf.abs(regularisation_loss - c)
+        return tf.add(reconstruction_loss, reg_regularisation_loss)
 
 
 class AnnealedVAEB(VAE):
@@ -252,12 +253,12 @@ class AnnealedVAEB(VAE):
         self.gamma = 0.
         self.iteration_threshold = iteration_threshold
 
-    def compute_model_loss(self, reconstruction_loss, kl_loss, z_mean, z_log_var, z):
-        reg_kl_loss = self.gamma * kl_loss
+    def compute_model_loss(self, reconstruction_loss, regularisation_loss, z_mean, z_log_var, z):
+        reg_regularisation_loss = self.gamma * regularisation_loss
         # We increase gamma for the next step
         if self.gamma < 1.:
             self.gamma += min(1., 1 / self.iteration_threshold)
-        return tf.add(reconstruction_loss, reg_kl_loss)
+        return tf.add(reconstruction_loss, reg_regularisation_loss)
 
 
 class BetaTCVAE(VAE):
@@ -280,10 +281,10 @@ class BetaTCVAE(VAE):
         super(BetaTCVAE, self).__init__(**kwargs)
         self.beta = beta
 
-    def compute_model_loss(self, reconstruction_loss, kl_loss, z_mean, z_log_var, z):
+    def compute_model_loss(self, reconstruction_loss, regularisation_loss, z_mean, z_log_var, z):
         tc = (self.beta - 1.) * compute_batch_tc(z, z_mean, z_log_var)
-        reg_kl_loss = tc + kl_loss
-        return tf.add(reconstruction_loss, reg_kl_loss)
+        reg_regularisation_loss = tc + regularisation_loss
+        return tf.add(reconstruction_loss, reg_regularisation_loss)
 
 
 class FactorVAE(VAE):
@@ -316,7 +317,7 @@ class FactorVAE(VAE):
 
     @property
     def metrics(self):
-        return [self.model_loss_tracker, self.elbo_loss_tracker, self.kl_loss_tracker, self.reconstruction_loss_tracker,
+        return [self.model_loss_tracker, self.elbo_loss_tracker, self.regularisation_loss_tracker, self.reconstruction_loss_tracker,
                 self.discriminator_loss_tracker, self.tc_loss_tracker]
 
     def compute_tc_and_discriminator_loss(self, z, training=True):
@@ -354,8 +355,8 @@ class FactorVAE(VAE):
         z_mean, z_log_var, z = self.encoder(data, training=training)[-3:]
         reconstruction = self.decoder(z, training=training)[-1]
         losses["reconstruction_loss"] = tf.reduce_mean(self.reconstruction_loss_fn(data, reconstruction))
-        losses["kl_loss"] = tf.reduce_mean(compute_gaussian_kl(z_log_var, z_mean))
-        losses["elbo_loss"] = -tf.add(losses["reconstruction_loss"], losses["kl_loss"])
+        losses["regularisation_loss"] = tf.reduce_mean(self.regularisation_loss_fn(z_log_var, z_mean))
+        losses["elbo_loss"] = -tf.add(losses["reconstruction_loss"], losses["regularisation_loss"])
         losses.update(self.compute_tc_and_discriminator_loss(z, training=training))
         losses["model_loss"] = tf.add(losses["elbo_loss"], self.gamma * losses["tc_loss"])
         return losses
@@ -428,11 +429,11 @@ class DIPVAE(VAE):
         diag_reg = self.lambda_diag * tf.reduce_sum((cov_diag - 1) ** 2)
         return tf.add(off_diag_reg, diag_reg)
 
-    def compute_model_loss(self, reconstruction_loss, kl_loss, z_mean, z_log_var, z):
+    def compute_model_loss(self, reconstruction_loss, regularisation_loss, z_mean, z_log_var, z):
         if self.dip_type not in ["i", "ii"]:
             raise NotImplementedError("DIP VAE {} does not exist".format(self.dip_type))
         cov = compute_covariance(z_mean)
         if self.dip_type == "ii":
             cov += tf.reduce_mean(tf.linalg.diag(tf.exp(z_log_var)), axis=0)
-        reg_kl_loss = self.compute_dip_reg(cov) + kl_loss
-        return tf.add(reconstruction_loss, reg_kl_loss)
+        reg_regularisation_loss = self.compute_dip_reg(cov) + regularisation_loss
+        return tf.add(reconstruction_loss, reg_regularisation_loss)
