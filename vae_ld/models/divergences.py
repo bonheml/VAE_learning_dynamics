@@ -74,6 +74,8 @@ class Hellinger:
         z_var_plus_1 = tfm.exp(z_log_var) + 1
         n = z_mean.shape[1] / 2
         exp_term = tfm.reduce_sum(z_log_var - 2 * tfm.log(z_var_plus_1) - tfm.square(z_mean) / z_var_plus_1, axis=1)
+        hellinger = tfm.sqrt(1 - 2 ** n * tfm.exp(0.25 * exp_term))
         # We add a normalising constant to prevent underflow
-        hellinger = tfm.sqrt(1 - 2 ** n * tfm.exp(0.25 * exp_term)) + 1e-9
-        return self.mult * tfm.sqrt(hellinger)
+        if tfm.is_nan(hellinger):
+            hellinger = 1e-9
+        return self.mult * hellinger
