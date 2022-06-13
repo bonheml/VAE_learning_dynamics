@@ -1,9 +1,7 @@
 import glob
 from zipfile import ZipFile
-
 import PIL.Image
 import numpy as np
-from imageio import imread
 
 from vae_ld.data import logger
 from vae_ld.data.dataset import Data
@@ -26,9 +24,7 @@ class CelebA(Data):
         if not self.path.exists():
             self.path.mkdir(parents=True, exist_ok=True)
             dataset = self.download("{}/img_align_celeba.zip".format(self.path))
-            dataset = self.save_images(dataset)
         else:
-            self.save_images()
             dataset = self.read_files()
         return dataset
 
@@ -41,14 +37,15 @@ class CelebA(Data):
         arr = np.zeros((self.data_size, *self.observation_shape), dtype=np.float32)
         for i, img in enumerate(images):
             img = PIL.Image.open(img)
-            img.thumbnail(self.observation_shape)
+            img.thumbnail(self.observation_shape[:2])
+            img = PIL.ImageOps.pad(img, self.observation_shape[:2])
             arr[i] = np.array(img) / 255.
         logger.info("Saving np array of images to {}/celeba.npy".format(self.path))
         np.save("{}/celeba.npy".format(self.path), arr)
         return arr
 
     def download(self, fname=None):
-        logger.info("Downloading celebA dataset. This will only happen once")
+        logger.info("Downloading celeba dataset. This will only happen once")
         super(CelebA, self).download(fname=fname)
         with ZipFile(fname) as zfile:
             zfile.extractall(path=str(self.path))
