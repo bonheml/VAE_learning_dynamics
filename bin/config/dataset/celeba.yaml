@@ -1,0 +1,9 @@
+_target_: vae_ld.data.celeba.CelebA
+path: ${oc.env:DATA_PATH}/celeba
+observation_shape: [64,64,3]
+url: https://docs.google.com/uc?export=download&id=0B7EVK8r0v71pZjFTYXZWM3FlRnM&confirm=no_antivirus
+data_size: 202599
+name: celeba
+factors_shape: []
+
+
