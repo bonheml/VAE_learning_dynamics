@@ -15,9 +15,9 @@ class DeconvolutionalDecoder(tf.keras.Model):
     .. [2] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
            Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
     """
-    def __init__(self, input_shape, output_shape):
+    def __init__(self, input_shape, output_shape, n_samples=1):
         super(DeconvolutionalDecoder, self).__init__()
-        self.d1 = layers.Dense(256, activation="relu", name="decoder/1", input_shape=(input_shape,))
+        self.d1 = layers.Dense(256, activation="relu", name="decoder/1", input_shape=(input_shape * n_samples,))
         self.d2 = layers.Dense(1024, activation="relu", name="decoder/2")
         self.d3 = layers.Reshape((4, 4, 64), name="decoder/reshape")
         self.d4 = layers.Conv2DTranspose(filters=64, kernel_size=4, strides=2, activation="relu", padding="same",
@@ -49,10 +49,10 @@ class DeepConvDecoder(tf.keras.Model):
     by 2 after each iteration.
     """
 
-    def __init__(self, input_shape, output_shape):
+    def __init__(self, input_shape, output_shape, n_samples=1):
         super(DeepConvDecoder, self).__init__()
         # Reverse of FC Block
-        self.block_1 = self._build_fc_block(5, 256, "decoder/1", input_shape=input_shape)
+        self.block_1 = self._build_fc_block(5, 256, "decoder/1", input_shape=input_shape * n_samples)
 
         # Reshape to 3D
         self.reshape = layers.Reshape((4, 4, 256), name="decoder/reshape")
@@ -126,9 +126,9 @@ class FullyConnectedDecoder(tf.keras.Model):
     .. [2] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
            Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
     """
-    def __init__(self, input_shape, output_shape):
+    def __init__(self, input_shape, output_shape, n_samples=1):
         super(FullyConnectedDecoder, self).__init__()
-        self.d1 = layers.Dense(1200, activation="tanh", name="decoder/1", input_shape=(input_shape,))
+        self.d1 = layers.Dense(1200, activation="tanh", name="decoder/1", input_shape=(input_shape * n_samples,))
         self.d2 = layers.Dense(1200, activation="tanh", name="decoder/2")
         self.d3 = layers.Dense(1200, activation="tanh", name="decoder/3")
         self.d4 = layers.Dense(np.prod(output_shape), activation=None, name="decoder/4")
@@ -140,26 +140,4 @@ class FullyConnectedDecoder(tf.keras.Model):
         x3 = self.d3(x2)
         x4 = self.d4(x3)
         x5 = self.d5(x4)
-        return x1, x2, x3, x4, x5
-
-
-class MnistDecoder(tf.keras.Model):
-    """ Deconvolutional decoder initially used in Keras VAE tutorial for mnist data.
-    (https://keras.io/examples/generative/vae/#define-the-vae-as-a-model-with-a-custom-trainstep)
-    """
-    def __init__(self, input_shape, output_shape):
-        super(MnistDecoder, self).__init__()
-        self.d1 = layers.Dense(7 * 7 * 64, activation="relu", name="decoder/1", input_shape=(input_shape,))
-        self.d2 = layers.Reshape((7, 7, 64), name="decoder/2")
-        self.d3 = layers.Conv2DTranspose(64, 3, activation="relu", strides=2, padding="same", name="decoder/3")
-        self.d4 = layers.Conv2DTranspose(32, 3, activation="relu", strides=2, padding="same", name="decoder/4")
-        self.d5 = layers.Conv2DTranspose(1, 3, activation="sigmoid", padding="same", name="decoder/5")
-        self.d6 = layers.Reshape(output_shape, name="decoder/output")
-
-    def call(self, inputs):
-        x1 = self.d1(inputs)
-        x2 = self.d2(x1)
-        x3 = self.d2(x2)
-        x4 = self.d2(x3)
-        x5 = self.d2(x4)
         return x1, x2, x3, x4, x5

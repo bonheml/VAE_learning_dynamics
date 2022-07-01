@@ -14,3 +14,4 @@ lambda_factor: 1
 dip_type: ii
 input_shape: ${dataset.observation_shape}
 latent_shape: ${latent_shape}
+n_samples: ${n_samples}

@@ -16,6 +16,8 @@ class Sampling(layers.Layer):
         ----------
         inputs : tuple
             Tuple of the form (z_mean, z_log_var)
+        n_samples : int, optional
+            The  number of samples to generate
 
         Returns
         -------
@@ -25,21 +27,27 @@ class Sampling(layers.Layer):
         Examples
         --------
         >>> sampling = Sampling()
-        >>> mean = tf.constant([[0., 0.],[0., 0.]])
-        >>> log_var = tf.constant([[0., 0.],[0., 0.]])
+        >>> mean = tf.ones((2,2))
+        >>> log_var = tf.ones((2,2)) * 0.2
         >>> sampling((mean, log_var))
         <tf.Tensor: shape=(2, 2), dtype=float32, numpy=
-        array([[-1.189146  ,  1.8920842 ],
-               [-0.25569448,  0.48008046]], dtype=float32)>
-        >>> sampling((mean, log_var))
-        <tf.Tensor: shape=(2, 2), dtype=float32, numpy=
-        array([[ 0.78779936,  0.0514518 ],
-               [-0.36348337, -0.65082115]], dtype=float32)>
+        array([[1.6238196, 1.8196671],
+               [2.1289523, 2.6573033]], dtype=float32)>
+        >>> sampling((mean, log_var), n_samples=2)
+        <tf.Tensor: shape=(2, 4), dtype=float32, numpy=
+        array([[0.9554099 , 1.1170044 , 0.9554099 , 1.1170044 ],
+               [0.38026488, 2.1689363 , 0.38026488, 2.1689363 ]], dtype=float32)>
         """
+        n_samples = kwargs.get("n_samples", 1)
+        if n_samples <= 0:
+            raise ValueError("The number of samples must be greater than 0.")
         z_mean, z_log_var = inputs
         batch, dim = tf.shape(z_mean)[0], tf.shape(z_mean)[1]
+        res = tf.zeros([batch, 0])
         eps = tf.random.normal(shape=(batch, dim))
-        return z_mean + tf.exp(0.5 * z_log_var) * eps
+        for i in range(n_samples):
+            res = tf.concat([res, z_mean + tf.exp(0.5 * z_log_var) * eps], axis=1)
+        return res
 
 
 class ConvolutionalEncoder(tf.keras.Model):
@@ -55,9 +63,10 @@ class ConvolutionalEncoder(tf.keras.Model):
            Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
     """
 
-    def __init__(self, input_shape, output_shape, zero_init=False):
+    def __init__(self, input_shape, output_shape, n_samples=1, zero_init=False):
         logger.debug("Expected input shape is {}".format(input_shape))
         super(ConvolutionalEncoder, self).__init__()
+        self.n_samples = n_samples
         self.e1 = layers.Conv2D(input_shape=input_shape, filters=32, kernel_size=4, strides=2, activation="relu",
                                 padding="same", name="encoder/1")
         self.e2 = layers.Conv2D(filters=32, kernel_size=4, strides=2, activation="relu", padding="same",
@@ -83,7 +92,7 @@ class ConvolutionalEncoder(tf.keras.Model):
         x6 = self.e6(x5)
         z_mean = self.z_mean(x6)
         z_log_var = self.z_log_var(x6)
-        z = self.sampling([z_mean, z_log_var])
+        z = self.sampling([z_mean, z_log_var], n_samples=self.n_samples)
         return x1, x2, x3, x4, x5, x6, z_mean, z_log_var, z
 
 
@@ -94,9 +103,9 @@ class DeepConvEncoder(tf.keras.Model):
     after each iteration.
     """
 
-    def __init__(self, input_shape, output_shape, zero_init=False):
+    def __init__(self, input_shape, output_shape, n_samples=1, zero_init=False):
         super(DeepConvEncoder, self).__init__()
-
+        self.n_samples = n_samples
         # Convolutional Blocks
         self.block_1 = self._build_conv_block(2, 32, "encoder/1", input_shape=input_shape)
         self.block_2 = self._build_conv_block(2, 64, "encoder/2")
@@ -159,7 +168,7 @@ class DeepConvEncoder(tf.keras.Model):
         # Mean, variance, and sampling layers
         z_mean = self.z_mean(x5)
         z_log_var = self.z_log_var(x5)
-        z = self.sampling([z_mean, z_log_var])
+        z = self.sampling([z_mean, z_log_var], n_samples=self.n_samples)
 
         # We only return the activation at the end of each block + FC layers and Sampling
         return x1, x2, x3, x4, x5, z_mean, z_log_var, z
@@ -178,8 +187,9 @@ class FullyConnectedEncoder(tf.keras.Model):
            Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
     """
 
-    def __init__(self, input_shape, output_shape):
+    def __init__(self, input_shape, output_shape, n_samples=1):
         super(FullyConnectedEncoder, self).__init__()
+        self.n_samples = n_samples
         self.e1 = layers.Flatten(name="encoder/1", input_shape=input_shape)
         self.e2 = layers.Dense(1200, activation="relu", name="encoder/2")
         self.e3 = layers.Dense(1200, activation="relu", name="encoder/3")
@@ -193,52 +203,8 @@ class FullyConnectedEncoder(tf.keras.Model):
         x3 = self.e3(x2)
         z_mean = self.z_mean(x3)
         z_log_var = self.z_log_var(x3)
-        z = self.z([z_mean, z_log_var])
+        z = self.z([z_mean, z_log_var], n_samples=self.n_samples)
         return x1, x2, x3, z_mean, z_log_var, z
-
-
-class MnistEncoder(tf.keras.Model):
-    """ Convolutional encoder initially used in Keras VAE tutorial for mnist data.
-    (https://keras.io/examples/generative/vae/#define-the-vae-as-a-model-with-a-custom-trainstep)
-    """
-
-    def __init__(self, input_shape, output_shape):
-        super(MnistEncoder, self).__init__()
-        self.e1 = layers.Conv2D(32, 3, activation="relu", strides=2, padding="same", name="encoder/1",
-                                input_shape=input_shape)
-        self.e2 = layers.Conv2D(64, 3, activation="relu", strides=2, padding="same", name="encoder/2")
-        self.e3 = layers.Flatten(name="encoder/3")
-        self.e4 = layers.Dense(16, activation="relu", name="encoder/4")
-        self.z_mean = layers.Dense(output_shape, activation=None, name="encoder/z_mean")
-        self.z_log_var = layers.Dense(output_shape, activation=None, name="encoder/z_log_var")
-        self.z = Sampling(name="encoder/z")
-
-    def call(self, inputs):
-        x1 = self.e1(inputs)
-        x2 = self.e2(x1)
-        x3 = self.e3(x2)
-        x4 = self.e4(x2)
-        z_mean = self.z_mean(x4)
-        z_log_var = self.z_log_var(x4)
-        z = self.z([z_mean, z_log_var])
-        return x1, x2, x3, x4, z_mean, z_log_var, z
-
-
-class GONEncoder(tf.keras.Model):
-    """ Encoder for GONs containing only mean, log variance and sampled representations
-    """
-
-    def __init__(self, input_shape, output_shape):
-        super(GONEncoder, self).__init__()
-        self.z_mean = layers.Dense(output_shape, input_shape=(input_shape,), activation=None, name="encoder/z_mean")
-        self.z_log_var = layers.Dense(output_shape, activation=None, name="encoder/z_log_var")
-        self.z = Sampling(name="encoder/z")
-
-    def call(self, inputs):
-        z_mean = self.z_mean(inputs)
-        z_log_var = self.z_log_var(inputs)
-        z = self.z([z_mean, z_log_var])
-        return z_mean, z_log_var, z
 
 
 class PreTrainedEncoder(tf.keras.Model):
@@ -255,8 +221,9 @@ class PreTrainedEncoder(tf.keras.Model):
         If True, add a fully connected layer after the pre-trained model. Default True
     """
 
-    def __init__(self, output_shape, pre_trained_model, use_dense=True):
+    def __init__(self, output_shape, pre_trained_model, n_samples=1, use_dense=True):
         super(PreTrainedEncoder, self).__init__()
+        self.n_samples = n_samples
         self.pre_trained = pre_trained_model
         # Ensure that the pre-trained model will not be retrained
         self.pre_trained.trainable = False
@@ -278,7 +245,7 @@ class PreTrainedEncoder(tf.keras.Model):
             x1 = self.dense(x1)
         z_mean = self.z_mean(x1)
         z_log_var = self.z_log_var(x1)
-        z = self.sampling([z_mean, z_log_var])
+        z = self.sampling([z_mean, z_log_var], n_samples=self.n_samples)
         return (*x, x1, z_mean, z_log_var, z)
 
 

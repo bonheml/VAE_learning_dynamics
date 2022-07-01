@@ -23,10 +23,10 @@ class ImageGeneratorCallback(tf.keras.callbacks.Callback):
     greyscale : bool
         True if images are greyscale, else False
     """
-    def __init__(self, *, filepath, nb_samples, data, latent_shape, save_freq, greyscale):
+    def __init__(self, *, filepath, nb_samples, data, latent_shape, save_freq, greyscale, z_samples=1):
         super(ImageGeneratorCallback, self).__init__()
         self.nb_samples = nb_samples
-        self.latent_shape = latent_shape
+        self.latent_shape = latent_shape * z_samples
         self.data = data[:nb_samples]
         self.filepath = filepath
         self.save_freq = save_freq

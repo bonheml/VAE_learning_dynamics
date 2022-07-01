@@ -12,3 +12,4 @@ _target_: vae_ld.models.vaes.BetaVAE
 beta: ${param_value}
 input_shape: ${dataset.observation_shape}
 latent_shape: ${latent_shape}
+n_samples: ${n_samples}

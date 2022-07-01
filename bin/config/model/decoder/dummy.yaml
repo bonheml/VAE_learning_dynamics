@@ -1,3 +1,0 @@
-_target_: vae_ld.models.decoders.MnistDecoder
-input_shape: ${latent_shape}
-output_shape: ${dataset.observation_shape}
