@@ -118,6 +118,32 @@ def get_activations(data, model_path, model=None):
     return model, acts, layer_names
 
 
+def get_encoder_latents_activations(data, model_path, model=None):
+    """ Load a model and generate a dictionary of the mean, sampled and variance activations obtained from `data`.
+    We assume that the activations of these layers are exposed.
+
+    Parameters
+    ----------
+    data : np.array
+        A (n_examples, n_features) data matrix
+    model_path : str or None
+        The path of the model to load, or None if model is not None.
+         ignored if model is not None
+    model : tf.keras.Model or None
+        The model to use, if None, load the model using model_path
+
+    Returns
+    -------
+    tuple
+        A tuple containing the loaded model, list of activations, and list of layer names.
+    """
+    if model is None:
+        model = tf.keras.models.load_model(model_path)
+    acts = model.encoder.predict(data)[-3:]
+    layer_names = [l.name for l in model.encoder.layers[-3:]]
+    return model, acts, layer_names
+
+
 def get_weights(model_path):
     """ Load a model and generate a dictionary of the weights of each layer.
 

@@ -1,0 +1,4 @@
+name: latents_only
+
+fn:
+  _target_: vae_ld.learning_dynamics.utils.get_encoder_latents_activations
