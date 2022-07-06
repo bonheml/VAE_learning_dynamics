@@ -1,0 +1,81 @@
+#!/usr/bin/env python
+import logging
+import hydra
+from hydra.utils import instantiate
+from omegaconf import OmegaConf
+from vae_ld.learning_dynamics.utils import prepare_activations, get_encoder_latents_activations
+import numpy as np
+
+logger = logging.getLogger("get_optimal_nb_latents")
+
+
+def init_model_with_n_latents(cfg, n, optimizer):
+    encoder = instantiate(cfg.model.encoder, output_shape=n)
+    decoder = instantiate(cfg.model.decoder, input_shape=n)
+    model = instantiate(cfg.model, encoder=encoder, decoder=decoder, latent_shape=n)
+    model.compile(optimizer=optimizer, run_eagerly=True)
+    return model
+
+
+def train_model_and_get_ides(model, sampler, id_estimator, data_examples, cfg):
+    model.fit(sampler, epochs=cfg.max_epochs, batch_size=cfg.batch_size)
+    _, acts, _ = get_encoder_latents_activations(data_examples, None, model)
+    acts = [prepare_activations(act) for act in acts]
+    mean_ide = id_estimator(acts[0])
+    sampled_ide = id_estimator(acts[-1])
+    return mean_ide, sampled_ide
+
+
+def get_optimal_n(id_estimator, data_ide, data_examples, sampler, cfg):
+    infimum, supremum, upper_bound = 0, np.inf, data_ide
+    ides_diff = {}
+    threshold = (cfg.threshold * upper_bound) / 100
+    logger.debug("The threshold is {}".format(threshold))
+    optimizer = instantiate(cfg.optimizer)
+
+    while upper_bound != infimum and upper_bound > 0:
+        logger.debug("Upper bound: {}, Infimum: {}, Supremum: {}".format(upper_bound, infimum, supremum))
+        diff = ides_diff.get(upper_bound, None)
+
+        if diff is None:
+            logger.debug("Instantiate model with {} latents".format(upper_bound))
+            model = init_model_with_n_latents(cfg, upper_bound, optimizer)
+            logger.debug("Computing IDE of mean and sampled representations")
+            mean_ide, sampled_ide = train_model_and_get_ides(model, sampler, id_estimator, data_examples, cfg)
+            ides_diff[upper_bound] = sampled_ide - mean_ide
+
+        logger.debug("The difference between mean and sampled IDE is {}".format(ides_diff[upper_bound]))
+        if ides_diff[upper_bound] > threshold:
+            supremum = upper_bound
+            infimum, upper_bound = infimum, (infimum + upper_bound) // 2
+        else:
+            infimum, upper_bound = upper_bound, min(upper_bound * 2, supremum)
+
+    return upper_bound
+
+
+@hydra.main(config_path="config", config_name="nb_latents")
+def get_optimal_nb_latents(cfg):
+    logger.info("Experiment config:\n{}".format(OmegaConf.to_yaml(cfg)))
+
+    logger.info("Instantiating intrinsic dimension estimator")
+    ide = instantiate(cfg.ide_estimator)
+
+    logger.info("Instantiating {} dataset".format(cfg.dataset.name))
+    ide_sampler = instantiate(cfg.sampling, batch_size=cfg.ide_batch_size)
+    X = np.unique(ide_sampler[0][0], axis=0)
+    del ide_sampler
+
+    sampler = instantiate(cfg.sampling)
+
+    logger.info("Computing data IDE")
+    data_ide = int(ide.fit_transform(prepare_activations(X)))
+
+    logger.info("Searching the optimal number of latent dimensions")
+    n = get_optimal_n(ide.fit_transform, data_ide, X, sampler, cfg)
+
+    logger.info("The optimal dimensionality for the latent dimensions is {}".format(n))
+
+
+if __name__ == "__main__":
+    get_optimal_nb_latents()

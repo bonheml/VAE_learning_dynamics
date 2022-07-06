@@ -33,11 +33,9 @@ class VAE(tf.keras.Model):
     """
 
     def __init__(self, *, encoder, decoder, reconstruction_loss_fn, regularisation_loss_fn, input_shape, latent_shape, **kwargs):
-        print(kwargs)
         n_samples = kwargs.pop("n_samples", 1)
         if n_samples <= 0:
             raise ValueError("The number of samples must be greater than 0.")
-        print(kwargs)
         super(VAE, self).__init__(**kwargs)
         self.encoder = encoder
         self.encoder.build((None, *input_shape))

@@ -1,0 +1,28 @@
+batch_size: 64
+seed: 0
+param_value: 1
+n_samples: 1
+latent_shape: 10
+threshold: 20
+ide_batch_size: 10000
+max_epochs: 1
+
+defaults:
+  - _self_
+  - dataset: dsprites
+  - sampling: sampler
+  - optimizer: adam
+  - model: beta_vae
+  - ide_estimator: MLE
+
+hydra:
+  run:
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_shape}/${model.name}/${dataset.name}/${param_value}/${seed}
+  sweep:
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_shape}/${model.name}/${dataset.name}/${param_value}
+    subdir: ${seed}
+  job:
+    config:
+      override_dirname:
+        kv_sep: _
+        item_sep: /

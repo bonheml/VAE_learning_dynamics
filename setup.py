@@ -35,7 +35,8 @@ setup(
         "bin/compute_ph",
         "bin/test_dataset",
         "bin/filter_variables",
-        "bin/stitch_train"
+        "bin/stitch_train",
+        "bin/get_optimal_nb_latents",
     ],
     install_requires=[
         "pillow>=7.2.0",

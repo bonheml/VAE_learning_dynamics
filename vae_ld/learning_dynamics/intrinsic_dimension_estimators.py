@@ -7,35 +7,38 @@ from vae_ld.learning_dynamics import logger
 class TwoNN:
     """ Implementation of the ID estimator TwoNN from Facco et al. [1].
 
+    anchor : float, optional
+        The fraction of data points to keep during the ID estimate. Must be between 0 and 1. Default 0.9
+
     References
     ----------
     .. [1] Facco, E., d’Errico, M., Rodriguez, A., & Laio, A. (2017). Estimating the intrinsic dimension of datasets by a
         minimal neighborhood information. Scientific reports, 7(1), 1-8.
     """
-    def __init__(self):
-        self._to_keep = 0.9
+    def __init__(self, anchor=0.9):
+        self._anchor = anchor
         self._knn = NearestNeighbors(n_neighbors=3)
 
     @property
-    def to_keep(self):
-        return self._to_keep
+    def anchor(self):
+        return self._anchor
 
-    @to_keep.setter
-    def to_keep(self, to_keep):
+    @anchor.setter
+    def anchor(self, anchor):
         """ Set the fraction of data points to keep during the ID estimate
 
         Parameters
         ----------
-        to_keep : float
+        anchor : float
             A value in ]0, 1] corresponding to the fraction of data points to keep during the ID estimate.
 
         Returns
         -------
         None
         """
-        if to_keep <= 0 or to_keep > 1:
+        if anchor <= 0 or anchor > 1:
             raise ValueError("The fraction to keep must be between 0 (excluded) and 1.")
-        self._to_keep = to_keep
+        self._anchor = anchor
 
     def fit_transform(self, X):
         """ Compute the intrinsic dimension estimation of `X` based on the `C++ implementation by the authors of [1] <https://github.com/efacco/TWO-NN>`_
@@ -59,7 +62,7 @@ class TwoNN:
         .. [2] Ansuini, A., Laio, A., Macke, J. H., & Zoccolan, D. (2019). Intrinsic dimension of data representations
                in deep neural networks. Advances in Neural Information Processing Systems, 32.
         """
-        logger.debug("Computing TwoNN with {}% of the data kept.".format(self._to_keep * 100))
+        logger.debug("Computing TwoNN with {}% of the data kept.".format(self._anchor * 100))
         self._knn.fit(X)
         # 1. Compute the pairwise distances for each point in the dataset
         logger.debug("Computing the pairwise distance between each point of the dataset")
@@ -95,8 +98,8 @@ class TwoNN:
         # 5. Fit the points of the plane given by coordinates {(log(mu_i), -log(1 - Femp(mu_i)))|i=1, …, n} with a
         # straight line passing through the origin, using the analytical solution of the linear regression.
         # Note that we discard 10% of the points by default, as recommended in the TwoNN paper
-        logger.debug("Fitting the {}% first points with a linear regression".format(self._to_keep * 100))
-        n_to_keep = int(n * self._to_keep)
+        logger.debug("Fitting the {}% first points with a linear regression".format(self._anchor * 100))
+        n_to_keep = int(n * self._anchor)
         x = np.log(mu)[:n_to_keep]
         y = -np.log(1 - Femp)[:n_to_keep]
         d = np.dot(x, y) / np.dot(x, x)

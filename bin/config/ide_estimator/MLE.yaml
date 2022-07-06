@@ -1,0 +1,5 @@
+_target_: vae_ld.learning_dynamics.intrinsic_dimension_estimators.MLE
+k: 20
+seed: 0
+runs: 5
+anchor: 0.8
