@@ -1,0 +1,22 @@
+dataset_name: symsol
+model_name: beta_vae
+param_name: beta
+param_value: 1
+overwrite: false
+latent_dim: 10
+
+defaults:
+  - _self_
+  - visualisation_tool_ide: aggregate
+
+hydra:
+  run:
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_dim}/${visualisation_tool.name}/${dataset_name}/${model_name}
+  sweep:
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_dim}/${visualisation_tool.name}/${dataset_name}/
+    subdir: ${model_name}
+  job:
+    config:
+      override_dirname:
+        kv_sep: _
+        item_sep: /

@@ -17,7 +17,7 @@ seed: 0
 n_iter: 3
 mle_runs: 5
 mle_anchor: 0.8
-save_file: IDE_${dataset.name}_${model_name}_${param_name}_${param_value}_seed_${model_seed}_${batch_size}_samples_chkpt_${checkpoint}.tsv
+save_file: IDE_${dataset.name}_${model_name}_${param_name}_${param_value}_seed_${model_seed}_${batch_size}_samples.tsv
 
 hydra:
   run:

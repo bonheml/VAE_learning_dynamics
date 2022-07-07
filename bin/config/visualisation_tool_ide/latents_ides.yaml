@@ -1,0 +1,11 @@
+name: latent_ides
+
+fn:
+  _target_: vae_ld.visualisation.ides.plot_latents_ides
+  input_file: ${oc.env:XP_PATH}/visualise_ides/latent_${latent_dim}/aggregate/${dataset_name}/${model_name}/IDE_${dataset_name}_${model_name}_${param_name}_${param_value}_${batch_size}_samples_agg.tsv
+  save_file: ${dataset_name}_${model_name}_${param_name}_${param_value}_${batch_size}_samples_IDE_latents.pdf
+  overwrite: ${overwrite}
+  # For dsprites, xy_annot is (10, 5) and xy_text is (10,10).
+  # For symsol xy_annot is (9, 3.5) and xy_text is (10, 10)
+  xy_annot: null
+  xy_text: null
