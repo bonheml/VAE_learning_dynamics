@@ -1,3 +1,4 @@
+import itertools
 import pathlib
 
 from vae_ld.visualisation import logger
@@ -49,6 +50,7 @@ def plot_data_ides(input_dir, save_file, overwrite):
         logger.info("Skipping already data ides of {}".format(save_file))
         return
     files = glob("{}/*.tsv".format(input_dir))
+    hatches = itertools.cycle(['/', '.', '\\', 'O', '*'])
     df = None
     for file in files:
         ds_name = file.split("/")[-1].split("_")[1].capitalize()
@@ -57,7 +59,12 @@ def plot_data_ides(input_dir, save_file, overwrite):
         df = df2 if df is None else pd.concat([df, df2], ignore_index=True)
     df2 = df[df.layer == "input"]
     df2 = df2.rename(columns={"estimator": "Estimator"})
-    _ = sns.barplot(x="Dataset", y="IDE", hue="Estimator", style="Estimator", data=df2)
+    ax = sns.barplot(x="Dataset", y="IDE", hue="Estimator", style="Estimator", data=df2)
+    num_locations = len(df2.Dataset.unique())
+    for i, bar in enumerate(ax.patches):
+        if i % num_locations == 0:
+            hatch = next(hatches)
+        bar.set_hatch(hatch)
     save_figure(save_file)
 
 
