@@ -5,10 +5,6 @@ param_value: 1
 overwrite: false
 batch_size: 10000
 
-defaults:
-  - _self_
-  - visualisation_tool_ide: aggregate
-
 hydra:
   run:
     dir: ${oc.env:XP_PATH}/${hydra.job.name}/${visualisation_tool_ide.name}/${dataset_name}/${model_name}
@@ -20,3 +16,7 @@ hydra:
       override_dirname:
         kv_sep: _
         item_sep: /
+
+defaults:
+  - _self_
+  - visualisation_tool_ide: aggregate

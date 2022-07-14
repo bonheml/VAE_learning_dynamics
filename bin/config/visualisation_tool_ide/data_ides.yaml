@@ -1,0 +1,14 @@
+name: data_ides
+
+fn:
+  _target_: vae_ld.visualisation.ides.plot_data_ides
+  input_dir: ${oc.env:XP_PATH}/visualise_ides/aggregate/*/${model_name}
+  save_file: ${model_name}_${param_name}_${param_value}_${batch_size}_samples_IDE_data.pdf
+  overwrite: ${overwrite}
+
+hydra:
+  run:
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/${visualisation_tool_ide.name}/${model_name}
+  sweep:
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/${visualisation_tool_ide.name}/
+    subdir: ${model_name}
