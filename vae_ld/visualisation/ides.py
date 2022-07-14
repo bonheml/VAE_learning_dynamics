@@ -51,7 +51,7 @@ def plot_data_ides(input_dir, save_file, overwrite):
     files = glob("{}/*.tsv".format(input_dir))
     df = None
     for file in files:
-        ds_name = file.split("/")[-1].split("_")[1].upper()
+        ds_name = file.split("/")[-1].split("_")[1].capitalize()
         df2 = pd.read_csv(file, sep="\t")
         df2["Dataset"] = ds_name
         df = df2 if df is None else pd.concat([df, df2], ignore_index=True)
