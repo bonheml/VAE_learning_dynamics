@@ -57,7 +57,7 @@ def plot_data_ides(input_dir, save_file, overwrite):
         df = df2 if df is None else pd.concat([df, df2], ignore_index=True)
     df2 = df[df.layer == "input"]
     df2 = df2.rename(columns={"estimator": "Estimator"})
-    _ = sns.barplot(x="Dataset", y="IDE", hue="Estimator", data=df2)
+    _ = sns.barplot(x="Dataset", y="IDE", hue="Estimator", style="Estimator", data=df2)
     save_figure(save_file)
 
 
