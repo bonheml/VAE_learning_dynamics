@@ -4,6 +4,7 @@ param_name: beta
 param_value: 1
 overwrite: false
 latent_dim: 10
+batch_size: 10000
 
 defaults:
   - _self_
