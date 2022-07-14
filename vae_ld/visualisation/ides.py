@@ -79,8 +79,8 @@ def plot_layers_ides(input_file, save_file, overwrite):
     df = df.replace("encoder/z_log_var", "Variance")
     df = df.replace("sampling", "Sampled")
     df = df.rename(columns={"latent_dim": "Number of latent dimensions", "layer": "Layer"})
-
-    sns.pointplot(x="Layer", y="IDE", hue="Number of latent dimensions", style="Number of latent dimensions", data=df)
+    markers = ["D", "v", "o", "^", "s", "<", "+", ">", "p", "*", "x", ".", "8", "d", "H"]
+    sns.pointplot(x="Layer", y="IDE", hue="Number of latent dimensions", markers=markers, data=df)
     _ = plt.xticks(
         rotation=45,
         horizontalalignment='right',
