@@ -37,6 +37,7 @@ setup(
         "bin/filter_variables",
         "bin/stitch_train",
         "bin/get_optimal_nb_latents",
+        "bin/visualise_ides",
     ],
     install_requires=[
         "pillow>=7.2.0",
