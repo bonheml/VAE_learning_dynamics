@@ -10,7 +10,7 @@ logger = logging.getLogger("visualise_ides")
 @hydra.main(config_path="config", config_name="ide_visualisation")
 def visualise_ides(cfg):
     logger.info("Visualisation config:\n{}".format(OmegaConf.to_yaml(cfg)))
-    call(cfg.visualisation_tool.fn)
+    call(cfg.visualisation_tool_ide.fn)
 
 
 if __name__ == "__main__":
