@@ -59,7 +59,7 @@ def plot_data_ides(input_dir, save_file, overwrite):
         df = df2 if df is None else pd.concat([df, df2], ignore_index=True)
     df2 = df[df.layer == "input"]
     df2 = df2.rename(columns={"estimator": "Estimator"})
-    ax = sns.barplot(x="Dataset", y="IDE", hue="Estimator", style="Estimator", data=df2)
+    ax = sns.barplot(x="Dataset", y="IDE", hue="Estimator", data=df2)
     num_locations = len(df2.Dataset.unique())
     for i, bar in enumerate(ax.patches):
         if i % num_locations == 0:
