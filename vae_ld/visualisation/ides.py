@@ -74,6 +74,7 @@ def plot_layers_ides(input_file, save_file, overwrite):
         return
     df = pd.read_csv(input_file, sep="\t")
     df = df[df.estimator.isin(["MLE_10", "MLE_20", "TwoNN"])]
+    df = df.drop("sampling_1")
     df = df.replace("encoder/z_mean", "Mean")
     df = df.replace("encoder/z_log_var", "Variance")
     df = df.replace("sampling", "Sampled")
