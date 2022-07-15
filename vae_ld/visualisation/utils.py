@@ -23,3 +23,11 @@ def save_figure(out_fname, dpi=300, tight=True):
     plt.clf()
     plt.cla()
     plt.close()
+
+
+def add_hatches(ax, legend):
+    hatches = ['/', '.', '\\', 'x', '|', '-', '+', '*', 'o', 'O']
+    for bars, hatch in zip(ax.containers, hatches):
+        for bar in bars:
+            bar.set_hatch(hatch)
+    ax.legend(title=legend)

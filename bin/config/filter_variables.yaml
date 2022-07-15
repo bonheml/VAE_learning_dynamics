@@ -1,8 +1,10 @@
 defaults:
   - _self_
   - dataset: cars
+  - sampling: sampler
 
-n_samples: 10000
+batch_size: 10000
+iter_size: 4
 seed: 0
 model_name: beta_vae
 model_seed: 0
@@ -12,7 +14,6 @@ param_value: 1
 param_name: beta
 var_threshold: 0.1
 mean_error_range: 0.1
-batch_size: 4
 
 hydra:
   run:

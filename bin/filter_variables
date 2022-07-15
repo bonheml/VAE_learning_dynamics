@@ -16,8 +16,8 @@ def filter_vars(cfg):
     random_state = np.random.RandomState(cfg.seed)
 
     logger.info("Instantiating {} dataset".format(cfg.dataset.name))
-    dataset = instantiate(cfg.dataset)
-    samples = np.unique(dataset.sample(cfg.n_samples, random_state)[1], axis=0)
+    sampler = instantiate(cfg.sampling)
+    samples = np.unique(sampler[0][0], axis=0)
 
     logger.info("Looking for model folders in {}".format(cfg.model_path))
     model_files = get_file_list(cfg.model_path)
@@ -29,7 +29,7 @@ def filter_vars(cfg):
         save_file = "{}.tsv".format(get_model_filename(m, cfg.model_name, cfg.param_value))
         models_info["model_epoch"] = get_model_epoch(m)
         df = filter_variables(samples, m, save_file, var_threshold=cfg.var_threshold,
-                              mean_error_range=cfg.mean_error_range, batch_size=cfg.batch_size)
+                              mean_error_range=cfg.mean_error_range, batch_size=cfg.iter_size)
         for k, v in models_info.items():
             df[k] = v
         if i == 0:

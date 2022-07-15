@@ -9,3 +9,4 @@ fn:
   # For symsol xy_annot is (9, 3.5) and xy_text is (10, 10)
   xy_annot: null
   xy_text: null
+  text: null
