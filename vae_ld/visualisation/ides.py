@@ -66,7 +66,8 @@ def plot_data_ides(input_dir, save_file, overwrite):
         df = df2 if df is None else pd.concat([df, df2], ignore_index=True)
     df2 = df[df.layer == "input"]
     df2 = df2.replace("Dsprites", "dSprites")
-    ax = sns.barplot(x="Dataset", y="IDE", hue="estimator", data=df2, order=["Symsol", "dSprites", "Celeba"], ci="sd")
+    ax = sns.barplot(x="Dataset", y="IDE", hue="estimator", data=df2, order=["Symsol", "dSprites", "Celeba"],
+                     ci="sd", palette="winter")
     add_hatches(ax, "Estimator")
     save_figure(save_file)
 
