@@ -8,13 +8,13 @@ from glob import glob
 from vae_ld.data.util import natural_sort
 from vae_ld.learning_dynamics.intrinsic_dimension_estimators import TwoNN, MLE
 import tensorflow as tf
-from vae_ld.learning_dynamics.utils import get_activations, prepare_activations
+from vae_ld.learning_dynamics.utils import get_activations, prepare_activations, get_model_epoch
 import numpy as np
 
 logger = logging.getLogger("get_data_ide")
 
 
-def compute_ides(model, model_info, sampler, ides, n_iter, save_file, act_fn):
+def compute_ides(model, model_info, sampler, ides, n_iter, act_fn):
     res = []
     for i in range(0, n_iter):
         X = np.unique(sampler[i][0], axis=0)
@@ -32,11 +32,10 @@ def compute_ides(model, model_info, sampler, ides, n_iter, save_file, act_fn):
                 res.append({"estimator": name, "layer": l1, "batch": i,
                             "IDE": ide.fit_transform(acts[j])})
                 logger.debug("IDE for {} on batch {} using {} = {}".format(l1, i, name, res[-1]["IDE"]))
-    logger.info("Saving the results to {}".format(save_file))
     df = pd.DataFrame(res)
     for k, v in model_info.items():
         df[k] = v
-    df.to_csv(save_file, sep="\t")
+    return df
 
 
 @hydra.main(config_path="config", config_name="data_ide")
@@ -44,6 +43,7 @@ def get_all_ides(cfg):
     logger.info("Experiment config:\n{}".format(OmegaConf.to_yaml(cfg)))
 
     logger.info("Instantiating intrinsic dimension estimators")
+    df = None
     ides = {"MLE_{}".format(k): MLE(k, cfg.seed, runs=cfg.mle_runs, anchor=cfg.mle_anchor)
             for k in [3, 5, 10, 20]}
     ides["TwoNN"] = TwoNN()
@@ -54,12 +54,22 @@ def get_all_ides(cfg):
                   "param_value": cfg.param_value, "model_seed": cfg.model_seed,
                   "seed": cfg.seed, "latent_dim": cfg.latent_dim}
     logger.info("Loading model from {}".format(cfg.model_path))
-    # Keep only the nth model checkpoint
-    model_file = sorted(glob(cfg.model_path), key=natural_sort)[cfg.checkpoint]
-    model = tf.keras.models.load_model(model_file)
 
-    logger.info("Computing IDEs")
-    compute_ides(model, model_info, sampler, ides, cfg.n_iter, cfg.save_file, call(cfg.activations.fn, _partial_=True))
+    files = sorted(glob(cfg.model_path), key=natural_sort)
+    if cfg.checkpoint is not None:
+        # Keep only the nth model checkpoint
+        files = [files[cfg.checkpoint]]
+
+    activations_fn = call(cfg.activations.fn, _partial_=True)
+
+    for file in files:
+        model = tf.keras.models.load_model(file)
+        model_info["model_epoch"] = get_model_epoch(file)
+        logger.info("Computing IDEs")
+        df2 = compute_ides(model, model_info, sampler, ides, cfg.n_iter, activations_fn)
+        df = pd.concat([df, df2], ignore_index=True) if df is not None else df2
+        logger.info("Saving the results to {}".format(cfg.save_file))
+        df.to_csv(cfg.save_file, sep="\t")
 
 
 if __name__ == "__main__":
