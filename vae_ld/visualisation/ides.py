@@ -18,7 +18,7 @@ def aggregate_ides(input_dir, save_file, overwrite):
         logger.info("Skipping already computed aggregation of {}".format(save_file))
         return
     df = None
-    files = glob("{}/*.tsv".format(input_dir))
+    files = glob(input_dir)
     logger.debug("Files to process are {}".format(files))
     for f in files:
         df2 = pd.read_csv(f, sep="\t", index_col=0)
@@ -72,7 +72,7 @@ def plot_data_ides(input_dir, save_file, overwrite):
     save_figure(save_file)
 
 
-def plot_layers_ides(input_file, save_file, overwrite):
+def plot_layers_ides(input_file, save_file, overwrite, hue="Number of latent dimensions"):
     if pathlib.Path(save_file).exists() and overwrite is False:
         logger.info("Skipping already computed layers ides of {}".format(save_file))
         return
@@ -87,7 +87,7 @@ def plot_layers_ides(input_file, save_file, overwrite):
     df = df[df.layer != "decoder/reshape"]
     df = df.rename(columns={"latent_dim": "Number of latent dimensions", "layer": "Layer"})
     markers = ["D", "v", "o", "^", "s", "<", ">", "p", "*", "X", ".", "8", "d", "H"]
-    ax = sns.pointplot(x="Layer", y="IDE", hue="Number of latent dimensions", markers=markers, data=df, ci="sd")
+    ax = sns.pointplot(x="Layer", y="IDE", hue=hue, markers=markers, data=df, ci="sd")
     _ = plt.xticks(
         rotation=90,
         horizontalalignment='center',
