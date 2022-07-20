@@ -48,8 +48,8 @@ def plot_latents_ides(input_file, save_file, overwrite, xy_annot=None, xy_text=N
         line.set_linewidth(8)
     if xy_text is not None and xy_annot is not None:
         text = "" if not text else text
-        ax.annotate(text, xy=xy_annot, xycoords='data', xytext=xy_text, textcoords='data', fontsize=15,
-                    arrowprops=dict(arrowstyle="->", connectionstyle="arc3,rad=0.1", color='black', lw=3.5, ls='--'))
+        ax.annotate(text, xy=xy_annot, xycoords='data', xytext=xy_text, textcoords='data', fontsize=30,
+                    arrowprops=dict(arrowstyle="->", connectionstyle="arc3,rad=0.1", color='black', lw=6, ls='--'))
     save_figure(save_file)
 
 
