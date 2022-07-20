@@ -58,11 +58,7 @@ def get_all_ides(cfg):
     files = sorted(glob(cfg.model_path), key=natural_sort)
     if cfg.checkpoint is not None:
         # Keep only the nth model checkpoint
-        files = files[cfg.checkpoint]
-        try:
-            iter(files)
-        except:
-            files = [files]
+        files = files[list(cfg.checkpoint)]
 
     activations_fn = call(cfg.activations.fn, _partial_=True)
 
