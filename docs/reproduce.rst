@@ -7,7 +7,7 @@ Reproducing experiments
 
 Reproduce the results of *How do Variational Autoencoders Learn? Insights from Representational Similarity*
 ===========================================================================================================
-The experiment from `this paper <paper_arxiv_url>`_ was divided into three steps:
+The experiment from `this paper <https://arxiv.org/abs/2205.08399>`_ was divided into three steps:
     * :ref:`Training VAEs`
     * :ref:`Computing similarity scores`
     * :ref:`Visualising the results`
@@ -16,7 +16,7 @@ The experiment from `this paper <paper_arxiv_url>`_ was divided into three steps
 Training VAEs
 -------------
 .. Note::
-   The pre-trained models of the papers can be `downloaded <data_url>`_ if you want to skip this step.
+   The pre-trained models of the papers can be `downloaded <https://data.kent.ac.uk/428/>`_ if you want to skip this step.
    When downloading this, make sure to put them in the directory corresponding to your `XP_PATH` env variable without
    modifying the folder architecture used.
 
@@ -62,7 +62,7 @@ This can also be done using the corresponding individual commands.
 Computing similarity scores
 ---------------------------
 .. Note::
-   The aggregated similarity scores of the papers can be `downloaded <scores_url>`_ if you want to skip this step.
+   The aggregated similarity scores of the papers can be `downloaded <https://data.kent.ac.uk/444/>`_ if you want to skip this step.
    When downloading this, make sure to put them in the directory corresponding to your `XP_PATH` env variable without modifying the folder architecture used.
 
 .. Warning::
@@ -178,13 +178,122 @@ Lineplots visualisations are generated with:
     $ visualise_similarity -m visualisation_tool=layer_list visualisation_tool.fn.regularisation=1,2,5,10,20 m1_name=dip_vae_ii dataset_name=cars3d,dsprites,smallnorb
     $ visualise_similarity -m metric_name=procrustes visualisation_tool=layer_list visualisation_tool.fn.regularisation=1,2,5,10,20 m1_name=dip_vae_ii
 
-..
-	For the next experiment:
-	training classifier:
-	computing similarity with encoders: compute_similarity -m n_samples=5000 selection_type="custom" m1_name=classifier p1_name=None p1_value=None m1_latent_dim=None m2_name=beta_tc_vae,beta_vae p2_name=beta p2_value=1 m1_seed=0,1,2,3,4 m2_seed=0,1,2,3,4 dataset=dsprites keep_n=["epoch_02","epoch_07","epoch_14","epoch_19","epoch_26"]
-    keep_n for the different datasets:
-		dpsrites: 02, 07, 14, 19, 26
-		cars3d: 25_, 292, 559, 826, 1090
-		smallnorb: 10_, 110, 210, 311, 410
-	train a VAE with a custom pre-trained classifier: training model/encoder=pretrained model.name="beta_vae_pretrained_custom"
-	train a VAE with an external pre-trained classifier (e.g. VGG19): training model/encoder=pretrained model/encoder/pre_trained_model=vgg19 model.name="beta_vae_pretrained_vgg19"
+
+Reproduce the results of *Fondue: an algorithm to find the optimal dimensionality of the latent representations of variational autoencoders*
+============================================================================================================================================
+The experiment from `this paper <fondue_paper>`_ was divided into three steps:
+    * :ref:`Training VAEs`
+    * :ref:`Computing intrinsic dimension estimations (IDEs)`
+    * :ref:`Visualising the results`
+
+
+Training VAEs
+-------------
+.. Note::
+   The pre-trained models of the papers can be `downloaded <model_url>`_ if you want to skip this step.
+   When downloading this, make sure to put them in the directory corresponding to your `XP_PATH` env variable without
+   modifying the folder architecture used.
+
+Model can be retrained via the command line tool.
+For example,
+
+.. code-block::
+
+   $ train dataset=dsprites latent_shape=10 seed=0
+
+will train a VAE on dSprites dataset with 10 latent dimensions and a seed of 0.
+
+Multi-run can be performed with the `-m` option:
+
+.. code-block::
+
+   $ train -m latent_shape=3,6 dataset=symsol seed=0,1,2,3,4
+
+This will train VAEs on symsol dataset with using seeds 0 to 4 and latent shape of 3 and 6.
+The complete set of models trained for this paper could be retrained with
+
+.. code-block::
+
+   $ train -m dataset=symsol latent_shape=3,6,8,10,12,18,24,32 seed=0,1,2,3,4 ~callbacks.checkpoint
+   $ train -m dataset=dsprites latent_shape=3,6,8,10,12,18,24,32 seed=0,1,2,3,4 ~callbacks.checkpoint
+   $ train -m dataset=celeba latent_shape=3,6,8,10,12,18,24,32,42,52,62,100,150,200 seed=0,1,2,3,4 ~callbacks.checkpoint
+
+
+This can also be done using the corresponding individual commands.
+
+
+Computing similarity scores
+---------------------------
+.. Note::
+   The aggregated IDEs of the papers can be `downloaded <ide_url>`_ if you want to skip this step.
+   When downloading this, make sure to put them in the directory corresponding to your `XP_PATH` env variable without modifying the folder architecture used.
+
+.. Warning::
+   If you do not want to use the available IDEs, make sure that you have the pre-trained models before doing the following steps.
+
+The IDE of each layer and of the data can be computed via the command line tool.
+For example, to compute the IDE of a VAE trained on symsol with 10 latent dimensions and seed 0:
+
+.. code-block::
+
+   $ compute_ide dataset=symsol latent_dim=10 model_seed=0
+
+
+One can overwrite any results previously computed by adding `overwrite=true` to the command line.
+For example, to overwrite the scores computed above:
+
+.. code-block::
+
+   $ compute_ide dataset=symsol latent_dim=10 model_seed=0 overwrite=true
+
+
+Multi-run can be performed with the `-m` option.
+For example to compute the IDEs of every VAE trained on symsol:
+
+.. code-block::
+
+   $ compute_ide dataset=symsol latent_dim=3,6,8,10,12,18,24,32 model_seed=0,1,2,3,4
+
+
+
+The complete set of IDEs computed for this paper could be recomputed with:
+
+.. code-block::
+   $ compute_ide dataset=symsol latent_dim=3,6,8,10,12,18,24,32 model_seed=0,1,2,3,4
+   $ compute_ide dataset=dsprites latent_dim=3,6,8,10,12,18,24,32 model_seed=0,1,2,3,4
+   $ compute_ide dataset=celeba latent_dim=3,6,8,10,12,18,24,32,42,52,62,100,150,200 model_seed=0,1,2,3,4
+
+This can also be done using the corresponding individual commands.
+
+Finally, the results are aggregated using:
+
+.. code-block::
+
+   $ visualise_ides -m visualisation_tool_ide=aggregate dataset_name=symsol,dsprites,celeba
+
+Here also, one can overwrite any results previously computed by adding `overwrite=true` to the command line.
+
+
+Visualising the results
+-----------------------
+.. Warning::
+   Make sure that you have the aggregated scores before doing the following steps.
+
+The following (or equivalent individual runs) is computing visualisations of IDEs for the mean, variance, and sampled representations on all datasets and
+latent dimensions used:
+
+.. code-block::
+
+   $ visualise_ides -m visualisation_tool_ide=latents_ides dataset_name=symsol,dsprites,celeba
+
+The visualisation of the IDE of each layer is generated with:
+
+.. code-block::
+
+   $ visualise_ides.sh visualisation_tool_ide=layers_ides dataset_name=symsol,dsprites,celeba
+
+Bar plots of the data IDEs are generated with:
+
+.. code-block::
+
+   $ visualise_ides visualisation_tool_ide=data_ides dataset_name=all
