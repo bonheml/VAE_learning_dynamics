@@ -14,6 +14,21 @@ sns.set_style("whitegrid", {'axes.grid': False, 'legend.labelspacing': 1.2})
 
 
 def aggregate_ides(input_dir, save_file, overwrite):
+    """Aggregate IDEs results in `input_dir` and save the results to `save_file` in TSV format.
+
+    Parameters
+    ----------
+    input_dir : str
+        Absolute path to the directory where the similarity scores are stored
+    save_file : str
+        Name of the file used to save the aggregated results
+    overwrite : bool
+        If True, overwrite `save_file` content if `save_file` already exists.
+
+    Returns
+    -------
+    None
+    """
     if pathlib.Path(save_file).exists() and overwrite is False:
         logger.info("Skipping already computed aggregation of {}".format(save_file))
         return
@@ -31,6 +46,27 @@ def aggregate_ides(input_dir, save_file, overwrite):
 
 
 def plot_latents_ides(input_file, save_file, overwrite, xy_annot=None, xy_text=None, text=None):
+    """ Plot a line plot of the IDE of mean, variance and sampled representations
+
+    Parameters
+    ----------
+    input_file : str
+        Name of the file containing the aggregated results
+    save_file : str
+        Name of the file used to save the figure.
+    overwrite : bool
+        If True, overwrite any existing file, else skip them.
+    xy_annot : tuple, optional
+        Where to start the arrow. If None, no annotation is performed
+    xy_text : tuple, optional
+        Where to end the arrow. If None, no annotation is performed
+    text : str, optional
+        The text of the annotation. If None, no annotation is performed
+
+    Returns
+    -------
+    None
+    """
     if pathlib.Path(save_file).exists() and overwrite is False:
         logger.info("Skipping already computed latent ides of {}".format(save_file))
         return
@@ -54,6 +90,21 @@ def plot_latents_ides(input_file, save_file, overwrite, xy_annot=None, xy_text=N
 
 
 def plot_data_ides(input_dir, save_file, overwrite):
+    """ Do a bar plot of the data IDEs
+
+    Parameters
+    ----------
+    input_dir: str
+        Name of the directory containing the results
+    save_file : str
+        Name of the file used to save the figure.
+    overwrite : bool
+        If True, overwrite any existing file, else skip them.
+
+    Returns
+    -------
+    None
+    """
     if pathlib.Path(save_file).exists() and overwrite is False:
         logger.info("Skipping already data ides of {}".format(save_file))
         return
@@ -73,6 +124,24 @@ def plot_data_ides(input_dir, save_file, overwrite):
 
 
 def plot_layers_ides(input_file, save_file, overwrite, hue="Number of latent dimensions"):
+    """ Plot a line plot of the IDE of every VAE layer
+
+    Parameters
+    ----------
+    input_file : str
+        Name of the file containing the aggregated results
+    save_file : str
+        Name of the file used to save the figure.
+    overwrite : bool
+        If True, overwrite any existing file, else skip them.
+    hue : str, optional
+        Column of the dataframe on which the hue should be applied.
+        default is Number of latent dimensions
+
+    Returns
+    -------
+    None
+    """
     if pathlib.Path(save_file).exists() and overwrite is False:
         logger.info("Skipping already computed layers ides of {}".format(save_file))
         return

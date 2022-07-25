@@ -259,6 +259,7 @@ For example to compute the IDEs of every VAE trained on symsol:
 The complete set of IDEs computed for this paper could be recomputed with:
 
 .. code-block::
+
    $ compute_ide dataset=symsol latent_dim=3,6,8,10,12,18,24,32 model_seed=0,1,2,3,4
    $ compute_ide dataset=dsprites latent_dim=3,6,8,10,12,18,24,32 model_seed=0,1,2,3,4
    $ compute_ide dataset=celeba latent_dim=3,6,8,10,12,18,24,32,42,52,62,100,150,200 model_seed=0,1,2,3,4

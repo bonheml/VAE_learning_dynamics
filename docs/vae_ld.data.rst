@@ -29,10 +29,10 @@ dSprites datasets
    :undoc-members:
    :show-inheritance:
 
-Mnist dataset
+symsol
 -------------
 
-.. autoclass:: vae_ld.data.mnist.Mnist
+.. autoclass:: vae_ld.data.symsol.Symsol
    :members:
    :undoc-members:
    :show-inheritance:
@@ -45,10 +45,10 @@ smallNorb
    :undoc-members:
    :show-inheritance:
 
-Shapes3D
+Celeba
 --------
 
-.. autoclass:: vae_ld.data.shapes3d.Shapes3D
+.. autoclass:: vae_ld.data.celeba.CelebA
    :members:
    :undoc-members:
    :show-inheritance:

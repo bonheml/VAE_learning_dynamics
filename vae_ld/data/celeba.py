@@ -8,8 +8,7 @@ from vae_ld.data.dataset import Data
 
 
 class CelebA(Data):
-    """
-    CelebA dataset [1] with images rescaled to 64x64.
+    """ CelebA dataset [1] with images rescaled to 64x64.
 
     References
     ----------

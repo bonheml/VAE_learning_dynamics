@@ -10,7 +10,7 @@ from vae_ld.data.dataset import Data
 
 
 class SmallNORB(Data):
-    """SmallNORB dataset. Based on Locatello et al. [1] `implementation <https://github.com/google-research/disentanglement_lib>`_
+    """ SmallNORB dataset. Based on Locatello et al. [1] `implementation <https://github.com/google-research/disentanglement_lib>`_
 
     The `dataset <https://cs.nyu.edu/~ylclab/data/norb-v1.0-small/>`_  was first used in [2]. Images are resized to 64x64.
 

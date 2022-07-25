@@ -9,8 +9,7 @@ from vae_ld.data.dataset import Data
 
 
 class Stl(Data):
-    """
-    Stl10 dataset [1] with images rescaled to 64x64.
+    """ Stl10 dataset [1] with images rescaled to 64x64.
 
     References
     ----------

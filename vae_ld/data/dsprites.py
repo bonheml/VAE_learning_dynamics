@@ -7,7 +7,7 @@ import numpy as np
 
 
 class DSprites(Data):
-    """DSprites dataset. Based on Locatello et al. [1] `implementation <https://github.com/google-research/disentanglement_lib>`_.
+    """ DSprites dataset. Based on Locatello et al. [1] `implementation <https://github.com/google-research/disentanglement_lib>`_.
     The `dataset <https://github.com/deepmind/dsprites-dataset>`_  was originally used in [2].
 
     The ground-truth factors of variation are (in the default setting):
@@ -84,7 +84,7 @@ class DSprites(Data):
 
 
 class ColorDSprites(DSprites):
-    """Color DSprites. Based on Locatello et al. [1] `implementation <https://github.com/google-research/disentanglement_lib>`_.
+    """ Color DSprites. Based on Locatello et al. [1] `implementation <https://github.com/google-research/disentanglement_lib>`_.
 
     This data set is the same as the original DSprites data set except that when
     sampling the observations X, the sprite is colored in a randomly sampled
@@ -151,7 +151,7 @@ class NoisyDSprites(DSprites):
 
 
 class GreyDSprites(DSprites):
-    """Grey DSprites.
+    """ Grey DSprites.
 
     This data set is the same as the original DSprites data set except that when
     sampling the observations X, the background pixels are turned to a configurable uniform shade of grey.
@@ -175,7 +175,7 @@ class GreyDSprites(DSprites):
 
 
 class ScreamDSprites(DSprites):
-    """Scream DSprites. Based on Locatello et al. [1] `implementation and dataset <https://github.com/google-research/disentanglement_lib>`_.
+    """ Scream DSprites. Based on Locatello et al. [1] `implementation and dataset <https://github.com/google-research/disentanglement_lib>`_.
 
     This data set is the same as the original DSprites data set except that when
     sampling the observations X, a random patch of the Scream image is sampled as

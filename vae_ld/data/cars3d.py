@@ -1,6 +1,5 @@
 import tarfile
 import shutil
-import requests
 from PIL import Image
 from scipy.io import loadmat
 import numpy as np
@@ -10,8 +9,7 @@ from vae_ld.data.dataset import Data
 
 
 class Cars3D(Data):
-    """
-    Cars3D data set. Based on Locatello et al. [1] `implementation <https://github.com/google-research/disentanglement_lib>`_
+    """ Cars3D data set. Based on Locatello et al. [1] `implementation <https://github.com/google-research/disentanglement_lib>`_
 
     The `dataset <http://www.scottreed.info/>`_ was first used in [2]. The images are rescaled to 64x64.
     The ground-truth factors of variation are:

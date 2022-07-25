@@ -3,7 +3,7 @@ import numpy as np
 
 
 class SplitDiscreteStateSpace(object):
-    """State space with factors split between latent variable and observations.
+    """ State space with factors split between latent variable and observations.
     Based on Locatello et al. [1]
     `implementation <https://github.com/google-research/disentanglement_lib>`_
 
@@ -205,6 +205,11 @@ def tryint(s):
 def natural_sort(s):
     """ Natural sort implementation taken from `Ned Batchelder website <https://nedbatchelder.com/blog/200712/human_sorting.html>`_.
     Turn a string into a list of string and number chunks.
+
+    Parameters
+    ----------
+    s : str
+        The string to process
 
     Examples
     --------
