@@ -43,3 +43,18 @@ Hidalgo
    :members:
    :undoc-members:
 
+Get optimal number of latent dimensions for VAEs
+================================================
+
+Fondue
+------
+.. autofunction:: vae_ld.learning_dynamics.fondue.fondue
+
+
+Create a model with n latents
+-----------------------------
+.. autofunction:: vae_ld.learning_dynamics.fondue.init_model_with_n_latents
+
+Train model and get IDEs
+------------------------
+.. autofunction:: vae_ld.learning_dynamics.fondue.train_model_and_get_ides
