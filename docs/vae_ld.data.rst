@@ -29,13 +29,13 @@ dSprites datasets
    :undoc-members:
    :show-inheritance:
 
-symsol
--------------
+Symsol
+------
 
-.. autoclass:: vae_ld.data.symsol.Symsol
+.. autoclass:: vae_ld.data.symsol.SymSol
    :members:
    :undoc-members:
-   :show-inheritance:
+   :show-inheDeclan Collinsritance:
 
 smallNorb
 ---------
@@ -46,7 +46,7 @@ smallNorb
    :show-inheritance:
 
 Celeba
---------
+------
 
 .. autoclass:: vae_ld.data.celeba.CelebA
    :members:

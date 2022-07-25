@@ -19,9 +19,24 @@ Visualise similarity
 
 .. autofunction:: vae_ld.visualisation.similarity.plot_tsne
 
+Visualise IDES
+--------------
+
+.. warning::
+   These functions relies on the layer names of the current implementation and are not compatible with custom models.
+
+
+.. autofunction:: vae_ld.visualisation.ides.plot_latents_ides
+
+.. autofunction:: vae_ld.visualisation.ides.plot_data_ides
+
+.. autofunction:: vae_ld.visualisation.ides.plot_layers_ides
+
 Visualisation utils
 -------------------
 
 .. autofunction:: vae_ld.visualisation.utils.save_figure
 
 .. autofunction:: vae_ld.visualisation.similarity.aggregate_similarity
+
+.. autofunction:: vae_ld.visualisation.ides.aggregate_ides

@@ -11,7 +11,7 @@ import numpy as np
 hidalgo = Extension("gibbs", sources=["vae_ld/ext/gibbs.c"], include_dirs=[np.get_include()])
 
 extras = {
-   'doc': ['sphinx', 'sphinx-rtd-theme']
+   'doc': ['sphinx==5.0.2', 'sphinx-rtd-theme']
 }
 
 setup(

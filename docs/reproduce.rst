@@ -222,8 +222,8 @@ The complete set of models trained for this paper could be retrained with
 This can also be done using the corresponding individual commands.
 
 
-Computing similarity scores
----------------------------
+Computing IDEs
+--------------
 .. Note::
    The aggregated IDEs of the papers can be `downloaded <ide_url>`_ if you want to skip this step.
    When downloading this, make sure to put them in the directory corresponding to your `XP_PATH` env variable without modifying the folder architecture used.
