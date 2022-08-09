@@ -71,10 +71,10 @@ def plot_latents_ides(input_file, save_file, overwrite, xy_annot=None, xy_text=N
         logger.info("Skipping already computed latent ides of {}".format(save_file))
         return
     df = pd.read_csv(input_file, sep="\t")
-    df2 = df[df.layer.isin(["encoder/z_mean", "encoder/z_log_var", "sampling", "z"]) &
+    df2 = df[df.layer.isin(["encoder/z_mean", "encoder/z_log_var", "sampling", "encoder/z"]) &
              df.estimator.isin(["MLE_10", "MLE_20", "TwoNN"])]
     df2 = df2.rename(columns={"latent_dim": "Number of latent dimensions"})
-    df2 = df2.replace(["encoder/z_mean", "encoder/z_log_var", "sampling", "z"], ["Mean", "Variance", "Sampled", "Sampled"])
+    df2 = df2.replace(["encoder/z_mean", "encoder/z_log_var", "sampling", "encoder/z"], ["Mean", "Variance", "Sampled", "Sampled"])
     ax = sns.lineplot(data=df2, x="Number of latent dimensions", y="IDE", hue="layer", style="layer",
                       linewidth=10, ci="sd")
     ax.legend(title="Representation")
@@ -149,10 +149,8 @@ def plot_layers_ides(input_file, save_file, overwrite, hue="Number of latent dim
     df = pd.read_csv(input_file, sep="\t")
     df = df[df.estimator.isin(["MLE_10", "MLE_20", "TwoNN"])]
     df = df[df.layer != "sampling_1"]
-    df = df.replace("encoder/z_mean", "mean")
-    df = df.replace("encoder/z_log_var", "variance")
-    df = df.replace("sampling", "sampled")
     df = df[df.layer != "decoder/reshape"]
+    df = df.replace(["encoder/z_mean", "encoder/z_log_var", "sampling", "encoder/z"], ["mean", "variance", "sampled", "sampled"])
     df = df.rename(columns={"latent_dim": "Number of latent dimensions", "layer": "Layer", "model_epoch": "Epoch"})
     markers = ["D", "v", "o", "^", "s", "<", ">", "p", "*", "X", ".", "8", "d", "H"]
     ax = sns.pointplot(x="Layer", y="IDE", hue=hue, markers=markers, data=df, ci="sd")
