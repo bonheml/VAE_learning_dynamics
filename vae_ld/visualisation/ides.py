@@ -71,12 +71,10 @@ def plot_latents_ides(input_file, save_file, overwrite, xy_annot=None, xy_text=N
         logger.info("Skipping already computed latent ides of {}".format(save_file))
         return
     df = pd.read_csv(input_file, sep="\t")
-    df2 = df[df.layer.isin(["encoder/z_mean", "encoder/z_log_var", "sampling"]) &
+    df2 = df[df.layer.isin(["encoder/z_mean", "encoder/z_log_var", "sampling", "z"]) &
              df.estimator.isin(["MLE_10", "MLE_20", "TwoNN"])]
     df2 = df2.rename(columns={"latent_dim": "Number of latent dimensions"})
-    df2 = df2.replace("encoder/z_mean", "Mean")
-    df2 = df2.replace("encoder/z_log_var", "Variance")
-    df2 = df2.replace("sampling", "Sampled")
+    df2 = df2.replace(["encoder/z_mean", "encoder/z_log_var", "sampling", "z"], ["Mean", "Variance", "Sampled", "Sampled"])
     ax = sns.lineplot(data=df2, x="Number of latent dimensions", y="IDE", hue="layer", style="layer",
                       linewidth=10, ci="sd")
     ax.legend(title="Representation")
