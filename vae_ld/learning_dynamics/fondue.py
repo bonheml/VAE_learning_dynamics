@@ -47,7 +47,7 @@ def train_model_and_get_ides(model, sampler, id_estimator, data_examples, cfg):
     -------
     mean and sampled IDEs
     """
-    model.fit(sampler, epochs=cfg.max_epochs, batch_size=cfg.batch_size)
+    model.fit(sampler, epochs=cfg.max_epochs, steps_per_epochs=cfg.steps_per_epochs, batch_size=cfg.batch_size)
     _, acts, _ = get_encoder_latents_activations(data_examples, None, model)
     acts = [prepare_activations(act) for act in acts]
     mean_ide = id_estimator(acts[0])

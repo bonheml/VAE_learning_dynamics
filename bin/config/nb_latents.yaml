@@ -6,6 +6,7 @@ latent_shape: 10
 threshold: 20
 ide_batch_size: 10000
 max_epochs: 1
+steps_per_epochs: 10000
 
 defaults:
   - _self_
