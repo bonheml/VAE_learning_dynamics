@@ -5,25 +5,22 @@ import tensorflow as tf
 from vae_ld.learning_dynamics import logger
 
 
-def filter_variables(data, model_path, save_file, var_threshold=0.1, mean_error_range=0.1, batch_size=4):
+def filter_variables(mean_vars, save_file=None, var_threshold=0.1, mean_error_range=0.1):
     """ Filter the latent variables of a VAE by type: active, mixed and passive
 
     Parameters
     ----------
-    data: a matrix containing the data examples
-    model_path: the path of the VAE to load
-    save_file: the file where the results will be saved
+    mean_vars: the activations of the mean layer
+    save_file: the file where the results will be saved, if None, results are returned without saving
     var_threshold: the variance threshold below which a variable of the variance layer is considered low
     mean_error_range: the threshold below which a variable of the mean layer is considered low
-    batch_size: the batch size used for predictions.
 
     Returns
     -------
     pandas.Dataframe
         A dataframe containing the occurences of each variable type, their indexes, means and variance values.
     """
-    model = tf.keras.models.load_model(model_path)
-    z_vars = tf.exp(model.encoder.predict(data, batch_size=batch_size)[-2]).numpy().T
+    z_vars = mean_vars.numpy().T
     scores = {}
 
     num_codes = z_vars.shape[0]
@@ -48,8 +45,8 @@ def filter_variables(data, model_path, save_file, var_threshold=0.1, mean_error_
     scores["variances"] = variances.tolist()
     scores["means"] = means.tolist()
 
-    logger.info("Found {} passive variables, {} mixed variables, and {} active variables for model {}".format(
-        scores["passive_variables"], scores["mixed_variables"], scores["active_variables"], model_path))
+    logger.info("Found {} passive variables, {} mixed variables, and {} active variables".format(
+        scores["passive_variables"], scores["mixed_variables"], scores["active_variables"]))
 
     checksum = scores["passive_variables"] + scores["active_variables"] + scores["mixed_variables"]
     try:
@@ -59,5 +56,6 @@ def filter_variables(data, model_path, save_file, var_threshold=0.1, mean_error_
 
     scores = {k: [v] for k, v in scores.items()}
     df = pd.DataFrame(scores)
-    df.to_csv(save_file, sep="\t", index=False)
+    if save_file is not None:
+        df.to_csv(save_file, sep="\t", index=False)
     return df

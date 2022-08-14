@@ -47,7 +47,7 @@ def get_file_list(model_path, keep_n=0, selection_type="even"):
         How many files to select. If 0, select all files. If selection type is "custom", this a list of substrings
         corresponding to the files to keep. Default 0
     selection_type : str, optional
-        Can be "even" or "first". If "first", select the first `n` files. Otherwise, select evenly spaced indexes from
+        Can be "even", "first", or "custom". If "first", select the first `n` files. Otherwise, select evenly spaced indexes from
         the file list. Default "even".
 
     Returns
