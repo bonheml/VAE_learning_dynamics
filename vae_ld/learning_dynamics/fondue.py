@@ -56,7 +56,7 @@ def train_model_and_get_ides(model, sampler, id_estimator, data_examples, cfg):
 
 
 def train_model_and_get_var_types(model, sampler, estimator, data_examples, cfg):
-    """ Train a model for a few steps and get the variable types from the mean representation
+    """ Train a model for a few steps and get the variable types from the variance representation
 
     Parameters
     ----------
@@ -73,12 +73,12 @@ def train_model_and_get_var_types(model, sampler, estimator, data_examples, cfg)
 
     Returns
     -------
-    mean and sampled IDEs
+    number of passive, mixed and active variables
     """
     model.fit(sampler, epochs=cfg.max_epochs, steps_per_epoch=cfg.steps_per_epoch, batch_size=cfg.batch_size)
     _, acts, _ = get_encoder_latents_activations(data_examples, None, model)
-    acts = [prepare_activations(act) for act in acts]
-    var_types = estimator(acts[0])
+    var_acts = prepare_activations(acts[1])
+    var_types = estimator(var_acts)
     return var_types["active_variables"].unique()[0], var_types["mixed_variables"].unique()[0], var_types["passive_variables"].unique()[0]
 
 

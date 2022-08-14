@@ -5,27 +5,28 @@ import tensorflow as tf
 from vae_ld.learning_dynamics import logger
 
 
-def filter_variables(mean_vars, save_file=None, var_threshold=0.1, mean_error_range=0.1):
+def filter_variables(log_vars, save_file=None, var_threshold=0.1, mean_error_range=0.1):
     """ Filter the latent variables of a VAE by type: active, mixed and passive
 
     Parameters
     ----------
-    mean_vars: the activations of the mean layer
+    log_vars: the activations of the variance layer
     save_file: the file where the results will be saved, if None, results are returned without saving
     var_threshold: the variance threshold below which a variable of the variance layer is considered low
-    mean_error_range: the threshold below which a variable of the mean layer is considered low
+    mean_error_range: the mean threshold below which a variable of the variance layer is considered low
 
     Returns
     -------
     pandas.Dataframe
         A dataframe containing the occurences of each variable type, their indexes, means and variance values.
     """
-    z_vars = mean_vars.numpy().T
-    scores = {}
 
-    num_codes = z_vars.shape[0]
-    variances = np.var(z_vars, axis=1)
-    means = np.mean(z_vars, axis=1)
+    scores = {}
+    vars = np.exp(log_vars).T
+
+    num_codes = log_vars.shape[0]
+    variances = np.var(vars, axis=1)
+    means = np.mean(vars, axis=1)
     assert num_codes == variances.shape[0] == means.shape[0]
 
     all_idxs = set(list(range(num_codes)))
