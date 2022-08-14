@@ -78,7 +78,7 @@ def train_model_and_get_var_types(model, sampler, estimator, data_examples, cfg)
     model.fit(sampler, epochs=cfg.max_epochs, steps_per_epoch=cfg.steps_per_epoch, batch_size=cfg.batch_size)
     _, acts, _ = get_encoder_latents_activations(data_examples, None, model)
     var_acts = prepare_activations(acts[1])
-    var_types = estimator(var_acts)
+    var_types = estimator(var_acts, var_threshold=0.2)
     return var_types["active_variables"].unique()[0], var_types["mixed_variables"].unique()[0], var_types["passive_variables"].unique()[0]
 
 
