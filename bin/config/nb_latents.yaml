@@ -8,7 +8,6 @@ ide_batch_size: 10000
 max_epochs: 1
 steps_per_epoch: 10000
 fondue_type: "ide"
-keep_mixed: true
 
 defaults:
   - _self_
@@ -20,9 +19,9 @@ defaults:
 
 hydra:
   run:
-    dir: ${oc.env:XP_PATH}/${hydra.job.name}/fondue_${fondue_type}/${model.name}/${dataset.name}/${param_value}/${seed}
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/fondue_${fondue_type}/${threshold}/${model.name}/${dataset.name}/${param_value}/${seed}
   sweep:
-    dir: ${oc.env:XP_PATH}/${hydra.job.name}/fondue_${fondue_type}/${model.name}/${dataset.name}/${param_value}
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/fondue_${fondue_type}/${threshold}/${model.name}/${dataset.name}/${param_value}
     subdir: ${seed}
   job:
     config:
