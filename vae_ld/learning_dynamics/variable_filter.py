@@ -22,7 +22,7 @@ def filter_variables(log_vars, save_file=None, var_threshold=0.1, mean_error_ran
     """
 
     scores = {}
-    vars = np.exp(log_vars).T
+    vars = np.exp(log_vars)
 
     num_codes = log_vars.shape[0]
     variances = np.var(vars, axis=1)
