@@ -161,7 +161,7 @@ def fondue_var_type(estimator, data_ide, data_examples, sampler, cfg):
         model = init_model_with_n_latents(cfg, latent_dim, optimizer)
         logger.debug("Computing variable types from mean representations")
         active_vars, mixed_vars, passive_vars = train_model_and_get_var_types(model, sampler, estimator, data_examples, cfg)
-
+        logger.debug("Found {} active variables, {} mixed variables, and {} passive variables".format(active_vars, mixed_vars, passive_vars))
         if passive_vars > 0 and cfg.threshold is True:
             return active_vars + mixed_vars
         if cfg.threshold is False and (mixed_vars > 0 or passive_vars > 0):
