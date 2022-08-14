@@ -7,7 +7,6 @@ threshold: 20
 ide_batch_size: 10000
 max_epochs: 1
 steps_per_epoch: 10000
-fondue_type: "ide"
 
 defaults:
   - _self_

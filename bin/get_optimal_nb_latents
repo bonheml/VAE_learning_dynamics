@@ -4,11 +4,9 @@ import hydra
 from hydra.utils import instantiate
 from omegaconf import OmegaConf
 
-from vae_ld.learning_dynamics.fondue import fondue_ide, fondue_var_type
+from vae_ld.learning_dynamics.fondue import fondue_ide
 from vae_ld.learning_dynamics.utils import prepare_activations
 import numpy as np
-
-from vae_ld.learning_dynamics.variable_filter import filter_variables
 
 logger = logging.getLogger("get_optimal_nb_latents")
 
@@ -32,10 +30,10 @@ def get_optimal_nb_latents(cfg):
     data_ide = int(ide.fit_transform(prepare_activations(X)))
 
     logger.info("Searching the optimal number of latent dimensions")
-    if cfg.fondue_type == "ide":
-        n = fondue_ide(ide.fit_transform, data_ide, X, sampler, cfg)
-    else:
-        n = fondue_var_type(filter_variables, data_ide, X, sampler, cfg)
+    #if cfg.fondue_type == "ide":
+    n = fondue_ide(ide.fit_transform, data_ide, X, sampler, cfg)
+    # else:
+    #    n = fondue_var_type(filter_variables, data_ide, X, sampler, cfg)
     logger.info("The optimal dimensionality for the latent dimensions is {}".format(n))
 
 
