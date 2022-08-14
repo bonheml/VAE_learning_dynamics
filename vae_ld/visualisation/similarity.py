@@ -9,6 +9,7 @@ from vae_ld.visualisation import logger
 from vae_ld.visualisation.utils import save_figure
 import matplotlib.pyplot as plt
 
+sns.set(font_scale=1.1)
 sns.set_style("whitegrid", {'axes.grid': False, 'legend.labelspacing': 1.2})
 
 
@@ -17,13 +18,14 @@ def check_exists(save_file):
     return save_file, pathlib.Path(save_file).exists()
 
 
-def similarity_heatmap(input_dir, overwrite):
+def similarity_heatmap(input_file, m1_name, m1_epoch, p1_name, p1_value, m2_name, m2_epoch,
+                       p2_name, p2_value, metric, save_file, overwrite):
     """ Compute heatmaps of similarity scores obtained with `metric_name` for each model.
 
     Parameters
     ----------
-    input_dir : str
-        Name of the directory containing the similarity scores
+    input_file : str
+        Name of the file containing the similarity scores
     overwrite : bool
         If True, overwrite any existing file, else skip them.
 
@@ -31,33 +33,38 @@ def similarity_heatmap(input_dir, overwrite):
     -------
     None
     """
-    files = glob("{}/*.tsv".format(input_dir))
-    to_drop = ["m1_name", "p1_value", "m1_seed", "m1_epoch", "m2_name", "p2_value", "m2_seed", "m2_epoch"]
-    p_names = ["p1_name", "p2_name"]
-    layers_to_drop = ["decoder/reshape", "decoder/output"]
-
-    for f in files:
-        df = pd.read_csv(f, sep="\t", header=0, index_col=0)
-        info = df[to_drop].values[0]
-        p1_name, p2_name = df[p_names].values[0]
-        save_path = "{}_{}_seed_{}_epoch_{}_{}_{}_seed_{}_epoch_{}.pdf".format(*info)
-
-        if overwrite is False and pathlib.Path(save_path).exists():
-            logger.info("Skipping already plotted heatmap of {}, param={}, seed={}, epoch={} and {}, param={},"
-                        " seed={}, epoch={}".format(*info))
-            continue
-
-        logger.info("Plotting heatmap of {}, param={}, seed={}, epoch={} and {}, param={}, seed={}, "
-                    "epoch={}".format(*info))
-        df.rename(columns={"encoder/z": "sampled", "encoder/z_mean": "mean", "encoder/z_log_var": "log_var"},
-                  index={"encoder/z": "sampled", "encoder/z_mean": "mean", "encoder/z_log_var": "log_var"},
-                  inplace=True, errors="ignore")
-        df.drop(columns=to_drop + p_names + layers_to_drop, inplace=True, errors="ignore")
-        df.drop(index=to_drop + p_names + layers_to_drop, inplace=True, errors="ignore")
-        ax = sns.heatmap(df, vmin=0, vmax=1, annot_kws={"fontsize": 13})
-        ax.set(ylabel="{}, {}={}, seed={}, epoch={}".format(info[0], p1_name, *info[1:4]),
-               xlabel="{}, {}={}, seed={}, epoch={}".format(info[4], p2_name, *info[5:]))
-        save_figure(save_path)
+    vae_index = ["input", "e/1", "e/2", "e/3", "mean", "log_var", "sampled",
+                 "d/1", "d/2", "d/3"]
+    clf_index = ["input", "c/1", "c/2", "c/3", "c/4", "c/5", "c/6"]
+    to_rename = {"encoder/{}".format(i): "e/{}".format(i) for i in range(1, 7)}
+    to_rename.update({"decoder/{}".format(i): "d/{}".format(i) for i in range(1, 7)})
+    to_rename.update({"classifier/{}".format(i): "c/{}".format(i) for i in range(1, 7)})
+    to_rename.update({"encoder/z": "sampled", "encoder/z_mean": "mean", "encoder/z_log_var": "log_var", "sampling": "sampled"})
+    df = pd.read_csv(input_file, sep="\t")
+    df.drop(["p1_name", "m1_seed", "m2_seed"], axis=1, inplace=True)
+    grp = df.groupby(["m1_epoch", "m2_epoch", "m1_name", "p1_value", "m2_name", "p2_value", "m1", "m2"])
+    df = grp.mean()
+    if m1_name == "classifier":
+        df = df[df.index.get_loc_level([m1_epoch, m2_epoch, m1_name, m2_name, p2_value],
+                                       level=["m1_epoch", "m2_epoch", "m1_name", "m2_name", "p2_value"])[0]]
+    elif m2_name == "classifier":
+        df = df[df.index.get_loc_level([m1_epoch, m2_epoch, m1_name, p1_value, m2_name],
+                                       level=["m1_epoch", "m2_epoch", "m1_name", "p1_value", "m2_name"])[0]]
+    else:
+        df = df[df.index.get_loc_level([m1_epoch, m2_epoch, m1_name, p1_value, m2_name, p2_value],
+                                     level=["m1_epoch", "m2_epoch", "m1_name", "p1_value", "m2_name", "p2_value"])[0]]
+    df = df.reset_index().drop(["m1_epoch", "m2_epoch", "p2_name", "p2_value", "m1_name", "m2_name"], axis=1,
+                               errors="ignore")
+    df = df.pivot(index="m1", columns="m2", values=metric)
+    df.rename(columns=to_rename, index=to_rename, inplace=True, errors="ignore")
+    df = df.reindex(columns=vae_index if m1_name != "classifier" else clf_index,
+                    index=vae_index if m2_name != "classifier" else clf_index)
+    ax = sns.heatmap(df.T, vmin=0, vmax=1)
+    m1_name = m1_name.replace("linear", "FC")
+    m2_name = m2_name.replace("linear", "FC")
+    ax.set(ylabel="{}, {}={}, epoch={}".format(m1_name, p1_name, p1_value, m1_epoch) if m1_name != "classifier" else "{}, epoch={}".format(m1_name, m1_epoch),
+           xlabel="{}, {}={}, epoch={}".format(m2_name, p2_name, p2_value, m2_epoch) if m2_name != "classifier" else "{}, epoch={}".format(m2_name, m2_epoch))
+    save_figure(save_file)
 
 
 def avg_similarity_layer_pair(metric_name, input_file, m1_layer, m2_layer, save_file, overwrite):
