@@ -18,9 +18,9 @@ defaults:
 
 hydra:
   run:
-    dir: ${oc.env:XP_PATH}/${hydra.job.name}/fondue_${fondue_type}/${threshold}/${model.name}/${dataset.name}/${param_value}/${seed}
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/threshold_${threshold}/${model.name}/${dataset.name}/${param_value}/${seed}
   sweep:
-    dir: ${oc.env:XP_PATH}/${hydra.job.name}/fondue_${fondue_type}/${threshold}/${model.name}/${dataset.name}/${param_value}
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/threshold_${threshold}/${model.name}/${dataset.name}/${param_value}
     subdir: ${seed}
   job:
     config:
