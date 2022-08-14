@@ -27,6 +27,7 @@ def filter_variables(log_vars, save_file=None, var_threshold=0.1, mean_error_ran
     num_codes = log_vars.shape[0]
     variances = np.var(vars, axis=1)
     means = np.mean(vars, axis=1)
+    logger.debug("num_codes {}, variance shape {}, mean shape {}".format(num_codes, variances.shape, means.shape))
     assert num_codes == variances.shape[0] == means.shape[0]
 
     all_idxs = set(list(range(num_codes)))
