@@ -152,7 +152,7 @@ def fondue_var_type(estimator, data_ide, data_examples, sampler, cfg):
     -------
     The optimal number of latent dimensions
     """
-    latent_dim = data_ide
+    latent_dim = 2 * data_ide
     optimizer = instantiate(cfg.optimizer)
     all_active = True
 
