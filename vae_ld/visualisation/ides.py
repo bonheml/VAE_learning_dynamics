@@ -159,5 +159,6 @@ def plot_layers_ides(input_file, save_file, overwrite, hue="|z|"):
         horizontalalignment='center',
     )
     ax.set_ylim(0, np.ceil(df.IDE.max()))
-    _ = plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0., labelspacing=0.3, title=hue)
+    if hue is not None:
+        _ = plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0., labelspacing=0.3, title=hue)
     save_figure(save_file)
