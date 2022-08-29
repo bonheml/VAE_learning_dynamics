@@ -5,9 +5,12 @@ fn:
   input_file: ${oc.env:XP_PATH}/visualise_ides/aggregate/${dataset_name}/${model_name}/IDE_${dataset_name}_${model_name}_${param_name}_${param_value}_${batch_size}_samples_agg.tsv
   save_file: ${dataset_name}_${model_name}_${param_name}_${param_value}_${batch_size}_samples_IDE_latents.pdf
   overwrite: ${overwrite}
-  # For dsprites, xy_annot is (10, 5) and xy_text is (10,12).
-  # For symsol xy_annot is (9, 3.5) and xy_text is (10, 10)
-  # For celeba xy_annot is (49, 25) and xy_text is (49, 45)
+  # For dsprites conv, xy_annot is (12, 6.5) and xy_text is (12,13).
+  # For symsol conv, xy_annot is (11, 4) and xy_text is (11, 10)
+  # For celeba conv, xy_annot is (50, 25) and xy_text is (50, 40)
+  # For dsprites fc, xy_annot is (7, 5.7) and xy_text is (7,14).
+  # For symsol fc, xy_annot is (8, 5) and xy_text is (8, 12)
+  # For celeba fc, xy_annot is (39, 22) and xy_text is (39, 40)
   xy_annot: null
   xy_text: null
-  text: null
+  text: FONDUE

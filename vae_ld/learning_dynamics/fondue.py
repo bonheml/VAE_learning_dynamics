@@ -104,31 +104,30 @@ def fondue_ide(id_estimator, data_ide, data_examples, sampler, cfg):
     The optimal number of latent dimensions
     """
 
-    infimum, supremum, upper_bound = 0, np.inf, data_ide
+    lower_bound, upper_bound, pivot = 1, np.inf, data_ide
     ides_diff = {}
-    threshold = (cfg.threshold * upper_bound) / 100
+    threshold = (cfg.threshold * pivot) / 100
     logger.debug("The threshold is {}".format(threshold))
     optimizer = instantiate(cfg.optimizer)
 
-    while upper_bound != infimum and upper_bound > 0:
-        logger.debug("Upper bound: {}, Infimum: {}, Supremum: {}".format(upper_bound, infimum, supremum))
-        diff = ides_diff.get(upper_bound, None)
+    while pivot != lower_bound and pivot > 0:
+        logger.debug("Upper bound: {}, Infimum: {}, Supremum: {}".format(pivot, lower_bound, upper_bound))
+        diff = ides_diff.get(pivot, None)
 
         if diff is None:
-            logger.debug("Instantiate model with {} latents".format(upper_bound))
-            model = init_model_with_n_latents(cfg, upper_bound, optimizer)
+            logger.debug("Instantiate model with {} latents".format(pivot))
+            model = init_model_with_n_latents(cfg, pivot, optimizer)
             logger.debug("Computing IDE of mean and sampled representations")
             mean_ide, sampled_ide = train_model_and_get_ides(model, sampler, id_estimator, data_examples, cfg)
-            ides_diff[upper_bound] = sampled_ide - mean_ide
+            ides_diff[pivot] = sampled_ide - mean_ide
 
-        logger.debug("The difference between mean and sampled IDE is {}".format(ides_diff[upper_bound]))
-        if ides_diff[upper_bound] > threshold:
-            supremum = upper_bound
-            infimum, upper_bound = infimum, (infimum + upper_bound) // 2
+        logger.debug("The difference between mean and sampled IDE is {}".format(ides_diff[pivot]))
+        if ides_diff[pivot] > threshold:
+            upper_bound, pivot = pivot, (lower_bound + pivot) // 2
         else:
-            infimum, upper_bound = upper_bound, min(upper_bound * 2, supremum)
+            lower_bound, pivot = pivot, min(pivot * 2, upper_bound)
 
-    return upper_bound
+    return pivot
 
 
 def fondue_var_type(estimator, data_ide, data_examples, sampler, cfg):
