@@ -2,3 +2,4 @@ _target_: vae_ld.models.encoders.FullyConnectedEncoder
 input_shape: ${dataset.observation_shape}
 output_shape: ${latent_shape}
 n_samples: ${n_samples}
+dropout: ${dropout}

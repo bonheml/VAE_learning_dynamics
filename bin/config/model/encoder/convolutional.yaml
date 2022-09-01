@@ -3,3 +3,4 @@ input_shape: ${dataset.observation_shape}
 output_shape: ${latent_shape}
 n_samples: ${n_samples}
 zero_init: false
+dropout: ${dropout}

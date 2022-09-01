@@ -63,7 +63,7 @@ class ConvolutionalEncoder(tf.keras.Model):
            Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
     """
 
-    def __init__(self, input_shape, output_shape, n_samples=1, zero_init=False):
+    def __init__(self, input_shape, output_shape, n_samples=1, zero_init=False, dropout=None):
         logger.debug("Expected input shape is {}".format(input_shape))
         super(ConvolutionalEncoder, self).__init__()
         self.n_samples = n_samples
@@ -77,6 +77,7 @@ class ConvolutionalEncoder(tf.keras.Model):
                                 name="encoder/4")
         self.e5 = layers.Flatten(name="encoder/5")
         self.e6 = layers.Dense(256, activation="relu", name="encoder/6")
+        self.dropout = layers.Dropout(dropout) if dropout is not None else None
         kernel_initializer = "zeros" if zero_init else "glorot_uniform"
         self.z_mean = layers.Dense(output_shape, name="encoder/z_mean", kernel_initializer=kernel_initializer)
         self.z_log_var = layers.Dense(output_shape, name="encoder/z_log_var", kernel_initializer=kernel_initializer)
@@ -90,8 +91,9 @@ class ConvolutionalEncoder(tf.keras.Model):
         x4 = self.e4(x3)
         x5 = self.e5(x4)
         x6 = self.e6(x5)
-        z_mean = self.z_mean(x6)
-        z_log_var = self.z_log_var(x6)
+        x7 = self.dropout(x6) if self.dropout is not None else x6
+        z_mean = self.z_mean(x7)
+        z_log_var = self.z_log_var(x7)
         z = self.sampling([z_mean, z_log_var], n_samples=self.n_samples)
         return x1, x2, x3, x4, x5, x6, z_mean, z_log_var, z
 
@@ -103,7 +105,7 @@ class DeepConvEncoder(tf.keras.Model):
     after each iteration.
     """
 
-    def __init__(self, input_shape, output_shape, n_samples=1, zero_init=False):
+    def __init__(self, input_shape, output_shape, n_samples=1, zero_init=False, dropout=None):
         super(DeepConvEncoder, self).__init__()
         self.n_samples = n_samples
         # Convolutional Blocks
@@ -117,6 +119,8 @@ class DeepConvEncoder(tf.keras.Model):
 
         # Fully Connected Block
         self.block_5 = self._build_fc_block(5, 4096, "encoder/5")
+
+        self.dropout = layers.Dropout(dropout) if dropout is not None else None
 
         # Mean, variance, and sampling layers
         kernel_initializer = "zeros" if zero_init else "glorot_uniform"
@@ -165,9 +169,11 @@ class DeepConvEncoder(tf.keras.Model):
         # Fully Connected Block
         x5 = self._iterate_on_block(x4f, self.block_5)
 
+        x6 = self.dropout(x5) if self.dropout is not None else x5
+
         # Mean, variance, and sampling layers
-        z_mean = self.z_mean(x5)
-        z_log_var = self.z_log_var(x5)
+        z_mean = self.z_mean(x6)
+        z_log_var = self.z_log_var(x6)
         z = self.sampling([z_mean, z_log_var], n_samples=self.n_samples)
 
         # We only return the activation at the end of each block + FC layers and Sampling
@@ -187,12 +193,13 @@ class FullyConnectedEncoder(tf.keras.Model):
            Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
     """
 
-    def __init__(self, input_shape, output_shape, n_samples=1):
+    def __init__(self, input_shape, output_shape, n_samples=1, dropout=None):
         super(FullyConnectedEncoder, self).__init__()
         self.n_samples = n_samples
         self.e1 = layers.Flatten(name="encoder/1", input_shape=input_shape)
         self.e2 = layers.Dense(1200, activation="relu", name="encoder/2")
         self.e3 = layers.Dense(1200, activation="relu", name="encoder/3")
+        self.dropout = layers.Dropout(dropout) if dropout is not None else None
         self.z_mean = layers.Dense(output_shape, activation=None, name="encoder/z_mean")
         self.z_log_var = layers.Dense(output_shape, activation=None, name="encoder/z_log_var")
         self.z = Sampling(name="encoder/z")
@@ -201,8 +208,9 @@ class FullyConnectedEncoder(tf.keras.Model):
         x1 = self.e1(inputs)
         x2 = self.e2(x1)
         x3 = self.e3(x2)
-        z_mean = self.z_mean(x3)
-        z_log_var = self.z_log_var(x3)
+        x4 = self.dropout(x3) if self.dropout is not None else x3
+        z_mean = self.z_mean(x4)
+        z_log_var = self.z_log_var(x4)
         z = self.z([z_mean, z_log_var], n_samples=self.n_samples)
         return x1, x2, x3, z_mean, z_log_var, z
 
