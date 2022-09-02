@@ -226,10 +226,10 @@ class PreTrainedEncoder(tf.keras.Model):
     pre_trained_model: tf.keras.Model
         A pre-trained model which will be used as feature extractor
     use_dense: bool, optional
-        If True, add a fully connected layer after the pre-trained model. Default True
+        If True, add a fully connected layer after the pre-trained model. Default False
     """
 
-    def __init__(self, output_shape, pre_trained_model, n_samples=1, use_dense=True):
+    def __init__(self, output_shape, pre_trained_model, n_samples=1, use_dense=False):
         super(PreTrainedEncoder, self).__init__()
         self.n_samples = n_samples
         self.pre_trained = pre_trained_model
@@ -239,6 +239,7 @@ class PreTrainedEncoder(tf.keras.Model):
         self.flatten = layers.Flatten()
         if use_dense:
             self.dense = layers.Dense(256, name="encoder/dense")
+        self.norm = tf.keras.layers.BatchNormalization()
         self.z_mean = layers.Dense(output_shape, name="encoder/z_mean", kernel_initializer="zeros")
         self.z_log_var = layers.Dense(output_shape, name="encoder/z_log_var", kernel_initializer="zeros")
         self.sampling = Sampling()
@@ -251,10 +252,11 @@ class PreTrainedEncoder(tf.keras.Model):
         if hasattr(self, 'dense'):
             logger.debug("Using additional dense layer.")
             x1 = self.dense(x1)
-        z_mean = self.z_mean(x1)
-        z_log_var = self.z_log_var(x1)
+        x2 = self.norm(x1)
+        z_mean = self.z_mean(x2)
+        z_log_var = self.z_log_var(x2)
         z = self.sampling([z_mean, z_log_var], n_samples=self.n_samples)
-        return (*x, x1, z_mean, z_log_var, z)
+        return (*x, x1, x2, z_mean, z_log_var, z)
 
 
 def load_pre_trained_classifier(model_path, input_shape, n_layers=None):
