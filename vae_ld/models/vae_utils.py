@@ -97,7 +97,7 @@ def compute_batch_tc(z, z_mean, z_log_var):
     >>> compute_batch_tc(z, log_var, mean)
         <tf.Tensor: shape=(), dtype=float32, numpy=-0.6931472>
     >>> mean, log_var, z = tf.constant([[2., -1.]]), tf.constant([[0., 0.]]), tf.constant([[-1., 2.]])
-    >>> compute_batch_tc(z, log_var, mean)
+    >>> compute_batch_tc(z, mean, log_var)
         <tf.Tensor: shape=(), dtype=float32, numpy=0.0>
     """
     log_qz = compute_gaussian_log_pdf(tf.expand_dims(z, 1), tf.expand_dims(z_mean, 0), tf.expand_dims(z_log_var, 0))
