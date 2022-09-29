@@ -8,10 +8,16 @@ class KLD:
 
     Parameters
     ----------
-    z_log_var : tf.Tensor
+    z1_log_var : tf.Tensor
         The log variance of the Gaussian
-    z_mean : tf.Tensor
+    z1_mean : tf.Tensor
         The mean of the Gaussian
+    z1_log_var : tf.Tensor
+        The log variance of the second Gaussian, if None, we assume a
+        log covariance of zeros with the same shape as z1_log_var. Default None
+    z1_mean : tf.Tensor
+        The mean of the second Gaussian, if None, we assume a diagonal
+        covariance of zeros with the same shape as z1_mean. Default None
 
     Returns
     -------
@@ -28,10 +34,15 @@ class KLD:
     >>> mean, log_var = tf.constant([[2., -1.]]), tf.constant([[0., 0.]])
     >>> kld(log_var, mean)
         <tf.Tensor: shape=(1,), dtype=float32, numpy=array([2.5], dtype=float32)>
+    >>> mean2, log_var2 = tf.constant([[0., 0.]]), tf.constant([[0., 0.]])
+    >>> kld(log_var, mean, log_var2, mean2)
+        <tf.Tensor: shape=(1,), dtype=float32, numpy=array([2.5], dtype=float32)>
     """
 
-    def __call__(self, z_log_var, z_mean):
-        kl_loss = tfm.square(z_mean) + tfm.exp(z_log_var) - z_log_var - 1
+    def __call__(self, z1_log_var, z1_mean, z2_log_var=None, z2_mean=None):
+        z2_log_var = tf.zeros_like(z1_log_var) if z2_log_var is None else z2_log_var
+        z2_mean = tf.zeros_like(z1_mean) if z2_mean is None else z2_mean
+        kl_loss = (tfm.square(z1_mean - z2_mean) + tfm.exp(z1_log_var)) / tfm.exp(z2_log_var) - z1_log_var + z2_log_var - 1
         return 0.5 * tfm.reduce_sum(kl_loss, [1])
 
 
