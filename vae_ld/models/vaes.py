@@ -1,26 +1,36 @@
 import tensorflow as tf
-from tensorflow import math as tfm
+from tensorflow.python.keras import layers
 
 from vae_ld.models import logger
-from vae_ld.models.vae_utils import compute_batch_tc, compute_covariance, shuffle_z
+from vae_ld.models.decoders import DeconvolutionalDecoder
+from vae_ld.models.divergences import KLD
+from vae_ld.models.encoders import ConvolutionalEncoder
+from vae_ld.models.losses import BernoulliLoss
+from vae_ld.models.vae_utils import compute_batch_tc, compute_covariance
 
 
 class VAE(tf.keras.Model):
-    """ Vanilla VAE model based on Locatello et al. [1] `implementation <https://github.com/google-research/disentanglement_lib>`_
+    """ Vanilla VAE model based on Locatello et al. [1]
+    `implementation <https://github.com/google-research/disentanglement_lib>`_
     and `Keras example <https://keras.io/examples/generative/vae/>`_.
 
     Parameters
     ----------
-    encoder : tf.keras.Model
+    encoder : tf.keras.Model or None, optional
         The encoder. Expected to last three activation matrices should be z_mean, z_log_var, and sampled z.
-    decoder : tf.keras.Model
+        If None, a convolutional encoder with the architecture used in beta vae will be created
+    decoder : tf.keras.Model or None, optional
         The decoder. Takes a sampled z as input
-    reconstruction_loss_fn : function
+        If None, a convolutional decoder with the architecture used in beta vae will be created
+    reconstruction_loss_fn : function, optional
         The metric to use for the reconstruction loss (e.g. l2, bernoulli)
-    input_shape : list
-        The shape of the input given to the encoder
-    latent_shape : list
-        The number of dimensions of z
+        Default is BernoulliLoss
+    input_shape : list or tuple
+        The shape of the input given to the encoder.
+        Default is (64,64,3)
+    latent_shape : int
+        The number of dimensions of z.
+        Default is 10
 
     References
     ----------
@@ -32,15 +42,28 @@ class VAE(tf.keras.Model):
     The encoder and decoder are assumed to be initialised beforehand.
     """
 
-    def __init__(self, *, encoder, decoder, reconstruction_loss_fn, regularisation_loss_fn, input_shape, latent_shape, **kwargs):
+    def __init__(self, *args, encoder=None, decoder=None, reconstruction_loss_fn=BernoulliLoss(),
+                 regularisation_loss_fn=KLD(), input_shape=(64, 64, 3), latent_shape=10, output_shape=(64, 64, 3),
+                 **kwargs):
         n_samples = kwargs.pop("n_samples", 1)
         if n_samples <= 0:
             raise ValueError("The number of samples must be greater than 0.")
         super(VAE, self).__init__(**kwargs)
         self.encoder = encoder
-        self.encoder.build((None, *input_shape))
+        if self.encoder is None:
+            self.encoder = ConvolutionalEncoder(input_shape, latent_shape)
+        if type(input_shape[0]) == list:
+            if self.encoder is None:
+                self.encoder = ConvolutionalEncoder(input_shape[0], latent_shape)
+            self.encoder.build([(None, *i) for i in input_shape])
+        else:
+            if self.encoder is None:
+                self.encoder = ConvolutionalEncoder(input_shape, latent_shape)
+            self.encoder.build((None, *input_shape))
         self.encoder.summary(print_fn=logger.info)
         self.decoder = decoder
+        if self.decoder is None:
+            self.decoder = DeconvolutionalDecoder(latent_shape, output_shape)
         self.decoder.build((None, latent_shape * n_samples))
         self.decoder.summary(print_fn=logger.info)
         self.reconstruction_loss_fn = reconstruction_loss_fn
@@ -49,6 +72,7 @@ class VAE(tf.keras.Model):
         self.elbo_loss_tracker = tf.keras.metrics.Mean(name="elbo_loss")
         self.reconstruction_loss_tracker = tf.keras.metrics.Mean(name="reconstruction_loss")
         self.model_loss_tracker = tf.keras.metrics.Mean(name="model_loss")
+        self.latent_shape = latent_shape
         # This is needed to save the model properly
         self.built = True
 
@@ -106,8 +130,8 @@ class VAE(tf.keras.Model):
         losses["reconstruction_loss"] = tf.reduce_mean(self.reconstruction_loss_fn(data, reconstruction))
         losses["regularisation_loss"] = tf.reduce_mean(self.regularisation_loss_fn(z_log_var, z_mean))
         losses["elbo_loss"] = -tf.add(losses["reconstruction_loss"], losses["regularisation_loss"])
-        losses["model_loss"] = self.compute_model_loss(losses["reconstruction_loss"], losses["regularisation_loss"], z_mean,
-                                                       z_log_var, z)
+        losses["model_loss"] = self.compute_model_loss(losses["reconstruction_loss"], losses["regularisation_loss"],
+                                                       z_mean, z_log_var, z)
         return losses
 
     def update_metrics(self, losses):
@@ -143,7 +167,8 @@ class VAE(tf.keras.Model):
         """
         if isinstance(data, tuple):
             data = data[0]
-        logger.debug("Receive batch of size {} for training".format(data.shape))
+        logger.debug("Receive batch of size {} for training".format(data.shape if not isinstance(data, list) else
+                                                                    [d.shape for d in data]))
         with tf.GradientTape() as tape:
             losses = self.get_gradient_step_output(data)
 
@@ -166,9 +191,80 @@ class VAE(tf.keras.Model):
         """
         if isinstance(data, tuple):
             data = data[0]
-        logger.debug("Receive batch of size {} for testing".format(data.shape))
+        logger.debug("Receive batch of size {} for testing".format(data.shape if not isinstance(data, list) else
+                                                                   [d.shape for d in data]))
         losses = self.get_gradient_step_output(data, training=False)
         return self.update_metrics(losses)
+
+
+class IVAE(VAE):
+    """ Creates an iVAE model based on Khemakhem et al. [1]
+    `implementation <https://github.com/siamakz/iVAE/blob/master/lib/models.py>`_.
+
+    Parameters
+    ----------
+
+    References
+    ----------
+    .. [1] Khemakhem, I., Kingma, D., Monti, R., & Hyvarinen, A. (2020, June). Variational autoencoders
+           and nonlinear ica: A unifying framework. In International Conference on Artificial Intelligence
+           and Statistics (pp. 2207-2217). PMLR.
+    """
+    def __init__(self, *args, prior_model=None, prior_mean=0, prior_shape=10, **kwargs):
+        input_shape = [list(kwargs.pop("input_shape")), [prior_shape,]]
+        super(IVAE, self).__init__(*args, input_shape=input_shape, **kwargs)
+        self.prior_mean = prior_mean
+        self.prior_model = prior_model
+        if self.prior_model is None:
+            self.prior_model = tf.keras.Sequential()
+            self.prior_model.add(layers.Dense(50, input_shape=(prior_shape,), activation=layers.LeakyReLU(alpha=0.1)))
+            for i in range(2):
+                self.prior_model.add(layers.Dense(50, activation=layers.LeakyReLU(alpha=0.1)))
+            self.prior_model.add(layers.Dense(self.latent_shape))
+
+    # This decorator is needed to prevent input shape errors
+    @tf.function(input_signature=[tf.TensorSpec([None, None, None, None], tf.float32),
+                                  tf.TensorSpec([None, None], tf.float32)])
+    def call(self, inputs):
+        z = self.encoder(inputs)[-1]
+        return self.decoder(z)[-1]
+
+    def get_gradient_step_output(self, data, training=True):
+        """ Do one gardient step.
+
+        Parameters
+        ----------
+        data
+            The batch of data to use
+        training : bool, optional
+            Whether the model is training or testing.
+
+        Returns
+        -------
+        list
+            The update losses
+        """
+        losses = {}
+        z_mean, z_log_var, z = self.encoder(data, training=training)[-3:]
+        reconstruction = self.decoder(z, training=training)[-1]
+        # Estimate the log var of p_{\lambda, T}(z|u). The mean is fixed, as in [1].
+        prior_log_var = self.prior_model(data[1], training=training)
+
+        # Compute E_q_{\phi}(z|x,u)[log p_f(x|z)] - KL(q_{\phi}(z|x,u) || p_{\lambda, T}(z|u))
+        losses["reconstruction_loss"] = tf.reduce_mean(self.reconstruction_loss_fn(data[0], reconstruction))
+        losses["regularisation_loss"] = tf.reduce_mean(self.regularisation_loss_fn(z_log_var, z_mean,
+                                                                                   z2_log_var=prior_log_var,
+                                                                                   z2_mean=self.prior_mean))
+        losses["elbo_loss"] = -tf.add(losses["reconstruction_loss"], losses["regularisation_loss"])
+        losses["model_loss"] = self.compute_model_loss(losses["reconstruction_loss"], losses["regularisation_loss"],
+                                                       z_mean, z_log_var, z)
+        return losses
+
+    def train_step(self, data):
+        return super(IVAE, self).train_step(list(data[1]))
+
+    def test_step(self, data):
+        return super(IVAE, self).train_step(list(data[1]))
 
 
 class BetaVAE(VAE):
@@ -188,8 +284,8 @@ class BetaVAE(VAE):
     .. [2] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
            Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
     """
-    def __init__(self, *, beta, **kwargs):
-        super(BetaVAE, self).__init__(**kwargs)
+    def __init__(self, *args, beta=1, **kwargs):
+        super(BetaVAE, self).__init__(*args, **kwargs)
         self.beta = beta
 
     def compute_model_loss(self, reconstruction_loss, regularisation_loss, z_mean, z_log_var, z):
@@ -217,8 +313,8 @@ class AnnealedVAE(VAE):
     .. [2] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
            Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
     """
-    def __init__(self, *, gamma, max_capacity, iteration_threshold, **kwargs):
-        super(AnnealedVAE, self).__init__(**kwargs)
+    def __init__(self, *args, gamma=1, max_capacity=1, iteration_threshold=1, **kwargs):
+        super(AnnealedVAE, self).__init__(*args, **kwargs)
         self.gamma = gamma
         self.max_capacity = max_capacity * 1.
         self.iteration_threshold = iteration_threshold
@@ -251,8 +347,8 @@ class AnnealedVAEB(VAE):
     .. [2] Burgess, C. P., Higgins, I., Pal, A., Matthey, L., Watters, N., Desjardins, G., & Lerchner, A. (2018).
            Understanding disentangling in $\beta $-VAE. arXiv preprint arXiv:1804.03599.
     """
-    def __init__(self, *, iteration_threshold, **kwargs):
-        super(AnnealedVAEB, self).__init__(**kwargs)
+    def __init__(self, *args, iteration_threshold=1, **kwargs):
+        super(AnnealedVAEB, self).__init__(*args, **kwargs)
         self.gamma = 0.
         self.iteration_threshold = iteration_threshold
 
@@ -280,107 +376,14 @@ class BetaTCVAE(VAE):
     .. [2] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
            Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
     """
-    def __init__(self, *, beta, **kwargs):
-        super(BetaTCVAE, self).__init__(**kwargs)
+    def __init__(self, *args, beta=1, **kwargs):
+        super(BetaTCVAE, self).__init__(*args, **kwargs)
         self.beta = beta
 
     def compute_model_loss(self, reconstruction_loss, regularisation_loss, z_mean, z_log_var, z):
         tc = (self.beta - 1.) * compute_batch_tc(z, z_mean, z_log_var)
         reg_regularisation_loss = tc + regularisation_loss
         return tf.add(reconstruction_loss, reg_regularisation_loss)
-
-
-class FactorVAE(VAE):
-    """ Creates a FactorVAE model [1] based on Locatello et al. [2]
-    `implementation <https://github.com/google-research/disentanglement_lib>`_.
-
-    Parameters
-    ----------
-    gamma : float
-        The regularisation value
-    discriminator : tf.keras.Model
-        The initialised discriminator model
-    discriminator_optimizer
-        The optimizer used for the discriminator
-
-    References
-    ----------
-    .. [1] Kim, H., & Mnih, A. (2018, July). Disentangling by factorising. In International Conference on
-           Machine Learning (pp. 2649-2658). PMLR.
-    .. [2] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
-           Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
-    """
-    def __init__(self, *, gamma, discriminator, discriminator_optimizer, **kwargs):
-        super(FactorVAE, self).__init__(**kwargs)
-        self.gamma = gamma
-        self.discriminator = discriminator
-        self.discriminator_optimizer = discriminator_optimizer
-        self.discriminator_loss_tracker = tf.keras.metrics.Mean(name="discriminator_loss")
-        self.tc_loss_tracker = tf.keras.metrics.Mean(name="tc_loss")
-
-    @property
-    def metrics(self):
-        return [self.model_loss_tracker, self.elbo_loss_tracker, self.regularisation_loss_tracker, self.reconstruction_loss_tracker,
-                self.discriminator_loss_tracker, self.tc_loss_tracker]
-
-    def compute_tc_and_discriminator_loss(self, z, training=True):
-        """ Compute the loss of the discriminator and the tc loss based on Locatello et al.
-        `implementation <https://github.com/google-research/disentanglement_lib>`_.
-
-        Parameters
-        ----------
-        z
-            The sampled latent representation
-        training: bool, optional
-            Whether the model is training or testing.
-
-        Returns
-        -------
-        tuple
-            Total correlation and discriminator losses
-        """
-        losses = {}
-        z_shuffled = shuffle_z(z)
-        logits_z, p_z = self.discriminator(z, training=training)[-2:]
-        p_z_shuffled = self.discriminator(z_shuffled, training=training)[-1]
-        # tc_loss = E[log(p_z_real) - log(p_z_fake)] = E[logits_z_real - logits_z_fake]
-        losses["tc_loss"] = tf.reduce_mean(logits_z[:, 0] - logits_z[:, 1], axis=0)
-
-        # discriminator_loss = -0.5 * (E[log(p_z_real)] + E[log(p_z_shuffled_fake)])
-        e_log_p_z_real = tf.reduce_mean(tfm.log(p_z[:, 0]))
-        e_log_p_z_shuffled_fake = tf.reduce_mean(tfm.log(p_z_shuffled[:, 1]))
-        losses["discriminator_loss"] = -tf.add(0.5 * e_log_p_z_real, 0.5 * e_log_p_z_shuffled_fake)
-
-        return losses["tc_loss"], losses["discriminator_loss"]
-
-    def get_gradient_step_output(self, data, training=True):
-        losses = {}
-        z_mean, z_log_var, z = self.encoder(data, training=training)[-3:]
-        reconstruction = self.decoder(z, training=training)[-1]
-        losses["reconstruction_loss"] = tf.reduce_mean(self.reconstruction_loss_fn(data, reconstruction))
-        losses["regularisation_loss"] = tf.reduce_mean(self.regularisation_loss_fn(z_log_var, z_mean))
-        losses["elbo_loss"] = -tf.add(losses["reconstruction_loss"], losses["regularisation_loss"])
-        losses.update(self.compute_tc_and_discriminator_loss(z, training=training))
-        losses["model_loss"] = tf.add(losses["elbo_loss"], self.gamma * losses["tc_loss"])
-        return losses
-
-    def train_step(self, data):
-        if isinstance(data, tuple):
-            data = data[0]
-
-        with tf.GradientTape(persistent=True) as tape:
-            losses = self.get_gradient_step_output(data)
-
-        # Backprop model loss to encoder and decoder
-        vae_trainable_weights = self.encoder.trainable_weights + self.decoder.trainable_weights
-        grads_vae = tape.gradient(losses["model_loss"], vae_trainable_weights)
-        self.optimizer.apply_gradients(zip(grads_vae, vae_trainable_weights))
-
-        # Backprop discriminator loss separately to the discriminator only
-        grads_discriminator = tape.gradient(losses["discriminator_loss"], self.discriminator.trainable_weights)
-        self.discriminator_optimizer.apply_gradients(zip(grads_discriminator, self.discriminator.trainable_weights))
-
-        return self.update_metrics(losses)
 
 
 class DIPVAE(VAE):
@@ -403,7 +406,7 @@ class DIPVAE(VAE):
     .. [2] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
            Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
     """
-    def __init__(self, *, lambda_off_diag, lambda_factor, dip_type, **kwargs):
+    def __init__(self, *args, lambda_off_diag=1, lambda_factor=1, dip_type="ii", **kwargs):
         super(DIPVAE, self).__init__(**kwargs)
         self.lambda_off_diag = lambda_off_diag
         self.lambda_diag = lambda_factor * self.lambda_off_diag

@@ -4,7 +4,7 @@ import numpy as np
 import requests
 from keras.utils.data_utils import Sequence
 from sklearn.utils import extmath
-
+import tensorflow as tf
 from vae_ld.data import logger, util
 
 
@@ -235,9 +235,13 @@ class DataSampler(Sequence):
         If False, a train set is generated and a ratio of ``validation_split`` examples is removed from the dataset.
         If None, a train set is generated and ``validation_split`` is ignored.
         Default False.
+    get_labels: int, optional
+        If 0, don't return any label. The output will be (data,)
+        If 1, return labels for classification task. The output will be (data, labels)
+        If 2, labels are provided as input (e.g. for iVAE). The output will be ([data, labels],)
     """
 
-    def __init__(self, *, data, batch_size, seed, validation_split=0.2, validation=False, get_labels=False, **kwargs):
+    def __init__(self, *, data, batch_size, seed, validation_split=0.2, validation=False, get_labels=0, **kwargs):
         self._data = data
         self._batch_size = batch_size
         data_size = np.copy(self.data.data_size)
@@ -304,9 +308,13 @@ class DataSampler(Sequence):
         idxs = idxs_map[start_idx:stop_idx]
         logger.debug("Getting data from indexes {}".format(idxs))
         data = self.data[idxs]
-        logger.debug("Return batch of size {}".format(data.shape))
-        if self._get_labels:
-            labels = self.data.index.index_to_features(idxs).T
+        if self._get_labels < 2:
+            logger.debug("Return batch of size {}".format(data.shape))
+        if self._get_labels > 0:
+            labels = tf.convert_to_tensor(self.data.index.index_to_features(idxs), dtype=tf.float32)
+            data = tf.convert_to_tensor(data, dtype=tf.float32)
             logger.debug("Factors for indexes {}: {}".format(idxs, labels))
-            return data, labels
+            if self._get_labels == 2:
+                logger.debug("Return batch of size [{}, {}]".format(data.shape, labels.shape))
+            return data, labels if self._get_labels == 1 else [data, labels], []
         return (data,)

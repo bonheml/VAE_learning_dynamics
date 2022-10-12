@@ -98,6 +98,61 @@ class ConvolutionalEncoder(tf.keras.Model):
         return x1, x2, x3, x4, x5, x6, z_mean, z_log_var, z
 
 
+class ConvolutionalIdentifiableEncoder(tf.keras.Model):
+    """ Convolutional encoder adapted to iVAE [1]. Based on Locatello et al. [2]
+    `implementation <https://github.com/google-research/disentanglement_lib>`_ of beta-VAE [3] and updated to
+    accomodate the additional input u.
+
+    References
+    ----------
+    .. [1] Khemakhem, I., Kingma, D., Monti, R., & Hyvarinen, A. (2020, June). Variational autoencoders
+           and nonlinear ica: A unifying framework. In International Conference on Artificial Intelligence
+           and Statistics (pp. 2207-2217). PMLR.
+    .. [2] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
+           Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
+    .. [3] Higgins, I., Matthey, L., Pal, A., Burgess, C., Glorot, X., Botvinick, M., ... & Lerchner, A. (2017).
+           β-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework. In 5th International
+           Conference on Learning Representations, ICLR 2017, Toulon, France.
+    """
+
+    def __init__(self, input_shape, output_shape, prior_shape, n_samples=1, zero_init=False, dropout=None):
+        logger.debug("Expected input shape is {}".format(input_shape))
+        logger.debug("Expected prior shape is {}".format(prior_shape))
+        super(ConvolutionalIdentifiableEncoder, self).__init__()
+        self.n_samples = n_samples
+        self.e1 = layers.Conv2D(input_shape=input_shape, filters=32, kernel_size=4, strides=2, activation="relu",
+                                padding="same", name="encoder/1")
+        self.e2 = layers.Conv2D(filters=32, kernel_size=4, strides=2, activation="relu", padding="same",
+                                name="encoder/2")
+        self.e3 = layers.Conv2D(filters=64, kernel_size=2, strides=2, activation="relu", padding="same",
+                                name="encoder/3")
+        self.e4 = layers.Conv2D(filters=64, kernel_size=2, strides=2, activation="relu", padding="same",
+                                name="encoder/4")
+        self.e5 = layers.Flatten(name="encoder/5")
+        self.e6 = layers.Dense(256 + prior_shape, activation="relu", name="encoder/6")
+        self.dropout = layers.Dropout(dropout) if dropout is not None else None
+        kernel_initializer = "zeros" if zero_init else "glorot_uniform"
+        self.z_mean = layers.Dense(output_shape, name="encoder/z_mean", kernel_initializer=kernel_initializer)
+        self.z_log_var = layers.Dense(output_shape, name="encoder/z_log_var", kernel_initializer=kernel_initializer)
+        self.sampling = Sampling()
+
+    def call(self, inputs):
+        x, u = inputs
+        logger.debug("Received prior shape is {}".format(u.shape))
+        logger.debug("Received input shape is {}".format(x.shape))
+        x1 = self.e1(x)
+        x2 = self.e2(x1)
+        x3 = self.e3(x2)
+        x4 = self.e4(x3)
+        x5 = self.e5(x4)
+        x6 = self.e6(tf.concat([x5, u], axis=-1))
+        x7 = self.dropout(x6) if self.dropout is not None else x6
+        z_mean = self.z_mean(x7)
+        z_log_var = self.z_log_var(x7)
+        z = self.sampling([z_mean, z_log_var], n_samples=self.n_samples)
+        return x1, x2, x3, x4, x5, x6, z_mean, z_log_var, z
+
+
 class DeepConvEncoder(tf.keras.Model):
     """ Deeper convolutional encoder. Each Convolutional block is composed of n convolutional layers where the first
     have a stride of 2 and the other have a stride of 1 (and thus the same output shape as the previous layers in the

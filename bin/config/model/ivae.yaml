@@ -1,0 +1,14 @@
+name: ivae
+
+defaults:
+  - _self_
+  - encoder: iconvolutional
+  - decoder: convolutional
+  - reconstruction_loss_fn: bernoulli
+  - regularisation_loss_fn: kld
+
+_target_: vae_ld.models.vaes.IVAE
+input_shape: ${dataset.observation_shape}
+latent_shape: ${latent_shape}
+n_samples: ${n_samples}
+prior_shape: ${dataset.n_factors}

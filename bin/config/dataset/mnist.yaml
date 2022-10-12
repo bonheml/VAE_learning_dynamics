@@ -5,3 +5,4 @@ name: mnist
 url: ""
 path: ""
 factors_shape: [10]
+n_factors: 5
