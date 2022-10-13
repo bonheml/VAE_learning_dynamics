@@ -101,13 +101,16 @@ def get_activations(data, model_path, model=None):
     """
     if model is None:
         model = tf.keras.models.load_model(model_path)
+    # This handle the case where we have multiple inputs and are only interested in the similarity between
+    # the first input and the activations. (e.g., in iVAE)
+    X = data[0] if isinstance(data, tuple) else data
     if hasattr(model, "encoder"):
-        acts = (data,) + model.encoder.predict(data)
+        acts = (X,) + model.encoder.predict(data)
         acts += model.decoder.predict(acts[-1])
         layer_names = ["input"] + [l.name for l in model.encoder.layers]
         layer_names += [l.name for l in model.decoder.layers]
     elif hasattr(model, "clf"):
-        acts = [data] + list(model.clf.predict(data))
+        acts = [X] + list(model.clf.predict(data))
         # Flatten the list of activations from to the classification layers
         acts += acts.pop()
         acts = tuple(acts)

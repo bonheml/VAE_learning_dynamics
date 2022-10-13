@@ -17,14 +17,21 @@ logger = logging.getLogger("get_data_ide")
 def compute_ides(model, model_info, sampler, ides, n_iter, act_fn):
     res = []
     for i in range(0, n_iter):
-        X = np.unique(sampler[i][0], axis=0)
+        X = sampler[i][0]
+        if isinstance(X, tuple):
+            data, idx = np.unique(X[0], axis=0, return_index=True)
+            labels = np.array(X[1])[idx]
+            X = (data, labels)
+        else:
+            X = np.unique(X, axis=0)
+            data = X
 
-        if X.size == 0:
+        if data.size == 0:
             logger.info("The entire dataset used in {} steps. Skipping the remaining steps.".format(i+1))
             break
 
         _, acts, layers = act_fn(X, None, model=model)
-        logger.debug("Batch shape is: {}".format(X.shape))
+        logger.debug("Batch shape is: {}".format(data.shape))
         acts = [prepare_activations(act) for act in acts]
         for j, l1 in enumerate(layers):
             logger.info("Iteration {}/{}: computing IDE of layer {}".format(i + 1, n_iter, l1))
