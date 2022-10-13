@@ -203,6 +203,7 @@ class MultiInputVAE(GenericVAE):
         super().__init__(*args, **kwargs)
         if self.encoder is None:
             self.encoder = ConvolutionalEncoder(self.in_shape[0], self.latent_shape)
+        # *[...], or *(...), cast a comprehension list to a tuple
         self.encoder.build([(None, *i) for i in self.in_shape])
         self.encoder.summary(print_fn=logger.info)
 
@@ -214,8 +215,8 @@ class MultiInputVAE(GenericVAE):
         self.built = True
 
     # This decorator is needed to prevent input shape errors
-    @tf.function(input_signature=[[tf.TensorSpec([None, None, None, None], tf.float32),
-                                  tf.TensorSpec([None, None], tf.float32)],])
+    @tf.function(input_signature=[(tf.TensorSpec([None, None, None, None], tf.float32),
+                                  tf.TensorSpec([None, None], tf.float32)),])
     def call(self, inputs):
         z = self.encoder(inputs)[-1]
         return self.decoder(z)[-1]
@@ -236,19 +237,19 @@ class IVAE(MultiInputVAE):
     """
     def __init__(self, *args, prior_model=None, prior_mean=0, prior_shape=10, **kwargs):
         input_shape = [list(kwargs.pop("input_shape")), [prior_shape,]]
-        latent_shape = kwargs.get("latent_shape")
+        super().__init__(*args, input_shape=input_shape, **kwargs)
         self.prior_mean = prior_mean
         self.prior_model = prior_model
         if self.prior_model is None:
-            self.prior_model = tf.keras.Sequential()
-            self.prior_model.add(layers.Dense(50, input_shape=(prior_shape,), activation=layers.LeakyReLU(alpha=0.1)))
+            self.prior_model = tf.keras.Sequential(name="prior")
+            self.prior_model.add(layers.Dense(50, input_shape=(prior_shape,), activation=layers.LeakyReLU(alpha=0.1),
+                                              name="prior/1"))
             for i in range(2):
-                self.prior_model.add(layers.Dense(50, activation=layers.LeakyReLU(alpha=0.1)))
-            self.prior_model.add(layers.Dense(latent_shape))
-        else:
-            self.prior.build((None, prior_shape))
-            self.prior.summary(print_fn=logger.info)
-        super().__init__(*args, input_shape=input_shape, **kwargs)
+                self.prior_model.add(layers.Dense(50, activation=layers.LeakyReLU(alpha=0.1),
+                                                  name="prior/{}".format(i+1)))
+            self.prior_model.add(layers.Dense(self.latent_shape, name="prior/log_var"))
+        self.prior_model.build((None, prior_shape))
+        self.prior_model.summary(print_fn=logger.info)
 
     def get_gradient_step_output(self, data, training=True):
         """ Do one gardient step.
@@ -280,8 +281,6 @@ class IVAE(MultiInputVAE):
         losses["model_loss"] = self.compute_model_loss(losses["reconstruction_loss"], losses["regularisation_loss"],
                                                        z_mean, z_log_var, z)
         return losses
-
-
 
 
 class BetaVAE(VAE):

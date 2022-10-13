@@ -47,7 +47,7 @@ def train(cfg):
             callback_sampler.batch_size = v.nb_samples
             data_callback = callback_sampler[0][0]
             logger.debug("Add data of shape {} to image_generator".format([d.shape for d in data_callback]
-                                                                          if isinstance(data_callback, list) else
+                                                                          if isinstance(data_callback, tuple) else
                                                                           data_callback.shape))
             data_callback = data_callback
             greyscale = cfg.dataset.observation_shape[2] == 1

@@ -320,6 +320,6 @@ class DataSampler(Sequence):
                 labels = tf.convert_to_tensor(labels, dtype=tf.float32)
                 lmin, lmax = tf.reduce_min(labels, axis=0, keepdims=True), tf.reduce_max(labels, axis=0, keepdims=True)
                 labels = (labels - lmin) / (lmax - lmin)
-                return [data, labels], []
+                return (data, labels),
             return data, labels
         return data,
