@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tensorflow import sigmoid
-
+import numpy as np
 from vae_ld.models import logger
 from vae_ld.visualisation.images import plot_and_save
 
@@ -23,11 +23,12 @@ class ImageGeneratorCallback(tf.keras.callbacks.Callback):
     greyscale : bool
         True if images are greyscale, else False
     """
-    def __init__(self, *, filepath, nb_samples, data, latent_shape, save_freq, greyscale, z_samples=1):
-        super(ImageGeneratorCallback, self).__init__()
+    def __init__(self, *args, filepath, nb_samples, data, latent_shape, save_freq, greyscale, z_samples=1):
+        super(ImageGeneratorCallback, self).__init__(*args)
         self.nb_samples = nb_samples
         self.latent_shape = latent_shape * z_samples
-        self.data = data[:nb_samples]
+        self.data = list(data)
+        self.multi_input = len(data) == 2
         self.filepath = filepath
         self.save_freq = save_freq
         self.greyscale = greyscale
@@ -35,11 +36,11 @@ class ImageGeneratorCallback(tf.keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
         if epoch % self.save_freq == 0:
             random_latent_vectors = tf.random.normal(shape=(self.nb_samples, self.latent_shape))
-            generated_images = sigmoid(self.model.decoder(random_latent_vectors, training=False)[-1])
+            generated_images = sigmoid(self.model.decoder(random_latent_vectors)[-1])
             plot_and_save(generated_images, "{}/epoch_{}_from_random_latents.pdf".format(self.filepath, epoch),
                           self.greyscale)
-
-            logger.debug("Generating reconstruction of data with shape {}".format(self.data.shape))
             generated_images = sigmoid(self.model(self.data, training=False))
+            logger.debug("Generated reconstruction of data with shape {}".format(generated_images.shape))
+            x = self.data[0] if self.multi_input else self.data
             plot_and_save(generated_images, "{}/epoch_{}_from_real_data.pdf".format(self.filepath, epoch),
-                          self.greyscale, self.data)
+                          self.greyscale, x)

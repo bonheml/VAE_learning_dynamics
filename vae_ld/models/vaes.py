@@ -9,7 +9,7 @@ from vae_ld.models.losses import BernoulliLoss
 from vae_ld.models.vae_utils import compute_batch_tc, compute_covariance
 
 
-class VAE(tf.keras.Model):
+class GenericVAE(tf.keras.Model):
     """ Vanilla VAE model based on Locatello et al. [1]
     `implementation <https://github.com/google-research/disentanglement_lib>`_
     and `Keras example <https://keras.io/examples/generative/vae/>`_.
@@ -45,27 +45,12 @@ class VAE(tf.keras.Model):
     def __init__(self, *args, encoder=None, decoder=None, reconstruction_loss_fn=BernoulliLoss(),
                  regularisation_loss_fn=KLD(), input_shape=(64, 64, 3), latent_shape=10, output_shape=(64, 64, 3),
                  **kwargs):
-        n_samples = kwargs.pop("n_samples", 1)
-        if n_samples <= 0:
+        self.n_samples = kwargs.pop("n_samples", 1)
+        if self.n_samples <= 0:
             raise ValueError("The number of samples must be greater than 0.")
-        super(VAE, self).__init__(**kwargs)
+        super().__init__(*args, **kwargs)
         self.encoder = encoder
-        if self.encoder is None:
-            self.encoder = ConvolutionalEncoder(input_shape, latent_shape)
-        if type(input_shape[0]) == list:
-            if self.encoder is None:
-                self.encoder = ConvolutionalEncoder(input_shape[0], latent_shape)
-            self.encoder.build([(None, *i) for i in input_shape])
-        else:
-            if self.encoder is None:
-                self.encoder = ConvolutionalEncoder(input_shape, latent_shape)
-            self.encoder.build((None, *input_shape))
-        self.encoder.summary(print_fn=logger.info)
         self.decoder = decoder
-        if self.decoder is None:
-            self.decoder = DeconvolutionalDecoder(latent_shape, output_shape)
-        self.decoder.build((None, latent_shape * n_samples))
-        self.decoder.summary(print_fn=logger.info)
         self.reconstruction_loss_fn = reconstruction_loss_fn
         self.regularisation_loss_fn = regularisation_loss_fn
         self.regularisation_loss_tracker = tf.keras.metrics.Mean(name="regularisation_loss")
@@ -73,14 +58,8 @@ class VAE(tf.keras.Model):
         self.reconstruction_loss_tracker = tf.keras.metrics.Mean(name="reconstruction_loss")
         self.model_loss_tracker = tf.keras.metrics.Mean(name="model_loss")
         self.latent_shape = latent_shape
-        # This is needed to save the model properly
-        self.built = True
-
-    # This decorator is needed to prevent input shape errors
-    @tf.function(input_signature=[tf.TensorSpec([None, None, None, None], tf.float32)])
-    def call(self, inputs):
-        z = self.encoder(inputs)[-1]
-        return self.decoder(z)[-1]
+        self.in_shape = input_shape
+        self.out_shape = output_shape
 
     @property
     def metrics(self):
@@ -197,7 +176,57 @@ class VAE(tf.keras.Model):
         return self.update_metrics(losses)
 
 
-class IVAE(VAE):
+class VAE(GenericVAE):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.encoder is None:
+            self.encoder = ConvolutionalEncoder(self.in_shape, self.latent_shape)
+        self.encoder.build((None, *self.in_shape))
+        self.encoder.summary(print_fn=logger.info)
+
+        if self.decoder is None:
+            self.decoder = DeconvolutionalDecoder(self.latent_shape, self.out_shape)
+        self.decoder.build((None, self.latent_shape * self.n_samples))
+        self.decoder.summary(print_fn=logger.info)
+
+        self.built = True
+
+    # This decorator is needed to prevent input shape errors
+    @tf.function(input_signature=[tf.TensorSpec([None, None, None, None], tf.float32)])
+    def call(self, inputs):
+        z = self.encoder(inputs)[-1]
+        return self.decoder(z)[-1]
+
+
+class MultiInputVAE(GenericVAE):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.encoder is None:
+            self.encoder = ConvolutionalEncoder(self.in_shape[0], self.latent_shape)
+        self.encoder.build([(None, *i) for i in self.in_shape])
+
+        if self.decoder is None:
+            self.decoder = DeconvolutionalDecoder(self.latent_shape, self.out_shape)
+        self.decoder.build((None, self.latent_shape * self.n_samples))
+        self.decoder.summary(print_fn=logger.info)
+
+        self.built = True
+
+    def train_step(self, data):
+        return super().train_step(list(data[1]))
+
+    def test_step(self, data):
+        return super().test_step(list(data[1]))
+
+    # This decorator is needed to prevent input shape errors
+    @tf.function(input_signature=[[tf.TensorSpec([None, None, None, None], tf.float32),
+                                  tf.TensorSpec([None, None], tf.float32)],])
+    def call(self, inputs):
+        z = self.encoder(inputs)[-1]
+        return self.decoder(z)[-1]
+
+
+class IVAE(MultiInputVAE):
     """ Creates an iVAE model based on Khemakhem et al. [1]
     `implementation <https://github.com/siamakz/iVAE/blob/master/lib/models.py>`_.
 
@@ -221,13 +250,6 @@ class IVAE(VAE):
             for i in range(2):
                 self.prior_model.add(layers.Dense(50, activation=layers.LeakyReLU(alpha=0.1)))
             self.prior_model.add(layers.Dense(self.latent_shape))
-
-    # This decorator is needed to prevent input shape errors
-    @tf.function(input_signature=[tf.TensorSpec([None, None, None, None], tf.float32),
-                                  tf.TensorSpec([None, None], tf.float32)])
-    def call(self, inputs):
-        z = self.encoder(inputs)[-1]
-        return self.decoder(z)[-1]
 
     def get_gradient_step_output(self, data, training=True):
         """ Do one gardient step.
@@ -260,11 +282,7 @@ class IVAE(VAE):
                                                        z_mean, z_log_var, z)
         return losses
 
-    def train_step(self, data):
-        return super(IVAE, self).train_step(list(data[1]))
 
-    def test_step(self, data):
-        return super(IVAE, self).train_step(list(data[1]))
 
 
 class BetaVAE(VAE):

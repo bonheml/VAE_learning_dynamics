@@ -43,9 +43,15 @@ def train(cfg):
     callbacks = []
     for k, v in cfg.callbacks.items():
         if k == "image_generator":
-            idxs = rng.choice(train_sampler.data.data_size - 1, v.nb_samples, replace=False)
-            data_callback = train_sampler.data[idxs]
-            logger.debug("Add data of shape {} to image_generator".format(data_callback.shape))
+            callback_sampler = sampler()
+            callback_sampler.batch_size = v.nb_samples
+            data_callback = callback_sampler[0]
+            if cfg.sampling.get_labels < 2:
+                logger.debug("Add data of shape {} to image_generator".format([d.shape for d in data_callback[0]]))
+                data_callback = data_callback[0]
+            else:
+                logger.debug("Add data of shape {} to image_generator".format([d.shape for d in data_callback[1]]))
+                data_callback = data_callback[1]
             greyscale = cfg.dataset.observation_shape[2] == 1
             callbacks.append(instantiate(v, data=data_callback, greyscale=greyscale))
         else:
