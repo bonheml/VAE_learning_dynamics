@@ -311,10 +311,15 @@ class DataSampler(Sequence):
         if self._get_labels < 2:
             logger.debug("Return batch of size {}".format(data.shape))
         if self._get_labels > 0:
-            labels = tf.convert_to_tensor(self.data.index.index_to_features(idxs), dtype=tf.float32)
+            labels = self.data.index.index_to_features(idxs)
             data = tf.convert_to_tensor(data, dtype=tf.float32)
             logger.debug("Factors for indexes {}: {}".format(idxs, labels))
             if self._get_labels == 2:
+                # When the labels are used as input, we normalise their values between 0 and 1 using min-max
+                # feature scaling. This way, they are in the same range as input images.
                 logger.debug("Return batch of size [{}, {}]".format(data.shape, labels.shape))
+                labels = tf.convert_to_tensor(self.data.index.index_to_features(idxs), dtype=tf.float32)
+                lmin, lmax = tf.reduce_min(labels, axis=0, keepdims=True), tf.reduce_max(labels, axis=0, keepdims=True)
+                labels = (labels - lmin) / (lmax - lmin)
             return data, labels if self._get_labels == 1 else [data, labels], []
         return (data,)
