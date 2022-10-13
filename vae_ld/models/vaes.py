@@ -204,6 +204,7 @@ class MultiInputVAE(GenericVAE):
         if self.encoder is None:
             self.encoder = ConvolutionalEncoder(self.in_shape[0], self.latent_shape)
         self.encoder.build([(None, *i) for i in self.in_shape])
+        self.encoder.summary(print_fn=logger.info)
 
         if self.decoder is None:
             self.decoder = DeconvolutionalDecoder(self.latent_shape, self.out_shape)
@@ -235,7 +236,7 @@ class IVAE(MultiInputVAE):
     """
     def __init__(self, *args, prior_model=None, prior_mean=0, prior_shape=10, **kwargs):
         input_shape = [list(kwargs.pop("input_shape")), [prior_shape,]]
-        super(IVAE, self).__init__(*args, input_shape=input_shape, **kwargs)
+        latent_shape = kwargs.get("latent_shape")
         self.prior_mean = prior_mean
         self.prior_model = prior_model
         if self.prior_model is None:
@@ -243,7 +244,11 @@ class IVAE(MultiInputVAE):
             self.prior_model.add(layers.Dense(50, input_shape=(prior_shape,), activation=layers.LeakyReLU(alpha=0.1)))
             for i in range(2):
                 self.prior_model.add(layers.Dense(50, activation=layers.LeakyReLU(alpha=0.1)))
-            self.prior_model.add(layers.Dense(self.latent_shape))
+            self.prior_model.add(layers.Dense(latent_shape))
+        else:
+            self.prior.build((None, prior_shape))
+            self.prior.summary(print_fn=logger.info)
+        super().__init__(*args, input_shape=input_shape, **kwargs)
 
     def get_gradient_step_output(self, data, training=True):
         """ Do one gardient step.
