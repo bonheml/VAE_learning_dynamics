@@ -146,7 +146,7 @@ class GenericVAE(tf.keras.Model):
         """
         if isinstance(data, tuple):
             data = data[0]
-        logger.debug("Receive batch of size {} for training".format(data.shape if not isinstance(data, list) else
+        logger.debug("Receive batch of size {} for training".format(data.shape if not isinstance(data, tuple) else
                                                                     [d.shape for d in data]))
         with tf.GradientTape() as tape:
             losses = self.get_gradient_step_output(data)
@@ -170,7 +170,7 @@ class GenericVAE(tf.keras.Model):
         """
         if isinstance(data, tuple):
             data = data[0]
-        logger.debug("Receive batch of size {} for testing".format(data.shape if not isinstance(data, list) else
+        logger.debug("Receive batch of size {} for testing".format(data.shape if not isinstance(data, tuple) else
                                                                    [d.shape for d in data]))
         losses = self.get_gradient_step_output(data, training=False)
         return self.update_metrics(losses)
@@ -211,12 +211,6 @@ class MultiInputVAE(GenericVAE):
         self.decoder.summary(print_fn=logger.info)
 
         self.built = True
-
-    def train_step(self, data):
-        return super().train_step(list(data[1]))
-
-    def test_step(self, data):
-        return super().test_step(list(data[1]))
 
     # This decorator is needed to prevent input shape errors
     @tf.function(input_signature=[[tf.TensorSpec([None, None, None, None], tf.float32),

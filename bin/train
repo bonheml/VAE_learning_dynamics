@@ -45,13 +45,11 @@ def train(cfg):
         if k == "image_generator":
             callback_sampler = sampler()
             callback_sampler.batch_size = v.nb_samples
-            data_callback = callback_sampler[0]
-            if cfg.sampling.get_labels < 2:
-                logger.debug("Add data of shape {} to image_generator".format([d.shape for d in data_callback[0]]))
-                data_callback = data_callback[0]
-            else:
-                logger.debug("Add data of shape {} to image_generator".format([d.shape for d in data_callback[1]]))
-                data_callback = data_callback[1]
+            data_callback = callback_sampler[0][0]
+            logger.debug("Add data of shape {} to image_generator".format([d.shape for d in data_callback]
+                                                                          if isinstance(data_callback, list) else
+                                                                          data_callback.shape))
+            data_callback = data_callback
             greyscale = cfg.dataset.observation_shape[2] == 1
             callbacks.append(instantiate(v, data=data_callback, greyscale=greyscale))
         else:
