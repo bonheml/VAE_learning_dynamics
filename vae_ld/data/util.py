@@ -218,3 +218,10 @@ def natural_sort(s):
     """
     return [tryint(c) for c in re.split('([0-9]+)', s)]
 
+
+def get_unique_samples(X):
+    if isinstance(X, tuple):
+        data, idx = np.unique(X[0], axis=0, return_index=True)
+        labels = np.array(X[1])[idx]
+        return data, labels
+    return np.unique(X, axis=0)

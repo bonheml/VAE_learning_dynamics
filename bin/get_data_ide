@@ -5,7 +5,7 @@ import pandas as pd
 from hydra.utils import instantiate, call
 from omegaconf import OmegaConf
 from glob import glob
-from vae_ld.data.util import natural_sort
+from vae_ld.data.util import natural_sort, get_unique_samples
 from vae_ld.learning_dynamics.intrinsic_dimension_estimators import TwoNN, MLE
 import tensorflow as tf
 from vae_ld.learning_dynamics.utils import get_activations, prepare_activations, get_model_epoch
@@ -18,20 +18,14 @@ def compute_ides(model, model_info, sampler, ides, n_iter, act_fn):
     res = []
     for i in range(0, n_iter):
         X = sampler[i][0]
-        if isinstance(X, tuple):
-            data, idx = np.unique(X[0], axis=0, return_index=True)
-            labels = np.array(X[1])[idx]
-            X = (data, labels)
-        else:
-            X = np.unique(X, axis=0)
-            data = X
+        X = get_unique_samples(X)
 
-        if data.size == 0:
+        if (isinstance(X, tuple) and X[0].size == 0) or (not isinstance(X, tuple) and X.size == 0):
             logger.info("The entire dataset used in {} steps. Skipping the remaining steps.".format(i+1))
             break
 
         _, acts, layers = act_fn(X, None, model=model)
-        logger.debug("Batch shape is: {}".format(data.shape))
+        logger.debug("Batch shape is: {}".format(X[0].shape if isinstance(X, tuple) else X.shape))
         acts = [prepare_activations(act) for act in acts]
         for j, l1 in enumerate(layers):
             logger.info("Iteration {}/{}: computing IDE of layer {}".format(i + 1, n_iter, l1))
