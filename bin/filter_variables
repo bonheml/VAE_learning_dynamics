@@ -5,6 +5,8 @@ from hydra.utils import instantiate
 import numpy as np
 import tensorflow as tf
 from omegaconf import OmegaConf
+
+from vae_ld.data.util import get_unique_samples
 from vae_ld.learning_dynamics.utils import get_file_list, get_model_filename, get_model_epoch, \
     get_encoder_latents_activations, prepare_activations
 from vae_ld.learning_dynamics.variable_filter import filter_variables
@@ -19,7 +21,7 @@ def filter_vars(cfg):
 
     logger.info("Instantiating {} dataset".format(cfg.dataset.name))
     sampler = instantiate(cfg.sampling)
-    samples = np.unique(sampler[0][0], axis=0)
+    samples = get_unique_samples(sampler[0][0])
 
     logger.info("Looking for model folders in {}".format(cfg.model_path))
     model_files = get_file_list(cfg.model_path)
