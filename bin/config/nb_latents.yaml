@@ -8,6 +8,7 @@ ide_batch_size: 10000
 max_epochs: 1
 steps_per_epoch: null
 fondue_type: "ide"
+dropout: null
 
 defaults:
   - _self_

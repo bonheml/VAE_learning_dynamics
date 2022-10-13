@@ -190,6 +190,7 @@ def prepare_activations(x):
         array([[0, 1e-4],
                [4.2, 0]])
     """
+    x = x[0] if isinstance(x, tuple) else x
     if len(x.shape) > 2:
         x = x.reshape(x.shape[0], np.prod(x.shape[1:]))
     # Prevent very tiny values from causing underflow in similarity metrics later on
