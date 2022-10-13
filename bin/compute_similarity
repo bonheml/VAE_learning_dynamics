@@ -5,6 +5,8 @@ import hydra
 from hydra.utils import instantiate
 import numpy as np
 from omegaconf import OmegaConf
+
+from vae_ld.data.util import get_unique_samples
 from vae_ld.learning_dynamics.utils import get_file_list, get_model_filename, get_model_epoch, get_activations, \
     prepare_activations
 import pandas as pd
@@ -41,8 +43,8 @@ def compute_sim(cfg):
     logger.info("Instantiating {}...".format(cfg.similarity_metric.name))
     metric = instantiate(cfg.similarity_metric)
     logger.info("Instantiating {} dataset".format(cfg.dataset.name))
-    dataset = instantiate(cfg.dataset)
-    samples = dataset.sample(cfg.n_samples, random_state, unique=True)[1]
+    samples = instantiate(cfg.sampling)[0][0]
+    samples = get_unique_samples(samples)
     logger.info("Looking for model folders in {}".format(cfg.m1_path))
     m1_files = get_file_list(cfg.m1_path, cfg.keep_n, cfg.selection_type)
     logger.info("Looking for model folders in {}".format(cfg.m2_path))
