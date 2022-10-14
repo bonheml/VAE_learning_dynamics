@@ -228,6 +228,12 @@ class IVAE(MultiInputVAE):
 
     Parameters
     ----------
+    prior_model: tf.keras.Model or None, optional
+        The intialised conditional prior model. If None, creates a model with the same architecture as [1].
+    prior_mean: int, optional
+        The mean of the conditional prior. Default is 0 as in [1].
+    prior_shape: int, optional
+        Number of latent dimensions for the variance. Default is 10.
 
     References
     ----------
@@ -271,12 +277,13 @@ class IVAE(MultiInputVAE):
         reconstruction = self.decoder(z, training=training)[-1]
         # Estimate the log var of p_{\lambda, T}(z|u). The mean is fixed, as in [1].
         prior_log_var = self.prior_model(data[1], training=training)
+        prior_mean = self.prior_mean * tf.ones_like(prior_log_var)
 
         # Compute E_q_{\phi}(z|x,u)[log p_f(x|z)] - KL(q_{\phi}(z|x,u) || p_{\lambda, T}(z|u))
         losses["reconstruction_loss"] = tf.reduce_mean(self.reconstruction_loss_fn(data[0], reconstruction))
         losses["regularisation_loss"] = tf.reduce_mean(self.regularisation_loss_fn(z_log_var, z_mean,
                                                                                    z2_log_var=prior_log_var,
-                                                                                   z2_mean=self.prior_mean))
+                                                                                   z2_mean=prior_mean))
         losses["elbo_loss"] = -tf.add(losses["reconstruction_loss"], losses["regularisation_loss"])
         losses["model_loss"] = self.compute_model_loss(losses["reconstruction_loss"], losses["regularisation_loss"],
                                                        z_mean, z_log_var, z)

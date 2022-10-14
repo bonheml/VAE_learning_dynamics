@@ -12,10 +12,10 @@ class KLD:
         The log variance of the Gaussian
     z1_mean : tf.Tensor
         The mean of the Gaussian
-    z1_log_var : tf.Tensor
+    z2_log_var : tf.Tensor
         The log variance of the second Gaussian, if None, we assume a
         log covariance of zeros with the same shape as z1_log_var. Default None
-    z1_mean : tf.Tensor
+    z2_mean : tf.Tensor
         The mean of the second Gaussian, if None, we assume a diagonal
         covariance of zeros with the same shape as z1_mean. Default None
 
