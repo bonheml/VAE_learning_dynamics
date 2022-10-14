@@ -141,3 +141,28 @@ class FullyConnectedDecoder(tf.keras.Model):
         x4 = self.d4(x3)
         x5 = self.d5(x4)
         return x1, x2, x3, x4, x5
+
+
+class FullyConnectedPriorDecoder(tf.keras.Model):
+    """ Fully connected decoder for conditional prior initially used in IDVAE [1]. Based on the authors' implementation
+        `implementation <https://github.com/grazianomita/disentanglement_idvae/blob/main/disentanglement/models/idvae.py>`_.
+
+    References
+    ----------
+    .. [1] Mita, G., Filippone, M., & Michiardi, P. (2021, July). An identifiable double vae for disentangled
+           representations. In International Conference on Machine Learning (pp. 7769-7779). PMLR.
+    """
+    def __init__(self, input_shape, output_shape, n_samples=1):
+        super().__init__()
+        self.d1 = layers.Dense(1000, activation=layers.LeakyReLU(alpha=0.2), name="prior_decoder/1",
+                               input_shape=(input_shape * n_samples,))
+        self.d2 = layers.Dense(1000, activation=layers.LeakyReLU(alpha=0.2), name="prior_decoder/2")
+        self.d3 = layers.Dense(1000, activation=layers.LeakyReLU(alpha=0.2), name="prior_decoder/3")
+        self.d4 = layers.Dense(output_shape, activation=None, name="prior_decoder/4")
+
+    def call(self, inputs):
+        x1 = self.d1(inputs)
+        x2 = self.d2(x1)
+        x3 = self.d3(x2)
+        x4 = self.d4(x3)
+        return x1, x2, x3, x4

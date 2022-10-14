@@ -270,6 +270,39 @@ class FullyConnectedEncoder(tf.keras.Model):
         return x1, x2, x3, z_mean, z_log_var, z
 
 
+class FullyConnectedPriorEncoder(tf.keras.Model):
+    """ Fully connected encoder for conditional prior initially used in IDVAE [1]. Based on the authors' implementation
+    `implementation <https://github.com/grazianomita/disentanglement_idvae/blob/main/disentanglement/models/idvae.py>`_.
+
+    References
+    ----------
+    .. [1] Mita, G., Filippone, M., & Michiardi, P. (2021, July). An identifiable double vae for disentangled
+           representations. In International Conference on Machine Learning (pp. 7769-7779). PMLR.
+    """
+
+    def __init__(self, input_shape, output_shape, n_samples=1, dropout=None):
+        super().__init__()
+        self.n_samples = n_samples
+        self.e1 = layers.Flatten(name="prior_encoder/1", input_shape=input_shape)
+        self.e2 = layers.Dense(1000, activation=layers.LeakyReLU(alpha=0.2), name="prior_encoder/2")
+        self.e3 = layers.Dense(1000, activation=layers.LeakyReLU(alpha=0.2), name="prior_encoder/3")
+        self.e3 = layers.Dense(1000, activation=layers.LeakyReLU(alpha=0.2), name="prior_encoder/4")
+        self.dropout = layers.Dropout(dropout) if dropout is not None else None
+        self.z_mean = layers.Dense(output_shape, activation=None, name="prior_encoder/z_mean")
+        self.z_log_var = layers.Dense(output_shape, activation=None, name="prior_encoder/z_log_var")
+        self.z = Sampling(name="prior_encoder/z")
+
+    def call(self, inputs):
+        x1 = self.e1(inputs)
+        x2 = self.e2(x1)
+        x3 = self.e3(x2)
+        x4 = self.dropout(x3) if self.dropout is not None else x3
+        z_mean = self.z_mean(x4)
+        z_log_var = self.z_log_var(x4)
+        z = self.z([z_mean, z_log_var], n_samples=self.n_samples)
+        return x1, x2, x3, z_mean, z_log_var, z
+
+
 class PreTrainedEncoder(tf.keras.Model):
     """ Encoder using a pre-trained model and learning only the mean and variance layer.
     An additional dense layer can be added between the pre-trained model and the mean and variance layers.
