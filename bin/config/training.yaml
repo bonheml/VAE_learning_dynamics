@@ -3,8 +3,6 @@ training_steps: 300000
 latent_shape: 10
 seed: 0
 param_value: 1
-n_samples: 1
-dropout: null
 
 defaults:
   - _self_

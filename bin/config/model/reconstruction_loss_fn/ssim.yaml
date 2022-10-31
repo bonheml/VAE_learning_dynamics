@@ -1,2 +1,0 @@
-_target_: vae_ld.models.losses.SSIMLoss
-mult: 100

@@ -5,4 +5,3 @@ image_generator:
   data: null
   latent_shape: ${latent_shape}
   save_freq: 10
-  z_samples: ${n_samples}

@@ -4,5 +4,4 @@ defaults:
 
 _target_: vae_ld.models.encoders.PreTrainedEncoder
 output_shape: ${latent_shape}
-n_samples: ${n_samples}
 use_dense: false

@@ -15,9 +15,11 @@ class DeconvolutionalDecoder(tf.keras.Model):
     .. [2] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
            Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
     """
-    def __init__(self, input_shape, output_shape, n_samples=1):
+    def __init__(self, in_shape, output_shape):
         super(DeconvolutionalDecoder, self).__init__()
-        self.d1 = layers.Dense(256, activation="relu", name="decoder/1", input_shape=(input_shape * n_samples,))
+        self.in_shape = in_shape
+        self.out_shape = output_shape
+        self.d1 = layers.Dense(256, activation="relu", name="decoder/1", input_shape=(in_shape,))
         self.d2 = layers.Dense(1024, activation="relu", name="decoder/2")
         self.d3 = layers.Reshape((4, 4, 64), name="decoder/reshape")
         self.d4 = layers.Conv2DTranspose(filters=64, kernel_size=4, strides=2, activation="relu", padding="same",
@@ -41,6 +43,13 @@ class DeconvolutionalDecoder(tf.keras.Model):
         x8 = self.d8(x7)
         return x1, x2, x3, x4, x5, x6, x7, x8
 
+    def get_config(self):
+        return {"in_shape": self.in_shape, "output_shape": self.out_shape}
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
+
 
 class DeepConvDecoder(tf.keras.Model):
     """ Deeper convolutional decoder. Each Convolutional block is composed of n convolutional transpose layers where the
@@ -49,10 +58,12 @@ class DeepConvDecoder(tf.keras.Model):
     by 2 after each iteration.
     """
 
-    def __init__(self, input_shape, output_shape, n_samples=1):
+    def __init__(self, in_shape, output_shape):
         super(DeepConvDecoder, self).__init__()
+        self.in_shape = in_shape
+        self.out_shape = output_shape
         # Reverse of FC Block
-        self.block_1 = self._build_fc_block(5, 256, "decoder/1", input_shape=input_shape * n_samples)
+        self.block_1 = self._build_fc_block(5, 256, "decoder/1", input_shape=in_shape)
 
         # Reshape to 3D
         self.reshape = layers.Reshape((4, 4, 256), name="decoder/reshape")
@@ -113,6 +124,13 @@ class DeepConvDecoder(tf.keras.Model):
         # We only return the activation at the end of each block + FC layers
         return x1, x2, x3, x4, x5, out
 
+    def get_config(self):
+        return {"in_shape": self.in_shape, "output_shape": self.out_shape}
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
+
 
 class FullyConnectedDecoder(tf.keras.Model):
     """ Fully connected decoder initially used in beta-VAE [1]. Based on Locatello et al. [2]
@@ -126,9 +144,11 @@ class FullyConnectedDecoder(tf.keras.Model):
     .. [2] Locatello et al, (2019). Challenging Common Assumptions in the Unsupervised Learning of Disentangled
            Representations. Proceedings of the 36th International Conference on Machine Learning, in PMLR 97:4114-4124
     """
-    def __init__(self, input_shape, output_shape, n_samples=1):
+    def __init__(self, in_shape, output_shape):
         super(FullyConnectedDecoder, self).__init__()
-        self.d1 = layers.Dense(1200, activation="tanh", name="decoder/1", input_shape=(input_shape * n_samples,))
+        self.in_shape = in_shape
+        self.out_shape = output_shape
+        self.d1 = layers.Dense(1200, activation="tanh", name="decoder/1", input_shape=(in_shape,))
         self.d2 = layers.Dense(1200, activation="tanh", name="decoder/2")
         self.d3 = layers.Dense(1200, activation="tanh", name="decoder/3")
         self.d4 = layers.Dense(np.prod(output_shape), activation=None, name="decoder/4")
@@ -142,6 +162,13 @@ class FullyConnectedDecoder(tf.keras.Model):
         x5 = self.d5(x4)
         return x1, x2, x3, x4, x5
 
+    def get_config(self):
+        return {"in_shape": self.in_shape, "output_shape": self.out_shape}
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
+
 
 class FullyConnectedPriorDecoder(tf.keras.Model):
     """ Fully connected decoder for conditional prior initially used in IDVAE [1]. Based on the authors' implementation
@@ -152,13 +179,15 @@ class FullyConnectedPriorDecoder(tf.keras.Model):
     .. [1] Mita, G., Filippone, M., & Michiardi, P. (2021, July). An identifiable double vae for disentangled
            representations. In International Conference on Machine Learning (pp. 7769-7779). PMLR.
     """
-    def __init__(self, input_shape, output_shape, n_samples=1):
+    def __init__(self, in_shape, output_shape):
         super().__init__()
-        self.d1 = layers.Dense(1000, activation=layers.LeakyReLU(alpha=0.2), name="prior_decoder/1",
-                               input_shape=(input_shape * n_samples,))
-        self.d2 = layers.Dense(1000, activation=layers.LeakyReLU(alpha=0.2), name="prior_decoder/2")
-        self.d3 = layers.Dense(1000, activation=layers.LeakyReLU(alpha=0.2), name="prior_decoder/3")
-        self.d4 = layers.Dense(output_shape, activation=None, name="prior_decoder/4")
+        self.in_shape = in_shape
+        self.out_shape = output_shape
+        self.d1 = layers.Dense(1000, activation=layers.LeakyReLU(alpha=0.2), name="decoder_p_u/1",
+                               input_shape=(in_shape,))
+        self.d2 = layers.Dense(1000, activation=layers.LeakyReLU(alpha=0.2), name="decoder_p_u/2")
+        self.d3 = layers.Dense(1000, activation=layers.LeakyReLU(alpha=0.2), name="decoder_p_u/3")
+        self.d4 = layers.Dense(output_shape, activation=None, name="decoder_p_u/4")
 
     def call(self, inputs):
         x1 = self.d1(inputs)
@@ -166,3 +195,10 @@ class FullyConnectedPriorDecoder(tf.keras.Model):
         x3 = self.d3(x2)
         x4 = self.d4(x3)
         return x1, x2, x3, x4
+
+    def get_config(self):
+        return {"in_shape": self.in_shape, "output_shape": self.out_shape}
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)

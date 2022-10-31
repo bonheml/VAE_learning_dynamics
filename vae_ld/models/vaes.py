@@ -1,10 +1,12 @@
+from collections import Iterable
+
 import tensorflow as tf
 from tensorflow.python.keras import layers
 
 from vae_ld.models import logger
 from vae_ld.models.decoders import DeconvolutionalDecoder, FullyConnectedPriorDecoder
 from vae_ld.models.divergences import KLD
-from vae_ld.models.encoders import ConvolutionalEncoder, FullyConnectedPriorEncoder
+from vae_ld.models.encoders import ConvolutionalEncoder, FullyConnectedPriorEncoder, ConvolutionalIdentifiableEncoder
 from vae_ld.models.losses import BernoulliLoss
 from vae_ld.models.vae_utils import compute_batch_tc, compute_covariance
 
@@ -25,7 +27,7 @@ class GenericVAE(tf.keras.Model):
     reconstruction_loss_fn : function, optional
         The metric to use for the reconstruction loss (e.g. l2, bernoulli)
         Default is BernoulliLoss
-    input_shape : list or tuple
+    in_shape : list or tuple
         The shape of the input given to the encoder.
         Default is (64,64,3)
     latent_shape : int
@@ -43,11 +45,8 @@ class GenericVAE(tf.keras.Model):
     """
 
     def __init__(self, *args, encoder=None, decoder=None, reconstruction_loss_fn=BernoulliLoss(),
-                 regularisation_loss_fn=KLD(), input_shape=(64, 64, 3), latent_shape=10, output_shape=(64, 64, 3),
+                 regularisation_loss_fn=KLD(), in_shape=(64, 64, 3), latent_shape=10, output_shape=(64, 64, 3),
                  **kwargs):
-        self.n_samples = kwargs.pop("n_samples", 1)
-        if self.n_samples <= 0:
-            raise ValueError("The number of samples must be greater than 0.")
         super().__init__(*args, **kwargs)
         self.encoder = encoder
         self.decoder = decoder
@@ -58,7 +57,7 @@ class GenericVAE(tf.keras.Model):
         self.reconstruction_loss_tracker = tf.keras.metrics.Mean(name="reconstruction_loss")
         self.model_loss_tracker = tf.keras.metrics.Mean(name="model_loss")
         self.latent_shape = latent_shape
-        self.in_shape = input_shape
+        self.in_shape = in_shape
         self.out_shape = output_shape
 
     @property
@@ -174,7 +173,7 @@ class VAE(GenericVAE):
 
         if self.decoder is None:
             self.decoder = DeconvolutionalDecoder(self.latent_shape, self.out_shape)
-        self.decoder.build((None, self.latent_shape * self.n_samples))
+        self.decoder.build((None, self.latent_shape))
         self.decoder.summary(print_fn=logger.info)
 
         self.built = True
@@ -189,15 +188,18 @@ class VAE(GenericVAE):
 class MultiInputVAE(GenericVAE):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        shape_p_u = self.in_shape[1]
         if self.encoder is None:
-            self.encoder = ConvolutionalEncoder(self.in_shape[0], self.latent_shape)
+            self.encoder = ConvolutionalIdentifiableEncoder(self.in_shape[0], self.latent_shape, shape_p_u)
         # *[...], or *(...), cast a comprehension list to a tuple
-        self.encoder.build([(None, *i) for i in self.in_shape])
+        if not isinstance(shape_p_u, Iterable):
+            shape_p_u = (shape_p_u,)
+        self.encoder.build([(None, *i) for i in [self.in_shape[0], shape_p_u]])
         self.encoder.summary(print_fn=logger.info)
 
         if self.decoder is None:
             self.decoder = DeconvolutionalDecoder(self.latent_shape, self.out_shape)
-        self.decoder.build((None, self.latent_shape * self.n_samples))
+        self.decoder.build((None, self.latent_shape))
         self.decoder.summary(print_fn=logger.info)
 
         self.built = True
@@ -232,20 +234,22 @@ class IVAE(MultiInputVAE):
            representations. In International Conference on Machine Learning (pp. 7769-7779). PMLR.
     """
     def __init__(self, *args, prior_model=None, prior_mean=0, prior_shape=10, **kwargs):
-        input_shape = [list(kwargs.pop("input_shape")), [prior_shape,]]
-        super().__init__(*args, input_shape=input_shape, **kwargs)
+        in_shape = [list(kwargs.get("in_shape", (64,64,3))), prior_shape]
+        kwargs["in_shape"] = in_shape
+        super().__init__(*args, **kwargs)
+        latent_shape = kwargs.get("latent_shape")
         self.prior_mean = prior_mean
         self.prior_model = prior_model
+        prior_shape = prior_shape if isinstance(prior_shape, Iterable) else (prior_shape,)
         if self.prior_model is None:
-            self.prior_model = tf.keras.Sequential(name="prior")
-            self.prior_model.add(layers.Dense(1000, input_shape=(prior_shape,), activation=layers.LeakyReLU(alpha=0.2),
-                                              name="prior/1"))
+            self.prior_model = tf.keras.Sequential()
+            self.prior_model.add(layers.Dense(50, input_shape=(prior_shape,), activation=layers.LeakyReLU(alpha=0.1)))
             for i in range(2):
-                self.prior_model.add(layers.Dense(1000, activation=layers.LeakyReLU(alpha=0.2),
-                                                  name="prior/{}".format(i+1)))
-            self.prior_model.add(layers.Dense(self.latent_shape, name="prior/log_var"))
-        self.prior_model.build((None, prior_shape))
-        self.prior_model.summary(print_fn=logger.info)
+                self.prior_model.add(layers.Dense(50, activation=layers.LeakyReLU(alpha=0.1)))
+            self.prior_model.add(layers.Dense(latent_shape))
+        else:
+            self.prior.build((None, prior_shape))
+            self.prior.summary(print_fn=logger.info)
 
     def get_gradient_step_output(self, data, training=True):
         """ Do one gardient step.
@@ -266,7 +270,7 @@ class IVAE(MultiInputVAE):
         z_mean, z_log_var, z = self.encoder(data, training=training)[-3:]
         reconstruction = self.decoder(z, training=training)[-1]
         # Estimate the log var of p_{\lambda, T}(z|u). The mean is fixed, as in [1].
-        prior_log_var = self.prior_model(data[1], training=training)
+        prior_log_var = self.prior_model(data[1], training=training)[-1]
         prior_mean = self.prior_mean * tf.ones_like(prior_log_var)
 
         # Compute E_q_{\phi}(z|x,u)[log p_f(x|z)] - KL(q_{\phi}(z|x,u) || p_{\lambda, T}(z|u))
@@ -285,11 +289,11 @@ class IDVAE(MultiInputVAE):
 
         Parameters
         ----------
-        prior_encoder: tf.keras.Model or None, optional
+        encoder_p_u: tf.keras.Model or None, optional
             The intialised conditional prior encoder. If None, creates a model with the same architecture as [1].
-        prior_decoder: tf.keras.Model or None, optional
+        decoder_p_u: tf.keras.Model or None, optional
             The intialised conditional prior decoder. If None, creates a model with the same architecture as [1].
-        prior_shape: int, optional
+        shape_p_u: int, optional
             Number of latent dimensions of the prior model. Default is 10.
 
         References
@@ -298,28 +302,32 @@ class IDVAE(MultiInputVAE):
                representations. In International Conference on Machine Learning (pp. 7769-7779). PMLR.
         """
 
-    def __init__(self, *args, prior_encoder=None, prior_decoder=None, prior_shape=10, **kwargs):
-        input_shape = [list(kwargs.pop("input_shape")), [prior_shape, ]]
-        super().__init__(*args, input_shape=input_shape, **kwargs)
-        self.prior_encoder = prior_encoder
-        self.prior_decoder = prior_decoder
-        if self.prior_encoder is None:
-            self.prior_encoder = FullyConnectedPriorEncoder((prior_shape,), self.latent_shape)
-        if self.prior_decoder is None:
-            self.prior_decoder = FullyConnectedPriorDecoder(self.latent_shape, prior_shape)
-        self.prior_encoder.build((None, prior_shape))
-        self.prior_encoder.summary(print_fn=logger.info)
-        self.prior_decoder.build((None, self.latent_shape * self.n_samples))
-        self.prior_decoder.summary(print_fn=logger.info)
-        self.prior_regularisation_loss_tracker = tf.keras.metrics.Mean(name="prior_regularisation_loss")
-        self.prior_elbo_loss_tracker = tf.keras.metrics.Mean(name="prior_elbo_loss")
-        self.prior_reconstruction_loss_tracker = tf.keras.metrics.Mean(name="prior_reconstruction_loss")
+    def __init__(self, *args, encoder_p_u=None, decoder_p_u=None, shape_p_u=10, rec_loss_fn_p_u=None, **kwargs):
+        in_shape = [list(kwargs.get("in_shape", (64, 64, 3))), shape_p_u]
+        kwargs["in_shape"] = in_shape
+        super().__init__(*args, **kwargs)
+        self.rec_loss_fn_p_u = rec_loss_fn_p_u if rec_loss_fn_p_u is not None else self.reconstruction_loss_fn
+        self.encoder_p_u = encoder_p_u
+        self.decoder_p_u = decoder_p_u
+        shape_p_u_iter = shape_p_u if isinstance(shape_p_u, Iterable) else (shape_p_u,)
+        if self.encoder_p_u is None:
+            self.encoder_p_u = FullyConnectedPriorEncoder(shape_p_u_iter, self.latent_shape)
+        if self.decoder_p_u is None:
+            self.decoder_p_u = FullyConnectedPriorDecoder(self.latent_shape, shape_p_u)
+        self.encoder_p_u.build((None, *shape_p_u_iter))
+        self.encoder_p_u.summary(print_fn=logger.info)
+        self.decoder_p_u.build((None, self.latent_shape))
+        self.decoder_p_u.summary(print_fn=logger.info)
+        self.p_u_regularisation_loss_tracker = tf.keras.metrics.Mean(name="p_u_regularisation_loss")
+        self.p_u_elbo_loss_tracker = tf.keras.metrics.Mean(name="p_u_elbo_loss")
+        self.p_u_reconstruction_loss_tracker = tf.keras.metrics.Mean(name="p_u_reconstruction_loss")
 
     @property
     def metrics(self):
-        return [self.model_loss_tracker, self.elbo_loss_tracker, self.regularisation_loss_tracker,
-                self.reconstruction_loss_tracker, self.prior_elbo_loss_tracker, self.prior_regularisation_loss_tracker,
-                self.prior_reconstruction_loss_tracker]
+        metrics = super().metrics
+        metrics += [self.p_u_regularisation_loss_tracker, self.p_u_elbo_loss_tracker,
+                   self.p_u_reconstruction_loss_tracker]
+        return metrics
 
     def get_gradient_step_output(self, data, training=True):
         """ Do one gardient step.
@@ -338,28 +346,144 @@ class IDVAE(MultiInputVAE):
         """
         losses = {}
         z_mean, z_log_var, z = self.encoder(data, training=training)[-3:]
-        reconstruction = self.decoder(z, training=training)[-1]
-        zp_mean, zp_log_var, zp = self.prior_encoder(data[1], training=training)[-3:]
-        prior_reconstruction = self.prior_decoder(zp, training=training)[-1]
+        rec_p_x_z = self.decoder(z, training=training)[-1]
+
+        z_u_mean, z_u_log_var, z_u = self.encoder_p_u(data[1], training=training)[-3:]
+        rec_p_u_z = self.decoder_p_u(z_u, training=training)[-1]
 
         # Compute E_q_{\psi}(z|u)[log p_{\theta}(u|z)] - KL(q_{\psi}(z|u) || p_{\theta}(z))
-        losses["prior_reconstruction_loss"] = tf.reduce_mean(self.reconstruction_loss_fn(data[1], prior_reconstruction))
-        losses["prior_regularisation_loss"] = tf.reduce_mean(self.regularisation_loss_fn(zp_log_var, zp_mean))
+        losses["p_u_reconstruction_loss"] = tf.reduce_mean(self.rec_loss_fn_p_u(data[1], rec_p_u_z))
+        losses["p_u_regularisation_loss"] = tf.reduce_mean(self.regularisation_loss_fn(z_u_log_var, z_u_mean))
 
         # Compute E_q_{\phi}(z|x,u)[log p_f(x|z)] - KL(q_{\phi}(z|x,u) || p_{\lambda, T}(z|u))
-        losses["reconstruction_loss"] = tf.reduce_mean(self.reconstruction_loss_fn(data[0], reconstruction))
+        losses["reconstruction_loss"] = tf.reduce_mean(self.reconstruction_loss_fn(data[0], rec_p_x_z))
         losses["regularisation_loss"] = tf.reduce_mean(self.regularisation_loss_fn(z_log_var, z_mean,
-                                                                                   z2_log_var=zp_log_var,
-                                                                                   z2_mean=zp_mean))
+                                                                                   z2_log_var=z_u_log_var,
+                                                                                   z2_mean=z_u_mean))
+
         losses["elbo_loss"] = -tf.add(losses["reconstruction_loss"], losses["regularisation_loss"])
-        losses["prior_elbo_loss"] = -tf.add(losses["prior_reconstruction_loss"], losses["prior_regularisation_loss"])
+        losses["p_u_elbo_loss"] = -tf.add(losses["p_u_reconstruction_loss"], losses["p_u_regularisation_loss"])
         losses["model_loss"] = self.compute_model_loss(**losses)
         return losses
 
     def compute_model_loss(self, *args, **kwargs):
-        elbo, prior_elbo = kwargs.get("elbo_loss"), kwargs.get("prior_elbo_loss")
+        elbo, prior_elbo = kwargs.get("elbo_loss"), kwargs.get("p_u_elbo_loss")
         return -tf.add(elbo, prior_elbo)
 
+
+class MIDVAE(IDVAE):
+    """ Creates a MIDVAE model
+
+        Parameters
+        ----------
+        encoder_p_x: tf.keras.Model or None, optional
+            The intialised conditional prior encoder q(z|x1). If None, creates a model with a similar architecture to
+            the encoder part of q(z|x1,x2) encoding q(z|x1).
+        beta: float or int, optional
+            The weight of the penalisation between the ELBOs obtained from p(x|u)p(u) and p(u|x)p(x).
+            Default is 0.
+    """
+    # TODO: for better integration, MIDVAE need a reimplementation of the call method and an update of the image
+    # TODO: reconstruction callback to make it compliant with multioutput.
+
+    def __init__(self, *args, encoder_p_x=None, beta=0, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.encoder_p_x = encoder_p_x
+        # We already decode x from the main decoder, we use the same architecture for fair comparison
+        self.decoder_p_x = self.decoder.__class__.from_config(self.decoder.get_config())
+        # we already decode u from the conditional prior decoder, we use the same architecture for fair comparison
+        self.decoder_p_ux = self.decoder_p_u.__class__.from_config(self.decoder_p_u.get_config())
+        x_shape = kwargs.get("output_shape", (64, 64, 3))
+        if self.encoder_p_x is None:
+            self.encoder_p_x = ConvolutionalEncoder(x_shape, self.latent_shape)
+        self.encoder_p_x.build((None, *x_shape))
+        self.encoder_p_x.summary(print_fn=logger.info)
+        self.decoder_p_x.build((None, self.latent_shape))
+        self.decoder_p_x.summary(print_fn=logger.info)
+        self.decoder_p_ux.build((None, self.latent_shape))
+        self.decoder_p_ux.summary(print_fn=logger.info)
+        self.p_x_regularisation_loss_tracker = tf.keras.metrics.Mean(name="p_x_regularisation_loss")
+        self.p_x_elbo_loss_tracker = tf.keras.metrics.Mean(name="p_x_elbo_loss")
+        self.p_x_reconstruction_loss_tracker = tf.keras.metrics.Mean(name="p_x_reconstruction_loss")
+        self.p_ux_regularisation_loss_tracker = tf.keras.metrics.Mean(name="p_ux_regularisation_loss")
+        self.p_ux_elbo_loss_tracker = tf.keras.metrics.Mean(name="p_ux_elbo_loss")
+        self.p_ux_reconstruction_loss_tracker = tf.keras.metrics.Mean(name="p_ux_reconstruction_loss")
+        self.p_diff_loss_tracker = tf.keras.metrics.Mean(name="p_diff")
+        self.beta = beta
+
+    @property
+    def metrics(self):
+        metrics = super(MIDVAE, self).metrics
+        metrics += [self.p_x_regularisation_loss_tracker, self.p_x_elbo_loss_tracker,
+                    self.p_x_reconstruction_loss_tracker, self.p_ux_regularisation_loss_tracker,
+                    self.p_ux_elbo_loss_tracker, self.p_ux_reconstruction_loss_tracker, self.p_diff_loss_tracker]
+        return metrics
+
+    def get_gradient_step_output(self, data, training=True):
+        """ Do one gardient step.
+
+        Parameters
+        ----------
+        data
+            The batch of data to use
+        training : bool, optional
+            Whether the model is training or testing.
+
+        Returns
+        -------
+        list
+            The update losses
+        """
+        losses = {}
+
+        # Retrieve outputs from the VAE optimising p(u, x)
+        z_mean, z_log_var, z = self.encoder(data, training=training)[-3:]
+        # Note that the conditioning on u, resp. x, is dropped. The variable names only have it to avoid name collision
+        # with p_x_z and p_u_z. In practice, and consistently with the paper, we only condition on z.
+        rec_p_x_zu = self.decoder(z, training=training)[-1]
+        rec_p_u_zx = self.decoder_p_ux(z, training=training)[-1]
+
+        # Retrieve outputs from the VAE optimising p(u)
+        z_u_mean, z_u_log_var, z_u = self.encoder_p_u(data[1], training=training)[-3:]
+        rec_p_u_z = self.decoder_p_u(z_u, training=training)[-1]
+
+        # Retrieve outputs from the VAE optimising p(x)
+        z_x_mean, z_x_log_var, z_x = self.encoder_p_x(data[0], training=training)[-3:]
+        rec_p_x_z = self.decoder_p_x(z_x, training=training)[-1]
+
+        # Compute E_q(z|u)[log p(u|z)] - KL(q(z|u) || q(z))
+        losses["p_u_reconstruction_loss"] = tf.reduce_mean(self.rec_loss_fn_p_u(data[1], rec_p_u_z))
+        losses["p_u_regularisation_loss"] = tf.reduce_mean(self.regularisation_loss_fn(z_u_log_var, z_u_mean))
+
+        # Compute E_q(z|x,u)[log p(x|z)] - KL(q(z|x,u) || q(z|u))
+        losses["reconstruction_loss"] = tf.reduce_mean(self.reconstruction_loss_fn(data[0], rec_p_x_zu))
+        losses["regularisation_loss"] = tf.reduce_mean(self.regularisation_loss_fn(z_log_var, z_mean,
+                                                                                   z2_log_var=z_u_log_var,
+                                                                                   z2_mean=z_u_mean))
+
+        # Compute E_q(z|x)[log p(x|z)] - KL(q(z|x) || q(z))
+        losses["p_x_reconstruction_loss"] = tf.reduce_mean(self.reconstruction_loss_fn(data[0], rec_p_x_z))
+        losses["p_x_regularisation_loss"] = tf.reduce_mean(self.regularisation_loss_fn(z_x_mean, z_x_log_var))
+
+        # Compute E_q(z|x,u)[log p(u|z)] - KL(q(z|x,u) || q(z|x))
+        losses["p_ux_reconstruction_loss"] = tf.reduce_mean(self.rec_loss_fn_p_u(data[1], rec_p_u_zx))
+        losses["p_ux_regularisation_loss"] = tf.reduce_mean(self.regularisation_loss_fn(z_log_var, z_mean,
+                                                                                        z2_log_var=z_x_log_var,
+                                                                                        z2_mean=z_x_mean))
+
+        losses["elbo_loss"] = -tf.add(losses["reconstruction_loss"], losses["regularisation_loss"])
+        losses["p_ux_elbo_loss"] = -tf.add(losses["p_ux_reconstruction_loss"], losses["p_ux_regularisation_loss"])
+        losses["p_u_elbo_loss"] = -tf.add(losses["p_u_reconstruction_loss"], losses["p_u_regularisation_loss"])
+        losses["p_x_elbo_loss"] = -tf.add(losses["p_x_reconstruction_loss"], losses["p_x_regularisation_loss"])
+        losses["p_diff"] = tf.abs(tf.subtract(losses["elbo_loss"], losses["p_ux_elbo_loss"]))
+        losses["model_loss"] = self.compute_model_loss(**losses)
+        return losses
+
+    def compute_model_loss(self, *args, **kwargs):
+        pxu, pu = kwargs.get("elbo_loss"), kwargs.get("p_u_elbo_loss")
+        pux, px = kwargs.get("p_ux_elbo_loss"), kwargs.get("p_x_elbo_loss")
+        p_diff = kwargs.get("p_diff")
+        return -tf.add_n([pxu, pu, pux, px, -self.beta * p_diff])
 
 
 class BetaVAE(VAE):

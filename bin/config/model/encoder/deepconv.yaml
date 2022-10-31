@@ -1,6 +1,3 @@
 _target_: vae_ld.models.encoders.DeepConvEncoder
-input_shape: ${dataset.observation_shape}
+in_shape: ${dataset.observation_shape}
 output_shape: ${latent_shape}
-n_samples: ${n_samples}
-zero_init: false
-dropout: ${dropout}

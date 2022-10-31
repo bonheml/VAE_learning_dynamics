@@ -1,0 +1,3 @@
+_target_: vae_ld.models.encoders.FullyConnectedPriorEncoder
+in_shape: ${dataset.n_factors}
+output_shape: ${latent_shape}

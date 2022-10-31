@@ -1,3 +1,3 @@
 _target_: vae_ld.models.decoders.DeconvolutionalDecoder
 in_shape: ${latent_shape}
-output_shape: ${dataset.observation_shape}
+output_shape: ${dataset.n_factors}

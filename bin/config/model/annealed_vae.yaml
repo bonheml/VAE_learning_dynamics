@@ -12,7 +12,6 @@ gamma: 1000
 # Max capacity tested by Locatello et al. : [5, 10, 25, 50, 75, 100]
 max_capacity: ${param_value}
 iteration_threshold: 100000
-input_shape: ${dataset.observation_shape}
+in_shape: ${dataset.observation_shape}
 latent_shape: ${latent_shape}
-n_samples: ${n_samples}
 

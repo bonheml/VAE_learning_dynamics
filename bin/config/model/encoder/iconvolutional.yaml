@@ -1,7 +1,4 @@
 _target_: vae_ld.models.encoders.ConvolutionalIdentifiableEncoder
-input_shape: ${dataset.observation_shape}
+in_shape: ${dataset.observation_shape}
 output_shape: ${latent_shape}
-prior_shape: ${dataset.n_factors}
-n_samples: ${n_samples}
-zero_init: false
-dropout: ${dropout}
+shape_p_u: ${dataset.n_factors}

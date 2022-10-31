@@ -1,0 +1,4 @@
+_target_: vae_ld.models.encoders.DoubleConvolutionalIdentifiableEncoder
+in_shape: ${dataset.observation_shape}
+output_shape: ${latent_shape}
+shape_p_u: ${dataset.observation_shape}
