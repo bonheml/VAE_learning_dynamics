@@ -241,7 +241,7 @@ class DataSampler(Sequence):
         If 2, labels are provided as input (e.g. for iVAE). The output will be ([data, labels],)
     """
 
-    def __init__(self, *, data, batch_size, seed, validation_split=0.2, validation=False, get_labels=0, **kwargs):
+    def __init__(self, data, batch_size, seed, *args, validation_split=0.2, validation=False, get_labels=0, **kwargs):
         self._data = data
         self._batch_size = batch_size
         data_size = np.copy(self.data.data_size)
@@ -307,16 +307,26 @@ class DataSampler(Sequence):
         logger.debug("Retrieving indexes in range ({},{})".format(start_idx, stop_idx))
         idxs = idxs_map[start_idx:stop_idx]
         logger.debug("Getting data from indexes {}".format(idxs))
-        data = tf.convert_to_tensor(self.data[idxs], dtype=tf.float32)
+        data = self.data[idxs]
+        if isinstance(data[0], tuple):
+            data = [tf.convert_to_tensor(d, dtype=tf.float32) for d in zip(*data)]
+            #print(data)
+            data_shape = data[0].shape
+            #print(data_shape)
+            data = list(zip(*data))
+            #print(data)
+        else:
+            data = tf.convert_to_tensor(self.data[idxs], dtype=tf.float32)
+            data_shape = data.shape
         if self._get_labels < 2:
-            logger.debug("Return batch of size {}".format(data.shape))
+            logger.debug("Return batch of size {}".format(data_shape))
         if self._get_labels > 0:
             labels = self.data.index.index_to_features(idxs)
             logger.debug("Factors for indexes {}: {}".format(idxs, labels))
             if self._get_labels == 2:
                 # When the labels are used as input, we normalise their values between 0 and 1 using min-max
                 # feature scaling. This way, they are in the same range as input images.
-                logger.debug("Return batch of size [{}, {}]".format(data.shape, labels.shape))
+                logger.debug("Return batch of size [{}, {}]".format(data_shape, labels.shape))
                 labels = tf.convert_to_tensor(labels, dtype=tf.float32)
                 lmin, lmax = tf.reduce_min(labels, axis=0, keepdims=True), tf.reduce_max(labels, axis=0, keepdims=True)
                 labels = (labels - lmin) / (lmax - lmin)

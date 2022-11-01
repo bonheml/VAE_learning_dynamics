@@ -1,6 +1,7 @@
 import re
 import numpy as np
-
+import tensorflow as tf
+import tensorflow_datasets as tfds
 
 class SplitDiscreteStateSpace(object):
     """ State space with factors split between latent variable and observations.
@@ -225,3 +226,13 @@ def get_unique_samples(X):
         labels = np.array(X[1])[idx]
         return data, labels
     return np.unique(X, axis=0)
+
+
+def load_and_preprocess_tf_dataset(name, path, target_size):
+    (X_train, Y_train), (X_test, Y_test) = tfds.load(data_dir=path, download=True,
+                                                     as_supervised=True, batch_size=-1,
+                                                     split=["train", "test"], name=name)
+    X = tf.concat([X_train, X_test], axis=0)
+    Y = tf.concat([Y_train, Y_test], axis=0).numpy()
+    X = tf.image.resize(X, target_size).numpy() / 255.
+    return X, Y

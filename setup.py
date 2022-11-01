@@ -46,6 +46,7 @@ setup(
         "tensorflow_hub~=0.12",
         "tensorflow~=2.6",
         "tensorboard~=2.6",
+        "tensorflow-datasets",
         "imageio",
         "hydra-core",
         "scikit-learn",

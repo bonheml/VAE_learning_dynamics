@@ -1,0 +1,8 @@
+_target_: vae_ld.data.mnist.MnistSvhn
+observation_shape: [64, 64, 1]
+data_size: 68965
+name: mnist_svhn
+url: ""
+path: ${oc.env:DATA_PATH}/mnist_svhn
+factors_shape: [10]
+n_factors: [64, 64, 3]
