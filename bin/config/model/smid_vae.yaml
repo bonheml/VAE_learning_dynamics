@@ -1,0 +1,16 @@
+name: id_vae
+
+defaults:
+  - _self_
+  - encoder: iconvolutional
+  - decoder: convolutional
+  - reconstruction_loss_fn: bernoulli
+  - regularisation_loss_fn: kld
+  - rec_loss_fn_p_u: mse
+  - encoder_p_u: fully_connected
+  - decoder_p_u: fully_connected
+
+_target_: vae_ld.models.vaes.IDVAE
+in_shape: ${dataset.observation_shape}
+latent_shape: ${latent_shape}
+shape_p_u: ${dataset.n_factors}
