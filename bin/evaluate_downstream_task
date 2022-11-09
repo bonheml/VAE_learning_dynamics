@@ -38,6 +38,7 @@ def evaluate_on_downstream_tasks(cfg):
 
     logger.info("Retrieving compressed representations")
     Z_train = encoder.predict(train_sampler, batch_size=cfg.batch_size)
+    logger.info(Z_train.shape)
     Z_test = encoder.predict(test_sampler, batch_size=cfg.batch_size)
     Y_train = train_sampler.data.index.index_to_features(train_sampler.train_idxs)
     Y_test = test_sampler.data.index.index_to_features(test_sampler.validation_idxs)
