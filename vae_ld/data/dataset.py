@@ -6,6 +6,7 @@ from keras.utils.data_utils import Sequence
 from sklearn.utils import extmath
 import tensorflow as tf
 from vae_ld.data import logger, util
+from sklearn.preprocessing import OneHotEncoder
 
 
 class Data:
@@ -241,7 +242,8 @@ class DataSampler(Sequence):
         If 2, labels are provided as input (e.g. for iVAE). The output will be ([data, labels],)
     """
 
-    def __init__(self, data, batch_size, seed, *args, validation_split=0.2, validation=False, get_labels=0, **kwargs):
+    def __init__(self, data, batch_size, seed, *args, validation_split=0.2, validation=False, get_labels=0,
+                 categorical=True, **kwargs):
         self._data = data
         self._batch_size = batch_size
         data_size = np.copy(self.data.data_size)
@@ -254,6 +256,10 @@ class DataSampler(Sequence):
         self._random_state.shuffle(self._train_idxs)
         self._validation = validation
         self._get_labels = get_labels
+        self._label_idxs = [i for i in range(len(self.data.factors_shape))]
+        cats = [[i for i in range(a)] for a in np.array(self.data.factors_shape)[self._label_idxs]]
+        self._categorical_encoder = OneHotEncoder(categories=cats)
+        self._categorical = categorical
 
     @property
     def validation_idxs(self):
@@ -270,6 +276,40 @@ class DataSampler(Sequence):
     @train_idxs.setter
     def train_idxs(self, idxs):
         self._train_idxs = idxs
+
+    @property
+    def labels_idxs(self):
+        return self._label_idxs
+
+    @labels_idxs.setter
+    def labels_idxs(self, idxs):
+        self._label_idxs = idxs
+        cats = [[i for i in range(a)] for a in np.array(self.data.factors_shape)[self._label_idxs]]
+        self._categorical_encoder = OneHotEncoder(categories=cats)
+
+    @property
+    def y_true(self):
+        idxs = self.validation_idxs if self._validation else self._train_idxs
+        labels = self.data.index.index_to_features(idxs)
+        if self._label_idxs is not None:
+            labels = labels[:, self._label_idxs]
+        return self._categorical_encoder.fit_transform(labels).toarray() if self._categorical else labels
+
+    @property
+    def labels(self):
+        return self._get_labels
+
+    @labels.setter
+    def labels(self, n):
+        self._get_labels = n
+
+    @property
+    def categorical(self):
+        return self.categorical
+
+    @categorical.setter
+    def categorical(self, is_cat):
+        self._categorical = is_cat
 
     @property
     def data(self):
@@ -310,11 +350,8 @@ class DataSampler(Sequence):
         data = self.data[idxs]
         if isinstance(data[0], tuple):
             data = [tf.convert_to_tensor(d, dtype=tf.float32) for d in zip(*data)]
-            #print(data)
             data_shape = data[0].shape
-            #print(data_shape)
             data = list(zip(*data))
-            #print(data)
         else:
             data = tf.convert_to_tensor(self.data[idxs], dtype=tf.float32)
             data_shape = data.shape
@@ -322,6 +359,10 @@ class DataSampler(Sequence):
             logger.debug("Return batch of size {}".format(data_shape))
         if self._get_labels > 0:
             labels = self.data.index.index_to_features(idxs)
+            if self._label_idxs is not None:
+                labels = labels[:, self._label_idxs]
+            if self._categorical is True:
+                labels = self._categorical_encoder.fit_transform(labels).toarray()
             logger.debug("Factors for indexes {}: {}".format(idxs, labels))
             if self._get_labels == 2:
                 # When the labels are used as input, we normalise their values between 0 and 1 using min-max
