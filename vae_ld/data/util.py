@@ -236,3 +236,11 @@ def load_and_preprocess_tf_dataset(name, path, target_size):
     Y = tf.concat([Y_train, Y_test], axis=0).numpy()
     X = tf.image.resize(X, target_size).numpy() / 255.
     return X, Y
+
+
+class CustomIndex:
+    def __init__(self, labels):
+        self._index = np.array(labels)
+
+    def index_to_features(self, idxs):
+        return self._index[idxs]

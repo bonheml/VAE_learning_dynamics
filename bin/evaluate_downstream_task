@@ -1,0 +1,78 @@
+#!/usr/bin/env python
+import logging
+import hydra
+import pandas as pd
+from hydra.utils import instantiate, call
+from omegaconf import OmegaConf
+from glob import glob
+from vae_ld.data.util import natural_sort, get_unique_samples
+from vae_ld.learning_dynamics.intrinsic_dimension_estimators import TwoNN, MLE
+import tensorflow as tf
+from vae_ld.learning_dynamics.utils import get_activations, prepare_activations, get_model_epoch
+import numpy as np
+
+logger = logging.getLogger("get_data_ide")
+
+
+def compute_ides(model, model_info, sampler, ides, n_iter, act_fn):
+    res = []
+    for i in range(0, n_iter):
+        X = sampler[i][0]
+        X = get_unique_samples(X)
+
+        if (isinstance(X, tuple) and X[0].size == 0) or (not isinstance(X, tuple) and X.size == 0):
+            logger.info("The entire dataset used in {} steps. Skipping the remaining steps.".format(i+1))
+            break
+
+        _, acts, layers = act_fn(X, None, model=model)
+        logger.debug("Batch shape is: {}".format(X[0].shape if isinstance(X, tuple) else X.shape))
+        acts = [prepare_activations(act) for act in acts]
+        for j, l1 in enumerate(layers):
+            logger.info("Iteration {}/{}: computing IDE of layer {}".format(i + 1, n_iter, l1))
+            for name, ide in ides.items():
+                res.append({"estimator": name, "layer": l1, "batch": i,
+                            "IDE": ide.fit_transform(acts[j])})
+                logger.debug("IDE for {} on batch {} using {} = {}".format(l1, i, name, res[-1]["IDE"]))
+    df = pd.DataFrame(res)
+    for k, v in model_info.items():
+        df[k] = v
+    return df
+
+
+@hydra.main(config_path="config", config_name="data_ide")
+def get_all_ides(cfg):
+    logger.info("Experiment config:\n{}".format(OmegaConf.to_yaml(cfg)))
+
+    logger.info("Instantiating intrinsic dimension estimators")
+    df = None
+    ides = {"MLE_{}".format(k): MLE(k, cfg.seed, runs=cfg.mle_runs, anchor=cfg.mle_anchor)
+            for k in [3, 5, 10, 20]}
+    ides["TwoNN"] = TwoNN()
+
+    logger.info("Instantiating {} dataset".format(cfg.dataset.name))
+    sampler = instantiate(cfg.sampling)
+    model_info = {"model_name": cfg.model_name, "param_name": cfg.param_name,
+                  "param_value": cfg.param_value, "model_seed": cfg.model_seed,
+                  "seed": cfg.seed, "latent_dim": cfg.latent_dim}
+    logger.info("Loading model from {}".format(cfg.model_path))
+
+    files = sorted(glob(cfg.model_path), key=natural_sort)
+    if cfg.checkpoint is not None:
+        files = np.array(files)
+        # Keep only the nth model checkpoints
+        files = files[list(cfg.checkpoint)]
+
+    activations_fn = call(cfg.activations.fn, _partial_=True)
+
+    for file in files:
+        model = tf.keras.models.load_model(file)
+        model_info["model_epoch"] = get_model_epoch(file)
+        logger.info("Computing IDEs")
+        df2 = compute_ides(model, model_info, sampler, ides, cfg.n_iter, activations_fn)
+        df = pd.concat([df, df2], ignore_index=True) if df is not None else df2
+        logger.info("Saving the results to {}".format(cfg.save_file))
+        df.to_csv(cfg.save_file, sep="\t")
+
+
+if __name__ == "__main__":
+    get_all_ides()

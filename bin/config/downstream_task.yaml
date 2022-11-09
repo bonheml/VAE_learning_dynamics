@@ -1,0 +1,32 @@
+defaults:
+  - dataset: dsprites
+  - sampling: sampler
+  - activations: full
+  - _self_
+
+model_name: beta_vae
+param_name: beta
+param_value: 1
+model_seed: 0
+latent_dim: 10
+checkpoint: [-1]
+model_path: ${oc.env:XP_PATH}/train/latent_${latent_dim}/${model_name}/${dataset.name}/${param_value}/${model_seed}/checkpoint/*
+
+batch_size: 10000
+seed: 0
+n_iter: 3
+mle_runs: 5
+mle_anchor: 0.8
+save_file: IDE_${dataset.name}_${model_name}_${param_name}_${param_value}_seed_${model_seed}_${batch_size}_samples.tsv
+
+hydra:
+  run:
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_dim}/${dataset.name}
+  sweep:
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_dim}
+    subdir: ${dataset.name}
+  job:
+    config:
+      override_dirname:
+        kv_sep: _
+        item_sep: /

@@ -2,22 +2,14 @@ from collections import Iterable
 
 import numpy as np
 from vae_ld.data.dataset import Data
-from vae_ld.data.util import load_and_preprocess_tf_dataset
-
-
-class MnistIndex:
-    def __init__(self, labels):
-        self._index = np.array(labels)
-
-    def index_to_features(self, idxs):
-        return self._index[idxs]
+from vae_ld.data.util import load_and_preprocess_tf_dataset, CustomIndex
 
 
 class Mnist(Data):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._data, self._features, self._lookup_table = self.load_data()
-        self.index = MnistIndex(self._features)
+        self.index = CustomIndex(self._features)
 
     def load_data(self):
         if not self.path.exists():

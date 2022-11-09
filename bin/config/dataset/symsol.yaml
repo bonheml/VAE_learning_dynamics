@@ -5,4 +5,5 @@ observation_shape: [64,64,1]
 url: https://data.kent.ac.uk/436/1/symsol_reduced.zip
 data_size: 112791
 name: symsol
-factors_shape: []
+factors_shape: [5]
+n_factors: 1
