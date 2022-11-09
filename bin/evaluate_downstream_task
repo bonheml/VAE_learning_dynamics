@@ -17,34 +17,38 @@ logger = logging.getLogger("downstream_task")
 def evaluate_on_downstream_tasks(cfg):
     logger.info("Experiment config:\n{}".format(OmegaConf.to_yaml(cfg)))
 
+    logger.info("Loading model from {}".format(cfg.model_path))
+    file = sorted(glob(cfg.model_path), key=natural_sort)[-1]
+    encoder = tf.keras.models.load_model(file).encoder
+
     logger.info("Retrieving the data...")
     # We create a partial instantiation first to share the same dataset between samplers
     sampler = instantiate(cfg.sampling, _partial_=True)
     logger.debug("The partial sampler is {}".format(sampler))
     train_sampler = sampler()
     logger.debug("The train sampler is {}".format(train_sampler))
+    validation_idxs = train_sampler.validation_idxs
+    logger.info("Getting labels for train and test")
+    Y_train = train_sampler.data.index.index_to_features(train_sampler.train_idxs)
+    Y_test = train_sampler.data.index.index_to_features(train_sampler.validation_idxs)
+    logger.info("Getting Z_train")
+    Z_train = encoder.predict(train_sampler, batch_size=cfg.batch_size)
+    del train_sampler
+
     test_sampler = sampler()
     logger.debug("The test sampler is {}".format(test_sampler))
     # We update the test_sampler with the validation indexes from the train sampler
     test_sampler.validation = True
-    test_sampler.validation_idxs = train_sampler.validation_idxs
-    # Remove unused index list to avoid unneeded memory usage
+    test_sampler.validation_idxs = validation_idxs
     test_sampler.train_idxs = None
-    train_sampler.validation_idxs = None
-
-    logger.info("Loading model from {}".format(cfg.model_path))
-    file = sorted(glob(cfg.model_path), key=natural_sort)[-1]
-    encoder = tf.keras.models.load_model(file).encoder
-
-    logger.info("Retrieving compressed representations")
-    Z_train = encoder.predict(train_sampler, batch_size=cfg.batch_size)
-    logger.info(Z_train.shape)
+    logger.info("Getting Z_test")
     Z_test = encoder.predict(test_sampler, batch_size=cfg.batch_size)
-    Y_train = train_sampler.data.index.index_to_features(train_sampler.train_idxs)
-    Y_test = test_sampler.data.index.index_to_features(test_sampler.validation_idxs)
+    del test_sampler.data
+    del test_sampler
+
     res = {}
 
-    if "dsprites" in train_sampler.data.name:
+    if "dsprites" in cfg.dataset.name:
         Y_train, Y_test = Y_train[:, 0], Y_test[:, 0]
         Y_train_cont, Y_test_cont = Y_train[:, 1:], Y_test[:, 1:]
         lr = LinearRegression().fit(Z_train, Y_train_cont)

@@ -1,9 +1,13 @@
-name: id_vae
+name: smid_vae
 
 defaults:
   - _self_
   - encoder: iconvolutional
   - decoder: convolutional
+  - encoder_y: iconvolutional
+  - decoder_y: convolutional
+  - reconstruction_loss_fn: bernoulli
+  - regularisation_loss_fn: kld
   - reconstruction_loss_fn: bernoulli
   - regularisation_loss_fn: kld
   - rec_loss_fn_p_u: mse
