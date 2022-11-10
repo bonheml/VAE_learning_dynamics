@@ -5,6 +5,7 @@ defaults:
 
 seed: 0
 epochs: 10
+patience: 0
 batch_size: 64
 model_name: beta_vae
 param_name: beta

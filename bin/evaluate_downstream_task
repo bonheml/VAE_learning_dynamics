@@ -98,7 +98,7 @@ def evaluate_on_downstream_tasks(cfg):
     file = sorted(glob(cfg.model_path), key=natural_sort)[-1]
     encoder = tf.keras.models.load_model(file).encoder
 
-    callback = tf.keras.callbacks.EarlyStopping(monitor='loss')
+    callback = tf.keras.callbacks.EarlyStopping(monitor='loss', patience=cfg.patience)
 
     res = {}
     if cfg.dataset.name == "symsol":
