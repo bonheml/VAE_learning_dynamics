@@ -46,6 +46,52 @@ def get_model(encoder, n, type="multiclass_classification"):
     return model
 
 
+def dt_multiclass(idx, train_sampler, test_sampler, encoder, cfg):
+    train_sampler.labels_idxs = [idx]
+    test_sampler.labels_idxs = [idx]
+    Y_true = test_sampler.y_true
+    print(Y_true[0])
+    factors = test_sampler.data.factors_shape[idx]
+    model_clf = get_model(encoder, factors, type="multiclass_classification")
+    model_clf.fit(train_sampler, epochs=cfg.epochs, batch_size=cfg.batch_size)
+    Y_pred = model_clf.predict(test_sampler, batch_size=cfg.batch_size)
+    Y_pred = (Y_pred == Y_pred.max(axis=1, keepdims=True)).astype(int)
+    print(Y_pred[0])
+    return f1_score(Y_true[:Y_pred.shape[0]], Y_pred, average="macro")
+
+
+def dt_regression(idx, train_sampler, test_sampler, encoder, cfg):
+    train_sampler.categorical = False
+    test_sampler.categorical = False
+    train_sampler.labels_idxs = idx
+    test_sampler.labels_idxs = idx
+    Y_true = test_sampler.y_true
+    print(Y_true[0])
+    model_regr = get_model(encoder, len(idx), type="regression")
+    model_regr.fit(train_sampler, epochs=cfg.epochs, batch_size=cfg.batch_size)
+    Y_pred = model_regr.predict(test_sampler, batch_size=cfg.batch_size)
+    print(Y_pred[0])
+    train_sampler.categorical = True
+    test_sampler.categorical = True
+    return mean_squared_error(Y_true[:Y_pred.shape[0]], Y_pred)
+
+
+def dt_multilabel(train_sampler, test_sampler, encoder, cfg):
+    train_sampler.categorical = False
+    test_sampler.categorical = False
+    Y_true = test_sampler.y_true
+    print(Y_true[0])
+    factors = len(Y_true[0])
+    model_clf = get_model(encoder, factors, type="classification")
+    model_clf.fit(train_sampler, epochs=cfg.epochs, batch_size=cfg.batch_size)
+    Y_pred = model_clf.predict(test_sampler, batch_size=cfg.batch_size)
+    Y_pred = (Y_pred == Y_pred.max(axis=1, keepdims=True)).astype(int)
+    print(Y_pred[0])
+    train_sampler.categorical = True
+    test_sampler.categorical = True
+    return f1_score(Y_true[:Y_pred.shape[0]], Y_pred, average="macro")
+
+
 @hydra.main(config_path="config", config_name="downstream_task")
 def evaluate_on_downstream_tasks(cfg):
     logger.info("Experiment config:\n{}".format(OmegaConf.to_yaml(cfg)))
@@ -57,35 +103,19 @@ def evaluate_on_downstream_tasks(cfg):
     logger.info("Loading model from {}".format(cfg.model_path))
     file = sorted(glob(cfg.model_path), key=natural_sort)[-1]
     encoder = tf.keras.models.load_model(file).encoder
-    clf_type = "multiclass_classification" if cfg.dataset.name != "celeba" else "classification"
+
     res = {}
-    f1s = []
-    mses = []
-    for i, factors in enumerate(test_sampler.data.factors_shape):
-        train_sampler.labels_idxs = [i]
-        test_sampler.labels_idxs = [i]
-        if i > 0 and "dsprites" in train_sampler.data.name:
-            train_sampler.categorical = False
-            test_sampler.categorical = False
-            Y_true = test_sampler.y_true
-            model_regr = get_model(encoder, 1, type="regression")
-            model_regr.fit(train_sampler, epochs=cfg.epochs, batch_size=cfg.batch_size)
-            Y_pred = model_regr.predict(test_sampler, batch_size=cfg.batch_size)
-            mses.append(mean_squared_error(Y_true[:Y_pred.shape[0]], Y_pred))
-            continue
-        Y_true = test_sampler.y_true
-        model_clf = get_model(encoder, factors, type=clf_type)
-        model_clf.fit(train_sampler, epochs=cfg.epochs, batch_size=cfg.batch_size)
-        Y_pred = model_clf.predict(test_sampler, batch_size=cfg.batch_size)
-        Y_pred = (Y_pred == Y_pred.max(axis=1, keepdims=True)).astype(int)
-        f1s.append(f1_score(Y_true[:Y_pred.shape[0]], Y_pred, average="macro"))
+    if cfg.dataset.name == "symsol":
+        res["macro_f1"] = [dt_multiclass(0, train_sampler, test_sampler, encoder, cfg)]
+    elif cfg.dataset.name == "dsprites":
+        res["macro_f1"] = [dt_multiclass(0, train_sampler, test_sampler, encoder, cfg)]
+        res["mse"] = [dt_regression([1, 2, 3, 4], train_sampler, test_sampler, encoder, cfg)]
+    elif cfg.dataset.name == "celeba":
+        res["macro_f1"] = [dt_multilabel(train_sampler, test_sampler, encoder, cfg)]
+    else:
+        raise NotImplementedError("This dataset cannot be used for evaluation (yet).")
 
-    logger.info("F1 scores: {}".format(f1s))
-    res["f1"] = [np.array(f1s).mean()]
-    if len(mses) > 0:
-        logger.info("MSE scores: {}".format(mses))
-        res["mse"] = [np.array(mses).mean()]
-
+    logger.info("The scores obtained are {}".format(res))
     df = pd.DataFrame.from_dict(res)
     df.to_csv(cfg.save_file)
 

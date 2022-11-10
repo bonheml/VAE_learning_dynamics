@@ -256,10 +256,15 @@ class DataSampler(Sequence):
         self._random_state.shuffle(self._train_idxs)
         self._validation = validation
         self._get_labels = get_labels
-        self._label_idxs = [i for i in range(len(self.data.factors_shape))]
-        cats = [[i for i in range(a)] for a in np.array(self.data.factors_shape)[self._label_idxs]]
-        self._categorical_encoder = OneHotEncoder(categories=cats)
+        self._label_idxs = None
         self._categorical = categorical
+        self._categorical_encoder = None
+        self._update_cat_encoder()
+
+    def _update_cat_encoder(self):
+        if self._categorical and self._label_idxs is not None:
+            cats = [[i for i in range(a)] for a in np.array(self.data.factors_shape)[self._label_idxs]]
+            self._categorical_encoder = OneHotEncoder(categories=cats)
 
     @property
     def validation_idxs(self):
@@ -284,8 +289,7 @@ class DataSampler(Sequence):
     @labels_idxs.setter
     def labels_idxs(self, idxs):
         self._label_idxs = idxs
-        cats = [[i for i in range(a)] for a in np.array(self.data.factors_shape)[self._label_idxs]]
-        self._categorical_encoder = OneHotEncoder(categories=cats)
+        self._update_cat_encoder()
 
     @property
     def y_true(self):

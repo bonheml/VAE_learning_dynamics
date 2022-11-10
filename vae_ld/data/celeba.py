@@ -27,8 +27,7 @@ class CelebA(Data):
             self.path.mkdir(parents=True, exist_ok=True)
             dataset = self.download("{}/img_align_celeba.zip".format(self.path))
         else:
-            dataset = self.save_images()
-            # dataset = self.read_files()
+            dataset = self.read_files()
         return dataset
 
     def read_files(self):
