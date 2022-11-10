@@ -86,13 +86,6 @@ class ConvolutionalEncoder(tf.keras.Model):
         z = self.sampling([z_mean, z_log_var])
         return x1, x2, x3, x4, x5, x6, z_mean, z_log_var, z
 
-    def get_config(self):
-        return {"in_shape": self.in_shape, "output_shape": self.out_shape}
-
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
-
 
 class ConvolutionalIdentifiableEncoder(tf.keras.Model):
     """ Convolutional encoder adapted to iVAE [1]. Based on Locatello et al. [2]
@@ -349,13 +342,6 @@ class FullyConnectedEncoder(tf.keras.Model):
         z_log_var = self.z_log_var(x3)
         z = self.z([z_mean, z_log_var])
         return x1, x2, x3, z_mean, z_log_var, z
-
-    def get_config(self):
-        return {"in_shape": self.in_shape, "output_shape": self.out_shape}
-
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
 
 
 class FullyConnectedPriorEncoder(tf.keras.Model):

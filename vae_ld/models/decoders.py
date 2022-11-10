@@ -43,13 +43,6 @@ class DeconvolutionalDecoder(tf.keras.Model):
         x8 = self.d8(x7)
         return x1, x2, x3, x4, x5, x6, x7, x8
 
-    def get_config(self):
-        return {"in_shape": self.in_shape, "output_shape": self.out_shape}
-
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
-
 
 class DeepConvDecoder(tf.keras.Model):
     """ Deeper convolutional decoder. Each Convolutional block is composed of n convolutional transpose layers where the
@@ -161,13 +154,6 @@ class FullyConnectedDecoder(tf.keras.Model):
         x4 = self.d4(x3)
         x5 = self.d5(x4)
         return x1, x2, x3, x4, x5
-
-    def get_config(self):
-        return {"in_shape": self.in_shape, "output_shape": self.out_shape}
-
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
 
 
 class FullyConnectedPriorDecoder(tf.keras.Model):
