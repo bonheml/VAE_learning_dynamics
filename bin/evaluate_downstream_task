@@ -46,39 +46,39 @@ def get_model(encoder, n, type="multiclass_classification"):
     return model
 
 
-def dt_multiclass(idx, train_sampler, test_sampler, encoder, cfg):
+def dt_multiclass(idx, train_sampler, test_sampler, encoder, cfg, callback):
     train_sampler.labels_idxs = [idx]
     test_sampler.labels_idxs = [idx]
     Y_true = test_sampler.y_true
     factors = test_sampler.data.factors_shape[idx]
     model_clf = get_model(encoder, factors, type="multiclass_classification")
-    model_clf.fit(train_sampler, epochs=cfg.epochs, batch_size=cfg.batch_size)
+    model_clf.fit(train_sampler, epochs=cfg.epochs, batch_size=cfg.batch_size, callbacks=[callback])
     Y_pred = model_clf.predict(test_sampler, batch_size=cfg.batch_size)
     Y_pred = (Y_pred == Y_pred.max(axis=1, keepdims=True)).astype(int)
     return f1_score(Y_true[:Y_pred.shape[0]], Y_pred, average="macro")
 
 
-def dt_regression(idx, train_sampler, test_sampler, encoder, cfg):
+def dt_regression(idx, train_sampler, test_sampler, encoder, cfg, callback):
     train_sampler.categorical = False
     test_sampler.categorical = False
     train_sampler.labels_idxs = idx
     test_sampler.labels_idxs = idx
     Y_true = test_sampler.y_true
     model_regr = get_model(encoder, len(idx), type="regression")
-    model_regr.fit(train_sampler, epochs=cfg.epochs, batch_size=cfg.batch_size)
+    model_regr.fit(train_sampler, epochs=cfg.epochs, batch_size=cfg.batch_size, callbacks=[callback])
     Y_pred = model_regr.predict(test_sampler, batch_size=cfg.batch_size)
     train_sampler.categorical = True
     test_sampler.categorical = True
     return mean_squared_error(Y_true[:Y_pred.shape[0]], Y_pred)
 
 
-def dt_multilabel(train_sampler, test_sampler, encoder, cfg):
+def dt_multilabel(train_sampler, test_sampler, encoder, cfg, callback):
     train_sampler.categorical = False
     test_sampler.categorical = False
     Y_true = test_sampler.y_true
     factors = len(Y_true[0])
     model_clf = get_model(encoder, factors, type="classification")
-    model_clf.fit(train_sampler, epochs=cfg.epochs, batch_size=cfg.batch_size)
+    model_clf.fit(train_sampler, epochs=cfg.epochs, batch_size=cfg.batch_size, callbacks=[callback])
     Y_pred = model_clf.predict(test_sampler, batch_size=cfg.batch_size)
     Y_pred = np.where(Y_pred > 0.5, 1, 0)
     train_sampler.categorical = True
@@ -98,14 +98,16 @@ def evaluate_on_downstream_tasks(cfg):
     file = sorted(glob(cfg.model_path), key=natural_sort)[-1]
     encoder = tf.keras.models.load_model(file).encoder
 
+    callback = tf.keras.callbacks.EarlyStopping(monitor='loss')
+
     res = {}
     if cfg.dataset.name == "symsol":
-        res["macro_f1"] = [dt_multiclass(0, train_sampler, test_sampler, encoder, cfg)]
+        res["macro_f1"] = [dt_multiclass(0, train_sampler, test_sampler, encoder, cfg, callback)]
     elif cfg.dataset.name == "dsprites":
-        res["macro_f1"] = [dt_multiclass(0, train_sampler, test_sampler, encoder, cfg)]
-        res["mse"] = [dt_regression([1, 2, 3, 4], train_sampler, test_sampler, encoder, cfg)]
+        res["macro_f1"] = [dt_multiclass(0, train_sampler, test_sampler, encoder, cfg, callback)]
+        res["mse"] = [dt_regression([1, 2, 3, 4], train_sampler, test_sampler, encoder, cfg, callback)]
     elif cfg.dataset.name == "celeba":
-        res["macro_f1"] = [dt_multilabel(train_sampler, test_sampler, encoder, cfg)]
+        res["macro_f1"] = [dt_multilabel(train_sampler, test_sampler, encoder, cfg, callback)]
     else:
         raise NotImplementedError("This dataset cannot be used for evaluation (yet).")
 
