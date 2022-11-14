@@ -140,13 +140,6 @@ class ConvolutionalIdentifiableEncoder(tf.keras.Model):
         z = self.sampling([z_mean, z_log_var])
         return x1, x2, x3, x4, x5, x6, z_mean, z_log_var, z
 
-    def get_config(self):
-        return {"in_shape": self.in_shape, "output_shape": self.out_shape, "shape_p_u": self.shape_p_u}
-
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
-
 
 class DoubleConvolutionalIdentifiableEncoder(tf.keras.Model):
     """ Convolutional encoder adapted to iVAE [1]. Based on Locatello et al. [2]
@@ -195,13 +188,6 @@ class DoubleConvolutionalIdentifiableEncoder(tf.keras.Model):
         self.z_mean = layers.Dense(output_shape, name="encoder/z_mean")
         self.z_log_var = layers.Dense(output_shape, name="encoder/z_log_var")
         self.sampling = Sampling()
-
-    def get_config(self):
-        return {"in_shape": self.in_shape, "output_shape": self.out_shape, "shape_p_u": self.shape_p_u}
-
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
 
     def call(self, inputs):
         x, y = inputs
@@ -302,13 +288,6 @@ class DeepConvEncoder(tf.keras.Model):
         # We only return the activation at the end of each block + FC layers and Sampling
         return x1, x2, x3, x4, x5, z_mean, z_log_var, z
 
-    def get_config(self):
-        return {"in_shape": self.in_shape, "output_shape": self.out_shape}
-
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
-
 
 class FullyConnectedEncoder(tf.keras.Model):
     """ Fully connected encoder initially used in beta-VAE [1]. Based on Locatello et al. [2]
@@ -377,13 +356,6 @@ class FullyConnectedPriorEncoder(tf.keras.Model):
         z = self.z([z_mean, z_log_var])
         return x1, x2, x3, z_mean, z_log_var, z
 
-    def get_config(self):
-        return {"in_shape": self.in_shape, "output_shape": self.out_shape}
-
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
-
 
 class PreTrainedEncoder(tf.keras.Model):
     """ Encoder using a pre-trained model and learning only the mean and variance layer.
@@ -428,13 +400,6 @@ class PreTrainedEncoder(tf.keras.Model):
         z_log_var = self.z_log_var(x2)
         z = self.sampling([z_mean, z_log_var])
         return (*x, x1, x2, z_mean, z_log_var, z)
-
-    def get_config(self):
-        return {"output_shape": self.out_shape, "pre_trained_model": self.pre_trained_model, "use_dense": self.use_dense}
-
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
 
 
 def load_pre_trained_classifier(model_path, in_shape, n_layers=None):

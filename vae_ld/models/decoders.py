@@ -117,13 +117,6 @@ class DeepConvDecoder(tf.keras.Model):
         # We only return the activation at the end of each block + FC layers
         return x1, x2, x3, x4, x5, out
 
-    def get_config(self):
-        return {"in_shape": self.in_shape, "output_shape": self.out_shape}
-
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
-
 
 class FullyConnectedDecoder(tf.keras.Model):
     """ Fully connected decoder initially used in beta-VAE [1]. Based on Locatello et al. [2]
@@ -181,10 +174,3 @@ class FullyConnectedPriorDecoder(tf.keras.Model):
         x3 = self.d3(x2)
         x4 = self.d4(x3)
         return x1, x2, x3, x4
-
-    def get_config(self):
-        return {"in_shape": self.in_shape, "output_shape": self.out_shape}
-
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
