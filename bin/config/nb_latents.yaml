@@ -3,12 +3,13 @@ seed: 0
 param_value: 1
 n_samples: 1
 latent_shape: 10
-threshold: 20
+threshold: 1
 ide_batch_size: 10000
 max_epochs: 1
 steps_per_epoch: null
 fondue_type: "ide"
 dropout: null
+data_ide: 11
 
 defaults:
   - _self_
@@ -16,7 +17,7 @@ defaults:
   - sampling: sampler
   - optimizer: adam
   - model: beta_vae
-  - ide_estimator: MLE
+  - fondue_estimator: MLE
 
 hydra:
   run:

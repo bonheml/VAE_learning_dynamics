@@ -21,13 +21,13 @@ def init_model_with_n_latents(cfg, n, optimizer):
     The created model
     """
     encoder = instantiate(cfg.model.encoder, output_shape=n)
-    decoder = instantiate(cfg.model.decoder, input_shape=n)
+    decoder = instantiate(cfg.model.decoder, in_shape=n)
     model = instantiate(cfg.model, encoder=encoder, decoder=decoder, latent_shape=n)
     model.compile(optimizer=optimizer, run_eagerly=True)
     return model
 
 
-def train_model_and_get_ides(model, sampler, id_estimator, data_examples, cfg):
+def train_model_and_get_estimate(model, sampler, estimator, data_examples, cfg):
     """ Train a model for a few steps and get the IDE of its mean and sampled representation
 
     Parameters
@@ -36,7 +36,7 @@ def train_model_and_get_ides(model, sampler, id_estimator, data_examples, cfg):
         the model to use
     sampler:
         The data sampler
-    id_estimator:
+    estimator:
         The IDE estimator to use
     data_examples:
         The data used to compute the IDE
@@ -50,9 +50,9 @@ def train_model_and_get_ides(model, sampler, id_estimator, data_examples, cfg):
     model.fit(sampler, epochs=cfg.max_epochs, steps_per_epoch=cfg.steps_per_epoch, batch_size=cfg.batch_size)
     _, acts, _ = get_encoder_latents_activations(data_examples, None, model)
     acts = [prepare_activations(act) for act in acts]
-    mean_ide = id_estimator(acts[0])
-    sampled_ide = id_estimator(acts[-1])
-    return mean_ide, sampled_ide
+    mean = estimator(acts[0])
+    sampled = estimator(acts[-1])
+    return mean, sampled
 
 
 def train_model_and_get_var_types(model, sampler, estimator, data_examples, cfg):
@@ -82,13 +82,26 @@ def train_model_and_get_var_types(model, sampler, estimator, data_examples, cfg)
     return var_types["active_variables"].unique()[0], var_types["mixed_variables"].unique()[0], var_types["passive_variables"].unique()[0]
 
 
-def fondue_ide(id_estimator, data_ide, data_examples, sampler, cfg):
-    """ FONDUE algorithm, retrieve the optimal number of latent dimensions to use for a VAE using IDE.
+def get_mem(mem, pivot, cfg, optimizer, sampler, estimator, data_examples):
+    res = mem.get(pivot, None)
+
+    if res is None:
+        logger.debug("Instantiate model with {} latents".format(pivot))
+        model = init_model_with_n_latents(cfg, pivot, optimizer)
+        logger.debug("Computing IDE of mean and sampled representations")
+        mean, sampled = train_model_and_get_estimate(model, sampler, estimator, data_examples, cfg)
+        mem[pivot] = (sampled, mean)
+
+    return mem[pivot]
+
+
+def fondue(estimator, data_ide, data_examples, sampler, cfg):
+    """ FONDUE algorithm, retrieve the optimal number of latent dimensions to use for a VAE.
 
     Parameters
     ----------
-    id_estimator:
-        The ID estimator to use
+    estimator:
+        The estimator to use
     data_ide:
         The IDE of the data
     data_examples:
@@ -104,28 +117,26 @@ def fondue_ide(id_estimator, data_ide, data_examples, sampler, cfg):
     The optimal number of latent dimensions
     """
 
-    lower_bound, upper_bound, pivot = 1, np.inf, data_ide
-    ides_diff = {}
-    threshold = (cfg.threshold * pivot) / 100
+    lower_bound, upper_bound, pivot = 0, np.inf, data_ide
+    mem = {}
+    threshold = cfg.threshold
+    # To avoid errors due to approximation
+    threshold += 0.1 if threshold == 0 else 0
     logger.debug("The threshold is {}".format(threshold))
     optimizer = instantiate(cfg.optimizer)
 
-    while pivot != lower_bound and pivot > 0:
-        logger.debug("Upper bound: {}, Infimum: {}, Supremum: {}".format(pivot, lower_bound, upper_bound))
-        diff = ides_diff.get(pivot, None)
+    while pivot != lower_bound:
+        logger.debug("p: {}, l: {}, u: {}".format(pivot, lower_bound, upper_bound))
+        sampled, mean = get_mem(mem, pivot, cfg, optimizer, sampler, estimator, data_examples)
+        diff = sampled - mean
 
-        if diff is None:
-            logger.debug("Instantiate model with {} latents".format(pivot))
-            model = init_model_with_n_latents(cfg, pivot, optimizer)
-            logger.debug("Computing IDE of mean and sampled representations")
-            mean_ide, sampled_ide = train_model_and_get_ides(model, sampler, id_estimator, data_examples, cfg)
-            ides_diff[pivot] = sampled_ide - mean_ide
-
-        logger.debug("The difference between mean and sampled IDE is {}".format(ides_diff[pivot]))
-        if ides_diff[pivot] > threshold:
-            upper_bound, pivot = pivot, (lower_bound + pivot) // 2
+        logger.debug("The difference between mean and sampled IDE is {}".format(diff))
+        if diff <= threshold:
+            lower_bound = pivot
+            pivot = min(pivot * 2, upper_bound)
         else:
-            lower_bound, pivot = pivot, min(pivot * 2, upper_bound)
+            upper_bound = pivot
+            pivot = (lower_bound + upper_bound) // 2
 
     return pivot
 

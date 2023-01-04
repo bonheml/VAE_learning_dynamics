@@ -5,9 +5,8 @@ from hydra.utils import instantiate
 from omegaconf import OmegaConf
 
 from vae_ld.data.util import get_unique_samples
-from vae_ld.learning_dynamics.fondue import fondue_ide, fondue_var_type
-from vae_ld.learning_dynamics.utils import prepare_activations
-import numpy as np
+from vae_ld.learning_dynamics.fondue import fondue, fondue_var_type
+
 
 from vae_ld.learning_dynamics.variable_filter import filter_variables
 
@@ -19,22 +18,23 @@ def get_optimal_nb_latents(cfg):
     logger.info("Experiment config:\n{}".format(OmegaConf.to_yaml(cfg)))
 
     logger.info("Instantiating intrinsic dimension estimator")
-    ide = instantiate(cfg.ide_estimator)
+    estimator = instantiate(cfg.fondue_estimator)
 
     logger.info("Instantiating {} dataset".format(cfg.dataset.name))
 
-    ide_sampler = instantiate(cfg.sampling, batch_size=cfg.ide_batch_size)
-    X = get_unique_samples(ide_sampler[0][0])
-    del ide_sampler
+    sampler = instantiate(cfg.sampling, batch_size=cfg.ide_batch_size)
+    X = get_unique_samples(sampler[0][0])
+    del sampler
 
     sampler = instantiate(cfg.sampling)
 
     logger.info("Computing data IDE")
-    data_ide = int(ide.fit_transform(prepare_activations(X)))
+    data_ide = cfg.data_ide
 
     logger.info("Searching the optimal number of latent dimensions")
-    if cfg.fondue_type == "ide":
-        n = fondue_ide(ide.fit_transform, data_ide, X, sampler, cfg)
+    if cfg.fondue_type != "var_type":
+        n = fondue(estimator.fit_transform, data_ide, X, sampler, cfg)
+
     else:
         n = fondue_var_type(filter_variables, data_ide, X, sampler, cfg)
     logger.info("The optimal dimensionality for the latent dimensions is {}".format(n))
