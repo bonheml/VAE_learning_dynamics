@@ -36,7 +36,7 @@ setup(
         "bin/test_dataset",
         "bin/filter_variables",
         "bin/stitch_train",
-        "bin/get_optimal_nb_latents",
+        "bin/fondue",
         "bin/visualise_ides",
         "bin/latent_traversal",
         "bin/evaluate_downstream_task",
