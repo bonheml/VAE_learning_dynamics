@@ -21,9 +21,9 @@ defaults:
 
 hydra:
   run:
-    dir: ${oc.env:XP_PATH}/${hydra.job.name}/threshold_${threshold}/${max_epochs}_epochs/${model.name}/${dataset.name}/${param_value}/${seed}
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/${fondue_type}/threshold_${threshold}/${max_epochs}_epochs/${model.name}/${dataset.name}/${param_value}/${seed}
   sweep:
-    dir: ${oc.env:XP_PATH}/${hydra.job.name}/threshold_${threshold}/${max_epochs}_epochs/${model.name}/${dataset.name}/${param_value}
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/${fondue_type}/threshold_${threshold}/${max_epochs}_epochs/${model.name}/${dataset.name}/${param_value}
     subdir: ${seed}
   job:
     config:
