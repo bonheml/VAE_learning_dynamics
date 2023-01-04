@@ -83,6 +83,7 @@ def train_model_and_get_var_types(model, sampler, estimator, data_examples, cfg)
 
 
 def get_mem(mem, pivot, cfg, optimizer, sampler, estimator, data_examples):
+    logger.info("Retrieving estimates for {} latents".format(pivot))
     res = mem.get(pivot, None)
 
     if res is None:
