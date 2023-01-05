@@ -1,1 +1,2 @@
-_target_: vae_ld.learning_dynamics.effective_rank.EffectiveRank
+_target_: vae_ld.learning_dynamics.matrix_rank.EffectiveRank
+erank: true
