@@ -10,7 +10,7 @@ from vae_ld.learning_dynamics.fondue import fondue, fondue_var_type
 
 from vae_ld.learning_dynamics.variable_filter import filter_variables
 
-logger = logging.getLogger("get_optimal_nb_latents")
+logger = logging.getLogger("fondue")
 
 
 @hydra.main(config_path="config", config_name="nb_latents")
@@ -27,17 +27,15 @@ def get_optimal_nb_latents(cfg):
     del sampler
 
     sampler = instantiate(cfg.sampling)
-
-    logger.info("Computing data IDE")
     data_ide = cfg.data_ide
 
-    logger.info("Searching the optimal number of latent dimensions")
+    logger.info("Searching the number of latent dimensions")
     if cfg.fondue_type != "var_type":
         n = fondue(estimator.fit_transform, data_ide, X, sampler, cfg)
 
     else:
         n = fondue_var_type(filter_variables, data_ide, X, sampler, cfg)
-    logger.info("The optimal dimensionality for the latent dimensions is {}".format(n))
+    logger.info("The dimensionality for the latent dimensions is {}".format(n))
 
 
 if __name__ == "__main__":

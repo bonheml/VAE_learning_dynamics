@@ -89,7 +89,7 @@ def get_mem(mem, pivot, cfg, optimizer, sampler, estimator, data_examples):
     if res is None:
         logger.debug("Instantiate model with {} latents".format(pivot))
         model = init_model_with_n_latents(cfg, pivot, optimizer)
-        logger.debug("Computing IDE of mean and sampled representations")
+        logger.debug("Computing score for mean and sampled representations")
         mean, sampled = train_model_and_get_estimate(model, sampler, estimator, data_examples, cfg)
         mem[pivot] = (sampled, mean)
 
@@ -131,7 +131,7 @@ def fondue(estimator, data_ide, data_examples, sampler, cfg):
         sampled, mean = get_mem(mem, pivot, cfg, optimizer, sampler, estimator, data_examples)
         diff = sampled - mean
 
-        logger.debug("The difference between mean and sampled IDE is {}".format(diff))
+        logger.debug("The difference between mean and sampled score is {} - {} = {}".format(sampled, mean, diff))
         if diff <= threshold:
             lower_bound = pivot
             pivot = min(pivot * 2, upper_bound)
