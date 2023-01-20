@@ -1,11 +1,9 @@
 defaults:
   - dataset: dsprites
   - sampling: sampler
+  - classifier: gradient_boosting
   - _self_
 
-seed: 0
-epochs: 10
-patience: 0
 batch_size: 64
 model_name: beta_vae
 param_name: beta
@@ -13,6 +11,10 @@ param_value: 1
 model_seed: 0
 latent_dim: 10
 model_path: ${oc.env:XP_PATH}/train/latent_${latent_dim}/${model_name}/${dataset.name}/${param_value}/${model_seed}/checkpoint/*
+
+seed: 0
+num_train: 10000
+num_test: 5000
 
 save_file: scores_${dataset.name}_${model_name}_${param_name}_${param_value}_seed_${model_seed}_${latent_dim}_latents.tsv
 

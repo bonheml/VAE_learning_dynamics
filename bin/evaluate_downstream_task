@@ -3,13 +3,11 @@ import logging
 import hydra
 import numpy as np
 from hydra.utils import instantiate
-from keras import Sequential
-from keras.layers import Dense
 from omegaconf import OmegaConf
 from glob import glob
 from vae_ld.data.util import natural_sort
 import tensorflow as tf
-from sklearn.metrics import f1_score, mean_squared_error
+from sklearn.metrics import accuracy_score
 import pandas as pd
 
 logger = logging.getLogger("downstream_task")
@@ -21,69 +19,34 @@ def generate_train_test_sampler(sampler):
     test_sampler.validation = True
     test_sampler.validation_idxs = train_sampler.validation_idxs
     test_sampler.train_idxs = None
-    test_sampler.labels = 0
+    test_sampler.labels = 1
+    train_sampler.labels = 1
+    test_sampler.categorical = False
+    train_sampler.categorical = False
     train_sampler.validation_idxs = None
     return train_sampler, test_sampler
 
 
-def get_model(encoder, n, type="multiclass_classification"):
-    encoder.trainable = False
-    if type == "classification":
-        activation = "sigmoid"
-        loss = "categorical_crossentropy" if n > 1 else "binary_crossentropy"
-    elif type == "multiclass_classification":
-        activation = "softmax"
-        loss = "categorical_crossentropy"
-    else:
-        activation = None
-        loss = "mean_squared_error"
-    model = Sequential()
-    for layer in encoder.layers[:-2]:
-        model.add(layer)
-    model.add(Dense(n, activation=activation))
-    model.summary()
-    model.compile(optimizer="rmsprop", loss=loss)
-    return model
+def dt_classify(clf, X_train, y_train, X_test, y_test):
+    res = {"train_accuracy": [], "test_accuracy": []}
+    for i in range(len(y_train[0])):
+        clf = clf.fit(X_train, y_train[:, i])
+        y_train_pred = clf.predict(X_train)
+        y_test_pred = clf.predict(X_test)
+        res["train_accuracy"].append(accuracy_score(y_train[:, i], y_train_pred))
+        res["test_accuracy"].append(accuracy_score(y_test[:, i], y_test_pred))
+        logger.info(res)
+    return res
 
 
-def dt_multiclass(idx, train_sampler, test_sampler, encoder, cfg, callback):
-    train_sampler.labels_idxs = [idx]
-    test_sampler.labels_idxs = [idx]
-    Y_true = test_sampler.y_true
-    factors = test_sampler.data.factors_shape[idx]
-    model_clf = get_model(encoder, factors, type="multiclass_classification")
-    model_clf.fit(train_sampler, epochs=cfg.epochs, batch_size=cfg.batch_size, callbacks=[callback])
-    Y_pred = model_clf.predict(test_sampler, batch_size=cfg.batch_size)
-    Y_pred = (Y_pred == Y_pred.max(axis=1, keepdims=True)).astype(int)
-    return f1_score(Y_true[:Y_pred.shape[0]], Y_pred, average="macro")
-
-
-def dt_regression(idx, train_sampler, test_sampler, encoder, cfg, callback):
-    train_sampler.categorical = False
-    test_sampler.categorical = False
-    train_sampler.labels_idxs = idx
-    test_sampler.labels_idxs = idx
-    Y_true = test_sampler.y_true
-    model_regr = get_model(encoder, len(idx), type="regression")
-    model_regr.fit(train_sampler, epochs=cfg.epochs, batch_size=cfg.batch_size, callbacks=[callback])
-    Y_pred = model_regr.predict(test_sampler, batch_size=cfg.batch_size)
-    train_sampler.categorical = True
-    test_sampler.categorical = True
-    return mean_squared_error(Y_true[:Y_pred.shape[0]], Y_pred)
-
-
-def dt_multilabel(train_sampler, test_sampler, encoder, cfg, callback):
-    train_sampler.categorical = False
-    test_sampler.categorical = False
-    Y_true = test_sampler.y_true
-    factors = len(Y_true[0])
-    model_clf = get_model(encoder, factors, type="classification")
-    model_clf.fit(train_sampler, epochs=cfg.epochs, batch_size=cfg.batch_size, callbacks=[callback])
-    Y_pred = model_clf.predict(test_sampler, batch_size=cfg.batch_size)
-    Y_pred = np.where(Y_pred > 0.5, 1, 0)
-    train_sampler.categorical = True
-    test_sampler.categorical = True
-    return f1_score(Y_true[:Y_pred.shape[0]], Y_pred, average="macro")
+def get_data(sampler, encoder, n_items, batch_size):
+    X, y = None, None
+    for i in range(n_items // batch_size):
+        X_tmp, y_tmp = sampler[i]
+        X_tmp = encoder(X_tmp)[-3].numpy()
+        X = X_tmp if i == 0 else np.vstack((X, X_tmp))
+        y = y_tmp if i == 0 else np.vstack((y, y_tmp))
+    return X, y
 
 
 @hydra.main(config_path="config", config_name="downstream_task")
@@ -97,19 +60,17 @@ def evaluate_on_downstream_tasks(cfg):
     logger.info("Loading model from {}".format(cfg.model_path))
     file = sorted(glob(cfg.model_path), key=natural_sort)[-1]
     encoder = tf.keras.models.load_model(file).encoder
+    encoder.trainable = False
 
-    callback = tf.keras.callbacks.EarlyStopping(monitor='loss', patience=cfg.patience)
+    logger.info("Instantiating the classifier")
+    clf = instantiate(cfg.classifier)
 
-    res = {}
-    if cfg.dataset.name == "symsol":
-        res["macro_f1"] = [dt_multiclass(0, train_sampler, test_sampler, encoder, cfg, callback)]
-    elif cfg.dataset.name == "dsprites":
-        res["macro_f1"] = [dt_multiclass(0, train_sampler, test_sampler, encoder, cfg, callback)]
-        res["mse"] = [dt_regression([1, 2, 3, 4], train_sampler, test_sampler, encoder, cfg, callback)]
-    elif cfg.dataset.name == "celeba":
-        res["macro_f1"] = [dt_multilabel(train_sampler, test_sampler, encoder, cfg, callback)]
-    else:
-        raise NotImplementedError("This dataset cannot be used for evaluation (yet).")
+    logger.info("Sampling the data")
+    X_train, y_train = get_data(train_sampler, encoder, cfg.num_train, cfg.batch_size)
+    X_test, y_test = get_data(test_sampler, encoder, cfg.num_train, cfg.batch_size)
+
+    logger.info("Training the classifier")
+    res = dt_classify(clf, X_train, y_train, X_test, y_test)
 
     logger.info("The scores obtained are {}".format(res))
     df = pd.DataFrame.from_dict(res)
