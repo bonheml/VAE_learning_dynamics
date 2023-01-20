@@ -8,7 +8,7 @@ class CovarianceTrace:
         Parameters
         ----------
         precision : int or None
-            The precision to which the covariance matrix is rounded
+            The precision to which the covariance matrix is truncated
         """
         self._precision = precision
 
@@ -27,7 +27,7 @@ class CovarianceTrace:
         """
         cov = np.cov(X, rowvar=False)
         if self._precision:
-            cov = cov.round(decimals=self._precision)
+            cov = np.floor(cov * 10 ** self._precision) / (10 ** self._precision)
         logger.debug("Cov[X] = {}".format(cov))
         tr = np.trace(cov)
         logger.debug("Tr(Cov[X]) = {}".format(tr))
