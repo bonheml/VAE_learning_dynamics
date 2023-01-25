@@ -287,15 +287,13 @@ class MixedDSprites(Data):
     def load_data(self):
         if not self.path.exists():
             self.path.mkdir(parents=True, exist_ok=True)
-            dataset = self.download()
-        else:
-            dataset = self.read_files()
-        return dataset
+            self.download()
+        return self.read_files()
 
     def read_files(self):
         logger.info("Loading mixed dSprites dataset.")
-        fname = "mixed_dsprites"
-        return np.load("{}/{}.npy".format(self.path, fname)), np.load("{}/{}_labels.npy".format(self.path, fname))
+        data = np.load("{}/mixed_dsprites.npz".format(self.path))
+        return data["imgs"], data["latent_classes"]
 
     def save_images(self):
         file_path = str(self.path / self._url.split("/")[-1])
@@ -303,10 +301,8 @@ class MixedDSprites(Data):
             # Data was saved originally using python2, so we need to set the encoding.
             data = np.load(data_file, encoding="latin1", allow_pickle=True)
         imgs, labels = self._preprocess(data["imgs"], data["latents_classes"])
-        logger.info("Saving np array of images to {}/mixed_dsprites.npy".format(self.path))
-        np.save("{}/mixed_dsprites.npy".format(self.path), imgs)
-        np.save("{}/mixed_dsprites_labels.npy".format(self.path), labels)
-        return imgs, labels
+        logger.info("Saving results to {}/mixed_dsprites.npz".format(self.path))
+        np.savez_compressed("{}/mixed_dsprites".format(self.path), imgs=imgs, latents_classes=labels)
 
     def _preprocess(self, imgs, labels):
         imgs = np.array(imgs).astype(np.float32)
@@ -339,6 +335,6 @@ class MixedDSprites(Data):
         return np.asarray(image, dtype=np.float32) / 255.
 
     def download(self, fname=None):
-        logger.info("Downloading Dsprites dataset. This will happen only once.")
+        logger.info("Downloading dSprites dataset. This will happen only once.")
         super().download()
         return self.save_images()
