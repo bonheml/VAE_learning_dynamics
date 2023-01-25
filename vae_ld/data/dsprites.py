@@ -5,6 +5,8 @@ from vae_ld.data import util, logger
 from vae_ld.data.dataset import Data
 import numpy as np
 
+from vae_ld.data.util import CustomIndex
+
 
 class DSprites(Data):
     """ DSprites dataset. Based on Locatello et al. [1] `implementation <https://github.com/google-research/disentanglement_lib>`_.
@@ -256,3 +258,87 @@ class ScreamDSprites(DSprites):
         response.raise_for_status()
         with open(str(file_path), 'wb') as f:
             f.write(response.content)
+
+
+class MixedDSprites(Data):
+    """ DSprites dataset from [1] with squares both in white and blue.
+    Other shapes are only in white.
+
+        The ground-truth factors of variation are (in the default setting):
+            * 0 - colour (2 different values, 0:white, 2:blue)
+            * 1 - shape (3 different values)
+            * 2 - scale (6 different values)
+            * 3 - orientation (40 different values)
+            * 4 - position x (32 different values)
+            * 5 - position y (32 different values)
+
+
+        References
+        ----------
+        .. [1] Higgins et al. (2017) beta-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework
+               Proceedings of ICLR 2017
+        """
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._data, self._features = self.load_data()
+        self.index = CustomIndex(self._features)
+
+    def load_data(self):
+        if not self.path.exists():
+            self.path.mkdir(parents=True, exist_ok=True)
+            dataset = self.download()
+        else:
+            dataset = self.read_files()
+        return dataset
+
+    def read_files(self):
+        logger.info("Loading mixed dSprites dataset.")
+        fname = "mixed_dsprites"
+        return np.load("{}/{}.npy".format(self.path, fname)), np.load("{}/{}_labels.npy".format(self.path, fname))
+
+    def save_images(self):
+        file_path = str(self.path / self._url.split("/")[-1])
+        with gfile.Open(file_path, "rb") as data_file:
+            # Data was saved originally using python2, so we need to set the encoding.
+            data = np.load(data_file, encoding="latin1", allow_pickle=True)
+        imgs, labels = self._preprocess(data["imgs"], data["latents_classes"])
+        logger.info("Saving np array of images to {}/mixed_dsprites.npy".format(self.path))
+        np.save("{}/mixed_dsprites.npy".format(self.path), imgs)
+        np.save("{}/mixed_dsprites_labels.npy".format(self.path), labels)
+        return imgs, labels
+
+    def _preprocess(self, imgs, labels):
+        imgs = np.array(imgs).astype(np.float32)
+        imgs = np.repeat(np.expand_dims(imgs, axis=3), 3, axis=3)
+        resize_dim = self.observation_shape[:2]
+        resize = imgs[0].shape[:2] != resize_dim
+        max_i = (labels[labels[:, 1] == 0]).shape[0]
+
+        if resize:
+            imgs = imgs.astype(np.uint8) * 255
+            resized_images = np.zeros((imgs.shape[0], *resize_dim), dtype=np.float32)
+            for i in range(imgs.shape[0]):
+                resized_images[i] = self._resize(imgs[i], resize_dim)
+        else:
+            resized_images = imgs
+
+        blue_labels = np.copy(labels[0:max_i])
+        blue_labels[:, 0] = 1
+        blue_squares = np.copy(imgs[0:max_i])
+        blue_squares[:, :, :, :-1] = 0
+
+        labels = np.vstack((blue_labels, labels))
+        imgs = np.vstack((resized_images, blue_squares))
+
+        return imgs, labels
+
+    def _resize(self, img, resize_dim):
+        image = PIL.Image.fromarray(img)
+        image.thumbnail(resize_dim)
+        return np.asarray(image, dtype=np.float32) / 255.
+
+    def download(self, fname=None):
+        logger.info("Downloading Dsprites dataset. This will happen only once.")
+        super().download()
+        return self.save_images()
