@@ -25,7 +25,7 @@ def test_dataset(cfg):
 
     X = sampler[0][0]
     greyscale = X[0].shape[2] == 1
-    plot_images(X, greyscale, show=True)
+    plot_images(X, greyscale, show=cfg.show)
 
 
 if __name__ == "__main__":

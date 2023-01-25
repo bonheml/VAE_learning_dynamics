@@ -36,6 +36,7 @@ def plot_images(imgs, greyscale, samples=None, show=False):
     fig.subplots_adjust(wspace=0, hspace=0)
     if show is True:
         plt.show()
+    save_figure("test.pdf", tight=False)
 
 
 def plot_traversal(imgs, r, c, greyscale, show=False):

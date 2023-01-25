@@ -5,6 +5,7 @@ defaults:
 
 batch_size: 16
 seed: 0
+show: false
 
 
 hydra:
