@@ -293,7 +293,7 @@ class MixedDSprites(Data):
     def read_files(self):
         logger.info("Loading mixed dSprites dataset.")
         data = np.load("{}/mixed_dsprites.npz".format(self.path))
-        return data["imgs"], data["latent_classes"]
+        return data["imgs"], data["latents_classes"]
 
     def save_images(self):
         file_path = str(self.path / self._url.split("/")[-1])
