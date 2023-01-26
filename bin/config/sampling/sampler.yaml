@@ -4,3 +4,4 @@ seed: ${seed}
 validation_split: 0.1
 data: ${dataset}
 get_labels: 0
+categorical: false
