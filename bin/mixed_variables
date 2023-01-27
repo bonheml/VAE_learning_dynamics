@@ -1,0 +1,63 @@
+#!/usr/bin/env python
+import logging
+import hydra
+import numpy as np
+from hydra.utils import instantiate
+from omegaconf import OmegaConf
+from glob import glob
+from vae_ld.data.util import natural_sort
+import tensorflow as tf
+
+from vae_ld.visualisation.gmm import plot_hist, latent_traversal
+
+logger = logging.getLogger("mixed_variables")
+
+
+def get_data(sampler, encoder, n_items, batch_size):
+    Z = None
+    V = None
+    for i in range(n_items // batch_size):
+        X_tmp = sampler[i][0]
+        X_tmp = encoder(X_tmp)[-2:]
+        V_tmp, Z_tmp = X_tmp[0].numpy(), X_tmp[1].numpy()
+        V, Z = (V_tmp, Z_tmp) if i == 0 else (np.vstack((V, V_tmp)), np.vstack((Z, Z_tmp)))
+    return V, Z
+
+
+@hydra.main(config_path="config", config_name="mixed_variables")
+def evaluate_on_downstream_tasks(cfg):
+    logger.info("Experiment config:\n{}".format(OmegaConf.to_yaml(cfg)))
+    logger.info("Retrieving the data...")
+    # We create a partial instantiation first to share the same dataset between samplers
+    sampler = instantiate(cfg.sampling)
+
+    logger.info("Loading model from {}".format(cfg.model_path))
+    file = sorted(glob(cfg.model_path), key=natural_sort)[-1]
+    model = tf.keras.models.load_model(file)
+    encoder = model.encoder
+    encoder.trainable = False
+    decoder = model.decoder
+    decoder.trainable = False
+    greyscale = cfg.dataset.observation_shape[-1] == 1
+
+    logger.info("Instantiating the GMM")
+    gmm = instantiate(cfg.classifier)
+
+    logger.info("Sampling the data")
+    Var, Z = get_data(sampler, encoder, cfg.num_train, cfg.batch_size)
+
+    for i in cfg.var_idx:
+        Var_i = Var[:, i].reshape(-1, 1)
+        logger.info("Training the GMM")
+        res = gmm.fit_predict(Var_i)
+        logger.info("Means: {}, Covariances: {}".format(gmm.means_, gmm.covariances_))
+        Z_a = Z[res == 1][:4]
+        Z_p = Z[res == 0][:1]
+        Z_base = np.vstack((Z_a, Z_p))
+        plot_hist(Var_i, gmm, "{}_latent_{}_histogram.pdf".format(cfg.fname, i))
+        latent_traversal(decoder, "{}_latent_{}_traversal.pdf".format(cfg.fname, i), Z_base,
+                         greyscale, i, val_range=(Z[:, i].min(), Z[:, i].max()))
+
+
+if __name__ == "__main__":
+    evaluate_on_downstream_tasks()

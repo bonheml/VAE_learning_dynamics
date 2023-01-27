@@ -40,6 +40,7 @@ setup(
         "bin/visualise_ides",
         "bin/latent_traversal",
         "bin/evaluate_downstream_task",
+        "bin/mixed_variables",
     ],
     install_requires=[
         "pillow>=7.2.0",
