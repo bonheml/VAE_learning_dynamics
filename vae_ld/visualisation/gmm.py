@@ -18,7 +18,7 @@ def plot_hist(X, gmm, save_file):
     ax.hist(X, 50, alpha=0.4, density=True, histtype="stepfilled")
     ax.plot(X_test, pdf, '-k')
     ax.plot(X_test, pdf_components, '--k')
-    ax.set_xlabel('Variance representation')
+    ax.set_xlabel(r"$\mathbf{\sigma}$")
     ax.set_ylabel('Density')
     save_figure(save_file)
 
@@ -40,12 +40,13 @@ def plot_traversal(imgs, r, c, greyscale, fname, show=False):
     save_figure(fname, tight=False)
 
 
-def latent_traversal(decoder, fname, z_base, greyscale, idx, n_changes=5, val_range=(-1, 1)):
+def latent_traversal(decoder, fname, z_base, greyscale, idx, n_changes=5, val_range=3):
     r, c = z_base.shape[0], n_changes
-    vals = np.linspace(*val_range, num=n_changes)
     imgs = np.empty([r, c, 64, 64, 1]) if greyscale else np.empty([r, c, 64, 64, 3])
 
     for i, z in enumerate(z_base):
+        logger.info("z[{}] = {}".format(idx, z[idx]))
+        vals = np.linspace(z[idx] - val_range, z[idx] + val_range, num=n_changes)
         z_iter = np.tile(z.reshape(1, -1), [n_changes, 1])
         z_iter[:, idx] = vals
         imgs[i] = tf.sigmoid(decoder(z_iter, training=False)[-1])
