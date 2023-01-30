@@ -18,7 +18,7 @@ def plot_hist(X, gmm, save_file):
     ax.hist(X, 50, alpha=0.4, density=True, histtype="stepfilled")
     ax.plot(X_test, pdf, '-k')
     ax.plot(X_test, pdf_components, '--k')
-    ax.set_xlabel('x')
+    ax.set_xlabel('$Variance representation$')
     ax.set_ylabel('Density')
     save_figure(save_file)
 
