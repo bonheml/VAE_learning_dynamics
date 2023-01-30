@@ -21,7 +21,7 @@ def get_data(sampler, encoder, n_items, batch_size):
         X_tmp = encoder(X_tmp)[-2:]
         V_tmp, Z_tmp = X_tmp[0].numpy(), X_tmp[1].numpy()
         V, Z = (V_tmp, Z_tmp) if i == 0 else (np.vstack((V, V_tmp)), np.vstack((Z, Z_tmp)))
-    return V, Z
+    return np.exp(V), Z
 
 
 @hydra.main(config_path="config", config_name="mixed_variables")
@@ -54,10 +54,12 @@ def evaluate_on_downstream_tasks(cfg):
         Z_a = Z[res == 1][:cfg.n_samples]
         Z_p = Z[res == 0][:cfg.n_samples]
         plot_hist(Var_i, gmm, "{}_latent_{}_histogram.pdf".format(cfg.fname, i))
-        latent_traversal(decoder, "{}_latent_{}_traversal_0.pdf".format(cfg.fname, i), Z_a,
-                         greyscale, i, val_range=(Z[:, i].min(), Z[:, i].max()))
-        latent_traversal(decoder, "{}_latent_{}_traversal_1.pdf".format(cfg.fname, i), Z_p,
-                         greyscale, i, val_range=(Z[:, i].min(), Z[:, i].max()))
+        if len(Z_a) > 0:
+            latent_traversal(decoder, "{}_latent_{}_traversal_0.pdf".format(cfg.fname, i), Z_a,
+                             greyscale, i, val_range=(Z[:, i].min(), Z[:, i].max()))
+        if len(Z_p) > 0:
+            latent_traversal(decoder, "{}_latent_{}_traversal_1.pdf".format(cfg.fname, i), Z_p,
+                             greyscale, i, val_range=(Z[:, i].min(), Z[:, i].max()))
 
 
 if __name__ == "__main__":
