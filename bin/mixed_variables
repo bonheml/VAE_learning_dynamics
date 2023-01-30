@@ -60,10 +60,10 @@ def evaluate_on_downstream_tasks(cfg):
 
         if len(Z_a) > 0:
             latent_traversal(decoder, "{}_latent_{}_traversal_active.pdf".format(cfg.fname, i), Z_a[:cfg.n_samples],
-                             greyscale, i, n_changes=cfg.n_samples)
+                             greyscale, i, val_range=(Z_a.min(), Z_a.max()), n_changes=cfg.n_samples)
         if len(Z_p) > 0:
             latent_traversal(decoder, "{}_latent_{}_traversal_passive.pdf".format(cfg.fname, i), Z_p[:cfg.n_samples],
-                             greyscale, i, n_changes=cfg.n_samples)
+                             greyscale, i, val_range=(Z_p.min(), Z_p.max()), n_changes=cfg.n_samples)
 
 
 if __name__ == "__main__":
