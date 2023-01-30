@@ -10,7 +10,8 @@ param_name: beta
 param_value: 1
 model_seed: 0
 latent_shape: 10
-n_samples: 10
+n_samples: 5
+threshold: 0.2
 model_path: ${oc.env:XP_PATH}/train/latent_${latent_shape}/${model_name}/${dataset.name}/${param_value}/${model_seed}/checkpoint/*
 
 seed: 0
