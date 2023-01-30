@@ -51,11 +51,12 @@ def evaluate_on_downstream_tasks(cfg):
         logger.info("Training the GMM")
         res = gmm.fit_predict(Var_i)
         logger.info("Means: {}, Covariances: {}".format(gmm.means_, gmm.covariances_))
-        Z_a = Z[res == 1][:4]
-        Z_p = Z[res == 0][:1]
-        Z_base = np.vstack((Z_a, Z_p))
+        Z_a = Z[res == 1][:cfg.n_samples]
+        Z_p = Z[res == 0][:cfg.n_samples]
         plot_hist(Var_i, gmm, "{}_latent_{}_histogram.pdf".format(cfg.fname, i))
-        latent_traversal(decoder, "{}_latent_{}_traversal.pdf".format(cfg.fname, i), Z_base,
+        latent_traversal(decoder, "{}_latent_{}_traversal_0.pdf".format(cfg.fname, i), Z_a,
+                         greyscale, i, val_range=(Z[:, i].min(), Z[:, i].max()))
+        latent_traversal(decoder, "{}_latent_{}_traversal_1.pdf".format(cfg.fname, i), Z_p,
                          greyscale, i, val_range=(Z[:, i].min(), Z[:, i].max()))
 
 
