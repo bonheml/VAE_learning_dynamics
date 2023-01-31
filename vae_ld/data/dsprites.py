@@ -366,11 +366,15 @@ class BlueDSprites(CorrelatedBlueDSprites):
     """
     def _preprocess(self, imgs, labels):
         resized_images = self._load_and_resize(imgs)
+        logger.info("imgs.shape = {}".format(imgs.shape))
 
         idxs = np.random.choice(labels.shape[0], labels.shape[0] // 3, replace=False)
+        logger.info("idxs.shape = {}".format(idxs.shape))
         blue_labels = np.copy(labels[idxs])
+        logger.info("blue_labels.shape = {}".format(blue_labels.shape))
         blue_labels[:, 0] = 1
         blue_shapes = np.copy(imgs[idxs])
+        logger.info("blue_shapes.shape = {}".format(blue_shapes.shape))
         blue_shapes[:, :, :, :-1] = 0
 
         labels = np.vstack((blue_labels, labels))
