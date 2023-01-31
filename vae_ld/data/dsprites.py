@@ -260,7 +260,7 @@ class ScreamDSprites(DSprites):
             f.write(response.content)
 
 
-class MixedDSprites(Data):
+class CorrelatedBlueDSprites(Data):
     """ DSprites dataset from [1] with squares both in white and blue.
     Other shapes are only in white.
 
@@ -283,6 +283,7 @@ class MixedDSprites(Data):
         super().__init__(**kwargs)
         self._data, self._features = self.load_data()
         self.index = CustomIndex(self._features)
+        self.fname = "mixed_dsprites"
 
     def load_data(self):
         if not self.path.exists():
@@ -292,7 +293,7 @@ class MixedDSprites(Data):
 
     def read_files(self):
         logger.info("Loading mixed dSprites dataset.")
-        data = np.load("{}/mixed_dsprites.npz".format(self.path))
+        data = np.load("{}/{}.npz".format(self.path, self.fname))
         return data["imgs"], data["latents_classes"]
 
     def save_images(self):
@@ -301,15 +302,14 @@ class MixedDSprites(Data):
             # Data was saved originally using python2, so we need to set the encoding.
             data = np.load(data_file, encoding="latin1", allow_pickle=True)
         imgs, labels = self._preprocess(data["imgs"], data["latents_classes"])
-        logger.info("Saving results to {}/mixed_dsprites.npz".format(self.path))
-        np.savez_compressed("{}/mixed_dsprites".format(self.path), imgs=imgs, latents_classes=labels)
+        logger.info("Saving results to {}/{}.npz".format(self.path, self.fname))
+        np.savez_compressed("{}/{}".format(self.path, self.fname), imgs=imgs, latents_classes=labels)
 
-    def _preprocess(self, imgs, labels):
+    def _load_and_resize(self, imgs):
         imgs = np.array(imgs).astype(np.float32)
         imgs = np.repeat(np.expand_dims(imgs, axis=3), 3, axis=3)
         resize_dim = self.observation_shape[:2]
         resize = imgs[0].shape[:2] != resize_dim
-        max_i = (labels[labels[:, 1] == 0]).shape[0]
 
         if resize:
             imgs = imgs.astype(np.uint8) * 255
@@ -319,6 +319,12 @@ class MixedDSprites(Data):
         else:
             resized_images = imgs
 
+        return resized_images
+
+    def _preprocess(self, imgs, labels):
+        resized_images = self._load_and_resize(imgs)
+
+        max_i = (labels[labels[:, 1] == 0]).shape[0]
         blue_labels = np.copy(labels[0:max_i])
         blue_labels[:, 0] = 1
         blue_squares = np.copy(imgs[0:max_i])
@@ -338,3 +344,39 @@ class MixedDSprites(Data):
         logger.info("Downloading dSprites dataset. This will happen only once.")
         super().download()
         return self.save_images()
+
+
+class BlueDsprites(CorrelatedBlueDSprites):
+    """ DSprites dataset from [1] with a subset of random shapes both in white and blue.
+
+            The ground-truth factors of variation are (in the default setting):
+                * 0 - colour (2 different values, 0:white, 2:blue)
+                * 1 - shape (3 different values)
+                * 2 - scale (6 different values)
+                * 3 - orientation (40 different values)
+                * 4 - position x (32 different values)
+                * 5 - position y (32 different values)
+
+
+            References
+            ----------
+            .. [1] Higgins et al. (2017) beta-VAE: Learning Basic Visual Concepts with a Constrained Variational
+            Framework Proceedings of ICLR 2017
+    """
+    def __init__(self, **kwargs):
+        super(BlueDsprites, self).__init__(**kwargs)
+        self.fname = "blue_dsprites"
+
+    def _preprocess(self, imgs, labels):
+        resized_images = self._load_and_resize(imgs)
+
+        idxs = np.random.choice(labels.shape[0], labels.shape[0] // 3, replace=False)
+        blue_labels = np.copy(labels[idxs])
+        blue_labels[:, 0] = 1
+        blue_shapes = np.copy(imgs[idxs])
+        blue_shapes[:, :, :, :-1] = 0
+
+        labels = np.vstack((blue_labels, labels))
+        imgs = np.vstack((resized_images, blue_shapes))
+
+        return imgs, labels
