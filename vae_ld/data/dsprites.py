@@ -288,6 +288,8 @@ class CorrelatedBlueDSprites(Data):
         if not self.path.exists():
             self.path.mkdir(parents=True, exist_ok=True)
             self.download()
+        elif not (self.path / "{}.npz".format(self.name)).exists():
+            self.save_images()
         return self.read_files()
 
     def read_files(self):
@@ -362,7 +364,6 @@ class BlueDSprites(CorrelatedBlueDSprites):
             .. [1] Higgins et al. (2017) beta-VAE: Learning Basic Visual Concepts with a Constrained Variational
             Framework Proceedings of ICLR 2017
     """
-
     def _preprocess(self, imgs, labels):
         resized_images = self._load_and_resize(imgs)
 
