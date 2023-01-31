@@ -3,6 +3,6 @@ path: ${oc.env:DATA_PATH}/dsprites
 observation_shape: [64,64,3]
 url: https://github.com/deepmind/dsprites-dataset/raw/master/dsprites_ndarray_co1sh3sc6or40x32y32_64x64.npz
 data_size: 983040
-name: correlated_blue_dsprites
+name: mixed_dsprites
 factors_shape: [2,3,6,40,32,32]
 n_factors: 6

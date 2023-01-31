@@ -283,7 +283,6 @@ class CorrelatedBlueDSprites(Data):
         super().__init__(**kwargs)
         self._data, self._features = self.load_data()
         self.index = CustomIndex(self._features)
-        self.fname = "mixed_dsprites"
 
     def load_data(self):
         if not self.path.exists():
@@ -293,7 +292,7 @@ class CorrelatedBlueDSprites(Data):
 
     def read_files(self):
         logger.info("Loading mixed dSprites dataset.")
-        data = np.load("{}/{}.npz".format(self.path, self.fname))
+        data = np.load("{}/{}.npz".format(self.path, self.name))
         return data["imgs"], data["latents_classes"]
 
     def save_images(self):
@@ -302,8 +301,8 @@ class CorrelatedBlueDSprites(Data):
             # Data was saved originally using python2, so we need to set the encoding.
             data = np.load(data_file, encoding="latin1", allow_pickle=True)
         imgs, labels = self._preprocess(data["imgs"], data["latents_classes"])
-        logger.info("Saving results to {}/{}.npz".format(self.path, self.fname))
-        np.savez_compressed("{}/{}".format(self.path, self.fname), imgs=imgs, latents_classes=labels)
+        logger.info("Saving results to {}/{}.npz".format(self.path, self.name))
+        np.savez_compressed("{}/{}".format(self.path, self.name), imgs=imgs, latents_classes=labels)
 
     def _load_and_resize(self, imgs):
         imgs = np.array(imgs).astype(np.float32)
@@ -346,7 +345,7 @@ class CorrelatedBlueDSprites(Data):
         return self.save_images()
 
 
-class BlueDsprites(CorrelatedBlueDSprites):
+class BlueDSprites(CorrelatedBlueDSprites):
     """ DSprites dataset from [1] with a subset of random shapes both in white and blue.
 
             The ground-truth factors of variation are (in the default setting):
@@ -363,9 +362,6 @@ class BlueDsprites(CorrelatedBlueDSprites):
             .. [1] Higgins et al. (2017) beta-VAE: Learning Basic Visual Concepts with a Constrained Variational
             Framework Proceedings of ICLR 2017
     """
-    def __init__(self, **kwargs):
-        super(BlueDsprites, self).__init__(**kwargs)
-        self.fname = "blue_dsprites"
 
     def _preprocess(self, imgs, labels):
         resized_images = self._load_and_resize(imgs)
