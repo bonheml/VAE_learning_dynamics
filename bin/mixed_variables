@@ -46,17 +46,18 @@ def evaluate_on_downstream_tasks(cfg):
     logger.info("Sampling the data")
     Var, Z = get_data(sampler, encoder, cfg.num_train, cfg.batch_size)
     range_p = (1 - cfg.threshold, 1 + cfg.threshold)
-    range_a = 0 + cfg.threshold
 
     for i in cfg.var_idx:
-        Var_i = Var[:, i].reshape(-1, 1)
+        Var_i = Var[:, i]
+        passive_idxs = np.where((Var_i >= range_p[0]) & (Var_i <= range_p[1]))
+        active_idxs = np.where(Var_i <= cfg.threshold)
+        Var_i = Var_i.reshape(-1, 1)
         logger.info("Training the GMM")
         _ = gmm.fit(Var_i)
         logger.info("Means: {}, Covariances: {}".format(gmm.means_, gmm.covariances_))
         plot_hist(Var_i, gmm, "{}_latent_{}_histogram.pdf".format(cfg.fname, i))
-        Var_i = Var[:, i]
-        Z_p = Z[np.where((Var_i >= range_p[0]) & (Var_i <= range_p[1]))]
-        Z_a = Z[np.where(Var_i <= range_a)]
+        Z_p = Z[passive_idxs]
+        Z_a = Z[active_idxs]
 
         if len(Z_a) > 0:
             latent_traversal(decoder, "{}_latent_{}_traversal_active.pdf".format(cfg.fname, i), Z_a[:cfg.n_samples],
