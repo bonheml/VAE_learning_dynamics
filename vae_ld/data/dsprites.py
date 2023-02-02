@@ -364,10 +364,10 @@ class BlueDSprites(CorrelatedBlueDSprites):
             .. [1] Higgins et al. (2017) beta-VAE: Learning Basic Visual Concepts with a Constrained Variational
             Framework Proceedings of ICLR 2017
     """
-    def _preprocess(self, imgs, labels):
+    def _preprocess(self, imgs, labels, n=3):
         imgs = self._load_and_resize(imgs)
 
-        idxs = np.random.choice(labels.shape[0], labels.shape[0] // 3, replace=False)
+        idxs = np.random.choice(labels.shape[0], labels.shape[0] // n, replace=False)
         blue_labels = np.copy(labels[idxs])
         blue_labels[:, 0] = 1
         blue_shapes = np.copy(imgs[idxs])
@@ -377,3 +377,30 @@ class BlueDSprites(CorrelatedBlueDSprites):
         imgs = np.vstack((imgs, blue_shapes))
 
         return imgs, labels
+
+
+class BlueDSpritesSmall(BlueDSprites):
+    """ DSprites dataset from [1] with a small subset of random shapes both in white and blue.
+
+            The ground-truth factors of variation are (in the default setting):
+                * 0 - colour (2 different values, 0:white, 2:blue)
+                * 1 - shape (3 different values)
+                * 2 - scale (6 different values)
+                * 3 - orientation (40 different values)
+                * 4 - position x (32 different values)
+                * 5 - position y (32 different values)
+
+
+            References
+            ----------
+            .. [1] Higgins et al. (2017) beta-VAE: Learning Basic Visual Concepts with a Constrained Variational
+            Framework Proceedings of ICLR 2017
+    """
+    def _preprocess(self, imgs, labels, n=10):
+        return super(BlueDSpritesSmall, self)._preprocess(imgs, labels, n)
+
+
+class BlueDSpritesFull(BlueDSprites):
+    def _preprocess(self, imgs, labels, n=1):
+        return super(BlueDSpritesFull, self)._preprocess(imgs, labels, n)
+
