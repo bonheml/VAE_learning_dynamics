@@ -21,7 +21,7 @@ def get_data(sampler, encoder, n_items, batch_size):
         X_tmp = encoder(X_tmp)[-2:]
         V_tmp, Z_tmp = X_tmp[0].numpy(), X_tmp[1].numpy()
         V, Z = (V_tmp, Z_tmp) if i == 0 else (np.vstack((V, V_tmp)), np.vstack((Z, Z_tmp)))
-    return np.exp(V), Z
+    return np.nan_to_num(np.exp(V)), Z
 
 
 @hydra.main(config_path="config", config_name="mixed_variables")
