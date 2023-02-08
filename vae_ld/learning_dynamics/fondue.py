@@ -37,7 +37,7 @@ def train_model_and_get_estimate(model, sampler, estimator, data_examples, cfg):
     sampler:
         The data sampler
     estimator:
-        The IDE estimator to use
+        The estimator to use
     data_examples:
         The data used to compute the IDE
     cfg:
@@ -50,7 +50,11 @@ def train_model_and_get_estimate(model, sampler, estimator, data_examples, cfg):
     model.fit(sampler, epochs=cfg.max_epochs, steps_per_epoch=cfg.steps_per_epoch, batch_size=cfg.batch_size)
     _, acts, _ = get_encoder_latents_activations(data_examples, None, model)
     acts = [prepare_activations(act) for act in acts]
-    mean = estimator(acts[0])
+    if estimator.__self__.__class__.__name__ == "InformationBottleneck":
+        X_hat = prepare_activations(model.decoder.predict(acts[-1])[-1])
+        mean = estimator(data_examples, X_hat)
+    else:
+        mean = estimator(acts[0])
     sampled = estimator(acts[-1])
     return mean, sampled
 
@@ -121,8 +125,6 @@ def fondue(estimator, data_ide, data_examples, sampler, cfg):
     lower_bound, upper_bound, pivot = 0, np.inf, data_ide
     mem = {}
     threshold = cfg.threshold
-    # To avoid errors due to approximation
-    threshold += 0.1 if threshold == 0 else 0
     logger.debug("The threshold is {}".format(threshold))
     optimizer = instantiate(cfg.optimizer)
 

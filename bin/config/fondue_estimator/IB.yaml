@@ -1,0 +1,4 @@
+_target_: vae_ld.learning_dynamics.information_bottleneck.InformationBottleneck
+precision: 2
+batch_size: 1000
+alpha: 2

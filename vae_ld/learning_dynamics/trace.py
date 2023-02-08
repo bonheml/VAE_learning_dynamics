@@ -1,5 +1,6 @@
 import numpy as np
 from vae_ld.learning_dynamics import logger
+from vae_ld.learning_dynamics.utils import truncate
 
 
 class CovarianceTrace:
@@ -27,7 +28,7 @@ class CovarianceTrace:
         """
         cov = np.cov(X, rowvar=False)
         if self._precision:
-            cov = np.floor(cov * 10 ** self._precision) / (10 ** self._precision)
+            cov = truncate(cov, self._precision)
         logger.debug("Cov[X] = {}".format(cov))
         tr = np.trace(cov)
         logger.debug("Tr(Cov[X]) = {}".format(tr))

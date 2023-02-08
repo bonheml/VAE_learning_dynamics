@@ -196,3 +196,7 @@ def prepare_activations(x):
     # Prevent very tiny values from causing underflow in similarity metrics later on
     x[abs(x) < 1.e-7] = 0.
     return x
+
+
+def truncate(x, precision):
+    return np.floor(x * 10 ** precision) / (10 ** precision)
