@@ -73,9 +73,9 @@ def plot_latents_ides(input_file, save_file, overwrite, xy_annot=None, xy_text=N
     df = pd.read_csv(input_file, sep="\t")
     df = df[df.estimator == "MLE_20"]
     df2 = df[df.layer.isin(["encoder/z_mean", "encoder/z_log_var", "sampling", "encoder/z"])]
-    df2 = df2.rename(columns={"latent_dim": "|z|"})
+    df2 = df2.rename(columns={"latent_dim": "n"})
     df2 = df2.replace(["encoder/z_mean", "encoder/z_log_var", "sampling", "encoder/z"], ["Mean", "Variance", "Sampled", "Sampled"])
-    ax = sns.lineplot(data=df2, x="|z|", y="IDE", hue="layer", style="layer",
+    ax = sns.lineplot(data=df2, x="n", y="IDE", hue="layer", style="layer",
                       linewidth=10, ci="sd")
     ax.legend(title="Representation")
     for line in plt.legend().get_lines():
@@ -122,7 +122,7 @@ def plot_data_ides(input_dir, save_file, overwrite):
     save_figure(save_file)
 
 
-def plot_layers_ides(input_file, save_file, overwrite, hue="|z|"):
+def plot_layers_ides(input_file, save_file, overwrite, hue="n"):
     """ Plot a line plot of the IDE of every VAE layer
 
     Parameters
@@ -135,7 +135,7 @@ def plot_layers_ides(input_file, save_file, overwrite, hue="|z|"):
         If True, overwrite any existing file, else skip them.
     hue : str, optional
         Column of the dataframe on which the hue should be applied.
-        default is |z|
+        default is n
 
     Returns
     -------
@@ -151,7 +151,7 @@ def plot_layers_ides(input_file, save_file, overwrite, hue="|z|"):
     df = df[df.layer != "sampling_1"]
     df = df[df.layer != "decoder/reshape"]
     df = df.replace(["encoder/z_mean", "encoder/z_log_var", "sampling", "encoder/z"], ["mean", "variance", "sampled", "sampled"])
-    df = df.rename(columns={"latent_dim": "|z|", "layer": "Layer", "model_epoch": "Epoch"})
+    df = df.rename(columns={"latent_dim": "n", "layer": "Layer", "model_epoch": "Epoch"})
     markers = ["D", "v", "o", "^", "s", "<", ">", "p", "*", "X", ".", "8", "d", "H"]
     ax = sns.pointplot(x="Layer", y="IDE", hue=hue, markers=markers, data=df, ci="sd")
     _ = plt.xticks(

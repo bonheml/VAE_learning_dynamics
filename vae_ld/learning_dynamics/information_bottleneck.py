@@ -30,6 +30,11 @@ def gram_rbf(X):
     return np.exp(-sq_distances / (2 * sigma ** 2))
 
 
+def normalise(X):
+    return np.array([X[i, j] / (64 * np.sqrt(X[i, i] * X[j, j])) for i in range(X.shape[0])
+                     for j in range(X.shape[1])]).reshape(X.shape)
+
+
 class InformationBottleneck:
     def __init__(self, batch_size=100, precision=2, alpha=2):
         self.precision = precision
@@ -40,24 +45,21 @@ class InformationBottleneck:
         res = []
         for i in range(0, X.shape[0], self.batch_size):
             if X2 is not None:
-                res.append(truncate(self.get_mutual_info(X[i:i + self.batch_size - 1], X2[i:i + self.batch_size - 1]),
-                                    self.precision))
+                res.append(self.get_mutual_info(X[i:i + self.batch_size - 1], X2[i:i + self.batch_size - 1]))
             else:
-                res.append(truncate(self.get_mutual_info(X[i:i + self.batch_size - 1]), self.precision))
-        return np.mean(res)
+                res.append(self.get_mutual_info(X[i:i + self.batch_size - 1]))
+        return truncate(np.mean(res), self.precision)
 
     def get_s_alpha(self, A):
         eig_sum = np.sum(np.linalg.eigvalsh(A) ** self.alpha)
         return 1 / (1 - self.alpha) * np.log2(eig_sum)
 
     def get_mutual_info(self, X, X2=None):
-        A = gram_rbf(X)
-        A /= np.trace(A)
+        A = normalise(gram_rbf(X))
         sa = self.get_s_alpha(A)
         if X2 is None:
             return sa
-        B = gram_rbf(X2)
-        B /= np.trace(B)
+        B = normalise(gram_rbf(X2))
         sb = self.get_s_alpha(B)
         schur_ab = A * B
         sab = self.get_s_alpha(schur_ab / np.trace(schur_ab))
