@@ -31,7 +31,7 @@ def gram_rbf(X):
 
 
 def normalise(X):
-    return np.array([X[i, j] / (64 * np.sqrt(X[i, i] * X[j, j])) for i in range(X.shape[0])
+    return np.array([X[i, j] / (X.shape[0] * np.sqrt(X[i, i] * X[j, j])) for i in range(X.shape[0])
                      for j in range(X.shape[1])]).reshape(X.shape)
 
 
@@ -55,13 +55,12 @@ class InformationBottleneck:
         return 1 / (1 - self.alpha) * np.log2(eig_sum)
 
     def get_mutual_info(self, X, X2=None):
-        A = normalise(gram_rbf(X))
+        A = gram_rbf(X) / X.shape[0]
         sa = self.get_s_alpha(A)
         if X2 is None:
             return sa
-        B = normalise(gram_rbf(X2))
+        B = gram_rbf(X2) / X2.shape[0]
         sb = self.get_s_alpha(B)
         schur_ab = A * B
         sab = self.get_s_alpha(schur_ab / np.trace(schur_ab))
-        logger.info("I(A, B) = {} + {} - {} = {}".format(sa, sb, sab, sa + sb - sab))
         return sa + sb - sab
