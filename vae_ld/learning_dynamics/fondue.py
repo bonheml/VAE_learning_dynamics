@@ -133,7 +133,7 @@ def fondue(estimator, data_ide, data_examples, sampler, cfg):
         sampled, mean = get_mem(mem, pivot, cfg, optimizer, sampler, estimator, data_examples)
         diff = sampled - mean
 
-        logger.debug("The difference between mean and sampled score is {} - {} = {}".format(sampled, mean, diff))
+        logger.info("diff = {} - {} = {}".format(sampled, mean, diff))
         if diff <= threshold:
             lower_bound = pivot
             pivot = min(pivot * 2, upper_bound)

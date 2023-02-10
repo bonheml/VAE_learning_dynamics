@@ -63,4 +63,5 @@ class InformationBottleneck:
         sb = self.get_s_alpha(B)
         schur_ab = A * B
         sab = self.get_s_alpha(schur_ab / np.trace(schur_ab))
+        logger.info("I(A, B) = {} + {} - {} = {}".format(sa, sb, sab, sa + sb - sab))
         return sa + sb - sab
