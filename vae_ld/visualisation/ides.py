@@ -75,7 +75,6 @@ def plot_latents_ides(input_file, save_file, overwrite, xy_annot=None, xy_text=N
     df2 = df[df.layer.isin(["encoder/z_mean", "sampling", "encoder/z"])]
     df2 = df2.rename(columns={"latent_dim": "n", "estimate": "Estimate"})
     df2 = df2.replace(["encoder/z_mean", "sampling", "encoder/z"], ["Mean", "Sampled", "Sampled"])
-    logger.info(df2)
     ax = sns.lineplot(data=df2, x="n", y="Estimate", hue="layer", style="layer",
                       linewidth=10, ci="sd")
     ax.legend(title="Representation")
