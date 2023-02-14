@@ -17,7 +17,7 @@ logger = logging.getLogger("fondue")
 def get_optimal_nb_latents(cfg):
     logger.info("Experiment config:\n{}".format(OmegaConf.to_yaml(cfg)))
 
-    logger.info("Instantiating intrinsic dimension estimator")
+    logger.info("Instantiating estimator")
     estimator = instantiate(cfg.fondue_estimator)
 
     logger.info("Instantiating {} dataset".format(cfg.dataset.name))

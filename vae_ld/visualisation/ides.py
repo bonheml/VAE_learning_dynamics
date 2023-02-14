@@ -14,7 +14,7 @@ sns.set_style("whitegrid", {'axes.grid': False, 'legend.labelspacing': 1.2})
 
 
 def aggregate_ides(input_dir, save_file, overwrite):
-    """Aggregate IDEs results in `input_dir` and save the results to `save_file` in TSV format.
+    """Aggregate estimates results in `input_dir` and save the results to `save_file` in TSV format.
 
     Parameters
     ----------
@@ -46,7 +46,7 @@ def aggregate_ides(input_dir, save_file, overwrite):
 
 
 def plot_latents_ides(input_file, save_file, overwrite, xy_annot=None, xy_text=None, text=None):
-    """ Plot a line plot of the IDE of mean, variance and sampled representations
+    """ Plot a line plot of the estimates of mean, variance and sampled representations
 
     Parameters
     ----------
@@ -71,11 +71,12 @@ def plot_latents_ides(input_file, save_file, overwrite, xy_annot=None, xy_text=N
         logger.info("Skipping already computed latent ides of {}".format(save_file))
         return
     df = pd.read_csv(input_file, sep="\t")
-    df = df[df.estimator == "MLE_20"]
-    df2 = df[df.layer.isin(["encoder/z_mean", "encoder/z_log_var", "sampling", "encoder/z"])]
-    df2 = df2.rename(columns={"latent_dim": "n"})
-    df2 = df2.replace(["encoder/z_mean", "encoder/z_log_var", "sampling", "encoder/z"], ["Mean", "Variance", "Sampled", "Sampled"])
-    ax = sns.lineplot(data=df2, x="n", y="IDE", hue="layer", style="layer",
+    #df = df[df.estimator == "MLE_20"]
+    df2 = df[df.layer.isin(["encoder/z_mean", "sampling", "encoder/z"])]
+    df2 = df2.rename(columns={"latent_dim": "n", "estimate": "Estimate"})
+    df2 = df2.replace(["encoder/z_mean", "sampling", "encoder/z"], ["Mean", "Sampled", "Sampled"])
+    logger.info(df2)
+    ax = sns.lineplot(data=df2, x="n", y="Estimate", hue="layer", style="layer",
                       linewidth=10, ci="sd")
     ax.legend(title="Representation")
     for line in plt.legend().get_lines():
@@ -116,7 +117,7 @@ def plot_data_ides(input_dir, save_file, overwrite):
     df2 = df[df.layer == "input"]
     df2 = df2.replace("Dsprites", "dSprites")
     df2 = df2.replace(["MLE_3", "MLE_5", "MLE_10", "MLE_20"], ["MLE(k=3)", "MLE(k=5)", "MLE(k=10)", "MLE(k=20)"])
-    ax = sns.barplot(x="Dataset", y="IDE", hue="estimator", data=df2, order=["Symsol", "dSprites", "Celeba"],
+    ax = sns.barplot(x="Dataset", y="estimate", hue="estimator", data=df2, order=["Symsol", "dSprites", "Celeba"],
                      ci="sd", palette="winter")
     add_hatches(ax, "Estimator")
     save_figure(save_file)
@@ -153,7 +154,7 @@ def plot_layers_ides(input_file, save_file, overwrite, hue="n"):
     df = df.replace(["encoder/z_mean", "encoder/z_log_var", "sampling", "encoder/z"], ["mean", "variance", "sampled", "sampled"])
     df = df.rename(columns={"latent_dim": "n", "layer": "Layer", "model_epoch": "Epoch"})
     markers = ["D", "v", "o", "^", "s", "<", ">", "p", "*", "X", ".", "8", "d", "H"]
-    ax = sns.pointplot(x="Layer", y="IDE", hue=hue, markers=markers, data=df, ci="sd")
+    ax = sns.pointplot(x="Layer", y="estimate", hue=hue, markers=markers, data=df, ci="sd")
     _ = plt.xticks(
         rotation=90,
         horizontalalignment='center',

@@ -29,7 +29,7 @@ setup(
         "bin/train",
         "bin/visualise_similarity",
         "bin/visualise_images",
-        "bin/get_data_ide",
+        "bin/get_layers_estimate",
         "bin/hidalgo",
         "bin/compute_similarity",
         "bin/compute_ph",

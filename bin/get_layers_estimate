@@ -6,15 +6,14 @@ from hydra.utils import instantiate, call
 from omegaconf import OmegaConf
 from glob import glob
 from vae_ld.data.util import natural_sort, get_unique_samples
-from vae_ld.learning_dynamics.intrinsic_dimension_estimators import TwoNN, MLE
 import tensorflow as tf
-from vae_ld.learning_dynamics.utils import get_activations, prepare_activations, get_model_epoch
+from vae_ld.learning_dynamics.utils import prepare_activations, get_model_epoch
 import numpy as np
 
-logger = logging.getLogger("get_data_ide")
+logger = logging.getLogger("get_layers_estimate")
 
 
-def compute_ides(model, model_info, sampler, ides, n_iter, act_fn):
+def compute_estimates(model, model_info, sampler, estimator, name, n_iter, act_fn):
     res = []
     for i in range(0, n_iter):
         X = sampler[i][0]
@@ -28,26 +27,22 @@ def compute_ides(model, model_info, sampler, ides, n_iter, act_fn):
         logger.debug("Batch shape is: {}".format(X[0].shape if isinstance(X, tuple) else X.shape))
         acts = [prepare_activations(act) for act in acts]
         for j, l1 in enumerate(layers):
-            logger.info("Iteration {}/{}: computing IDE of layer {}".format(i + 1, n_iter, l1))
-            for name, ide in ides.items():
-                res.append({"estimator": name, "layer": l1, "batch": i,
-                            "IDE": ide.fit_transform(acts[j])})
-                logger.debug("IDE for {} on batch {} using {} = {}".format(l1, i, name, res[-1]["IDE"]))
+            logger.info("Iteration {}/{}: computing estimate of layer {}".format(i + 1, n_iter, l1))
+            res.append({"estimator": name, "layer": l1, "batch": i,
+                        "estimate": estimator.fit_transform(acts[j])})
+            logger.debug("Estimate for {} on batch {} using {} = {}".format(l1, i, name, res[-1]["estimate"]))
     df = pd.DataFrame(res)
     for k, v in model_info.items():
         df[k] = v
     return df
 
 
-@hydra.main(config_path="config", config_name="data_ide")
+@hydra.main(config_path="config", config_name="layers_estimate")
 def get_all_ides(cfg):
     logger.info("Experiment config:\n{}".format(OmegaConf.to_yaml(cfg)))
 
-    logger.info("Instantiating intrinsic dimension estimators")
-    df = None
-    ides = {"MLE_{}".format(k): MLE(k, cfg.seed, runs=cfg.mle_runs, anchor=cfg.mle_anchor)
-            for k in [3, 5, 10, 20]}
-    ides["TwoNN"] = TwoNN()
+    logger.info("Instantiating estimator")
+    estimator = instantiate(cfg.fondue_estimator)
 
     logger.info("Instantiating {} dataset".format(cfg.dataset.name))
     sampler = instantiate(cfg.sampling)
@@ -64,15 +59,16 @@ def get_all_ides(cfg):
 
     activations_fn = call(cfg.activations.fn, _partial_=True)
 
+    df = None
+
     for file in files:
         model = tf.keras.models.load_model(file)
         model_info["model_epoch"] = get_model_epoch(file)
-        logger.info("Computing IDEs")
-        df2 = compute_ides(model, model_info, sampler, ides, cfg.n_iter, activations_fn)
+        logger.info("Computing estimates")
+        df2 = compute_estimates(model, model_info, sampler, estimator, cfg.fondue_type, cfg.n_iter, activations_fn)
         df = pd.concat([df, df2], ignore_index=True) if df is not None else df2
         logger.info("Saving the results to {}".format(cfg.save_file))
         df.to_csv(cfg.save_file, sep="\t")
-
 
 if __name__ == "__main__":
     get_all_ides()

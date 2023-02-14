@@ -4,12 +4,13 @@ param_name: beta
 param_value: 1
 overwrite: false
 batch_size: 10000
+estimator: "CT"
 
 hydra:
   run:
-    dir: ${oc.env:XP_PATH}/${hydra.job.name}/${visualisation_tool_ide.name}/${dataset_name}/${model_name}
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/${estimator}/${visualisation_tool_ide.name}/${dataset_name}/${model_name}
   sweep:
-    dir: ${oc.env:XP_PATH}/${hydra.job.name}/${visualisation_tool_ide.name}/${dataset_name}/
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/${estimator}/${visualisation_tool_ide.name}/${dataset_name}/
     subdir: ${model_name}
   job:
     config:

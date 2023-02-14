@@ -55,6 +55,7 @@ class InformationBottleneck:
         return 1 / (1 - self.alpha) * np.log2(eig_sum)
 
     def get_mutual_info(self, X, X2=None):
+        # we omit the division by sqrt(A_ii)sqrt(A_jj) here because the diagonal values will always be 1
         A = gram_rbf(X) / X.shape[0]
         sa = self.get_s_alpha(A)
         if X2 is None:
