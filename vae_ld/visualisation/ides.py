@@ -72,7 +72,6 @@ def plot_latents_ides(input_file, save_file, overwrite, xy_annot=None, xy_text=N
         logger.info("Skipping already computed latent ides of {}".format(save_file))
         return
     df = pd.read_csv(input_file, sep="\t")
-    #df = df[df.estimator == "MLE_20"]
     df2 = df[df.layer.isin(["encoder/z_mean", "sampling", "encoder/z"])]
     df2 = df2.rename(columns={"latent_dim": "n", "estimate": "Estimate"})
     df2 = df2.replace(["encoder/z_mean", "sampling", "encoder/z"], ["Mean", "Sampled", "Sampled"])
@@ -85,7 +84,7 @@ def plot_latents_ides(input_file, save_file, overwrite, xy_annot=None, xy_text=N
     if xy_text is not None and xy_annot is not None:
         text = "" if not text else text
         ax.annotate(text, xy=xy_annot, xycoords='data', xytext=xy_text, textcoords='data', fontsize=30,
-                    arrowprops=dict(arrowstyle="->", connectionstyle="arc3,rad=0.1", color='black', lw=6, ls='--'))
+                    arrowprops=dict(arrowstyle='<->', color='black', lw=6, ls='-'))
     save_figure(save_file)
 
 
