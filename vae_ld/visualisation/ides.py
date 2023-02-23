@@ -155,7 +155,7 @@ def plot_layers_ides(input_file, save_file, overwrite, hue="n"):
     df = df.replace(["encoder/z_mean", "encoder/z_log_var", "sampling", "encoder/z"], ["mean", "variance", "sampled", "sampled"])
     df = df.rename(columns={"latent_dim": "n", "layer": "Layer", "model_epoch": "Epoch"})
     markers = ["D", "v", "o", "^", "s", "<", ">", "p", "*", "X", ".", "8", "d", "H"]
-    ax = sns.pointplot(x="Layer", y="IDE", hue=hue, markers=markers, data=df, ci="sd")
+    ax = sns.pointplot(x="Layer", y="estimate", hue=hue, markers=markers, data=df, ci="sd")
     _ = plt.xticks(
         rotation=90,
         horizontalalignment='center',
