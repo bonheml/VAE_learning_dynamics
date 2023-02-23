@@ -5,4 +5,4 @@ fn:
   input_file: ${oc.env:XP_PATH}/visualise_ides/${estimator}/aggregate/${dataset_name}/${model_name}/${estimator}_${dataset_name}_${model_name}_${param_name}_${param_value}_${batch_size}_samples_agg.tsv
   save_file: ${dataset_name}_${model_name}_${param_name}_${param_value}_${batch_size}_samples_${estimator}_layers.pdf
   overwrite: ${overwrite}
-  hue: "|z|"
+  hue: "n"
