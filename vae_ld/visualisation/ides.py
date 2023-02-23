@@ -84,7 +84,7 @@ def plot_latents_ides(input_file, save_file, overwrite, xy_annot=None, xy_text=N
     if xy_text is not None and xy_annot is not None:
         ax.annotate("", xy=xy_annot, xycoords='data', xytext=xy_text, textcoords='data', fontsize=30,
                     arrowprops=dict(arrowstyle='<->', color='black', lw=6, ls='-'))
-        plt.text(xy_annot[0] + 5, xy_annot[1] + (xy_text[1] - xy_annot[1]) / 1.5, "$t$", fontsize=40)
+        plt.text(xy_annot[0] + 5, xy_annot[1] + (xy_text[1] - xy_annot[1]) / 2.5, "$t$", fontsize=40)
         save_figure("annotated_{}".format(save_file))
     else:
         save_figure(save_file)
