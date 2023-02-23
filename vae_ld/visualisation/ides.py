@@ -85,7 +85,9 @@ def plot_latents_ides(input_file, save_file, overwrite, xy_annot=None, xy_text=N
         ax.annotate("", xy=xy_annot, xycoords='data', xytext=xy_text, textcoords='data', fontsize=30,
                     arrowprops=dict(arrowstyle='<->', color='black', lw=6, ls='-'))
         plt.text(xy_annot[0], (xy_annot[1] + xy_text[1]) / 2, "$t$", fontsize=30)
-    save_figure("annotated_{}".format(save_file))
+        save_figure("annotated_{}".format(save_file))
+    else:
+        save_figure(save_file)
 
 
 def plot_data_ides(input_dir, save_file, overwrite):
