@@ -45,7 +45,7 @@ def aggregate_ides(input_dir, save_file, overwrite):
     df.to_csv(save_file, sep="\t", index=False)
 
 
-def plot_latents_ides(input_file, save_file, overwrite, xy_annot=None, xy_text=None, text=None):
+def plot_latents_ides(input_file, save_file, overwrite, xy_annot=None, xy_text=None, text=None, max_n=200):
     """ Plot a line plot of the estimates of mean, variance and sampled representations
 
     Parameters
@@ -62,6 +62,7 @@ def plot_latents_ides(input_file, save_file, overwrite, xy_annot=None, xy_text=N
         Where to end the arrow. If None, no annotation is performed
     text : str, optional
         The text of the annotation. If None, no annotation is performed
+    max_n: Maximum number of dimensions to use on x axis
 
     Returns
     -------
@@ -75,6 +76,7 @@ def plot_latents_ides(input_file, save_file, overwrite, xy_annot=None, xy_text=N
     df2 = df[df.layer.isin(["encoder/z_mean", "sampling", "encoder/z"])]
     df2 = df2.rename(columns={"latent_dim": "n", "estimate": "Estimate"})
     df2 = df2.replace(["encoder/z_mean", "sampling", "encoder/z"], ["Mean", "Sampled", "Sampled"])
+    df2 = df2[df2.n <= max_n]
     ax = sns.lineplot(data=df2, x="n", y="Estimate", hue="layer", style="layer",
                       linewidth=10, ci="sd")
     ax.legend(title="Representation")

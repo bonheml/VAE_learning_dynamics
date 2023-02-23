@@ -8,3 +8,4 @@ fn:
   xy_annot: null
   xy_text: null
   text: FONDUE
+  max_n: 32
