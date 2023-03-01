@@ -4,10 +4,9 @@ latent_shape: 10
 seed: 0
 model_seed: 0
 param_value: 1
-model_name: beta_vae
 source_dataset: celeba
 model_folder: final_model
-model_path: ${oc.env:XP_PATH}/train/latent_${latent_shape}/${model_name}/${source_dataset}/${param_value}/${model_seed}/${model_folder}
+model_path: ${oc.env:XP_PATH}/train/latent_${latent_shape}/${model.name}/${source_dataset}/${param_value}/${model_seed}/${model_folder}
 reset: true
 encoder_idx:
   - -2
@@ -17,6 +16,7 @@ decoder_idx:
 
 defaults:
   - _self_
+  - model: beta_vae
   - dataset: cars
   - sampling: sampler
   - optimizer: adam
@@ -27,9 +27,9 @@ defaults:
 
 hydra:
   run:
-    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_shape}/${model_name}/${source_dataset}_to_${dataset.name}/${param_value}/${seed}
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_shape}/${model.name}/${source_dataset}_to_${dataset.name}/${param_value}/${seed}
   sweep:
-    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_shape}/${model_name}/${source_dataset}_to_${dataset.name}/${param_value}
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_shape}/${model.name}/${source_dataset}_to_${dataset.name}/${param_value}
     subdir: ${seed}
   job:
     config:

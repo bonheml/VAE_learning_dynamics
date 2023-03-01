@@ -2,20 +2,17 @@
 import copy
 import glob
 import logging
+import sys
 from pathlib import Path
 import hydra
 import tensorflow as tf
 from hydra.utils import instantiate
 from omegaconf import OmegaConf
 import numpy as np
+from vae_ld.models import vaes, encoders, decoders, losses, divergences
 
 from vae_ld.data.util import natural_sort
-from vae_ld.models.decoders import DeconvolutionalDecoder
-from vae_ld.models.divergences import KLD
-from vae_ld.models.encoders import ConvolutionalEncoder
-from vae_ld.models.losses import BernoulliLoss
 from vae_ld.models.vae_utils import reset_layer
-from vae_ld.models.vaes import BetaVAE
 
 logger = logging.getLogger("transfer")
 
@@ -30,24 +27,27 @@ def prepare_layers(submodel, to_unfreeze, reset):
             l.trainable = False
 
 
+def get_class(module, target):
+    return getattr(sys.modules[module], target)
+
+
 @hydra.main(config_path="config", config_name="transfer")
 def train(cfg):
     logger.info("Experiment config:\n{}".format(OmegaConf.to_yaml(cfg)))
     logger.info("Ensuring Tensorflow and Numpy are seeded...")
     tf.random.set_seed(cfg.seed)
     rng = np.random.RandomState(cfg.seed)
+    m = cfg.model
+    objs = [m._target_.split("."), m.encoder._target_.split("."), m.decoder._target_.split("."),
+            m.regularisation_loss_fn._target_.split("."), m.reconstruction_loss_fn._target_.split(".")]
+    custom_objects = {o[-1]: get_class(".".join(o[:-1]), o[-1]) for o in objs}
 
     logger.info("Loading the model and preparing it for transfer learning...")
-    model = tf.keras.models.load_model(cfg.model_path, custom_objects={"BetaVAE": BetaVAE,
-                                                                       "ConvolutionalEncoder": ConvolutionalEncoder,
-                                                                       "DeconvolutionalDecoder": DeconvolutionalDecoder,
-                                                                       "KLD": KLD, "BernoulliLoss": BernoulliLoss})
-    logger.info(type(model))
+    model = tf.keras.models.load_model(cfg.model_path, custom_objects=custom_objects)
     # Freeze all the layers except the specified indexes
     prepare_layers(model.encoder, [model.encoder.layers[i].name for i in cfg.encoder_idx], cfg.reset)
     prepare_layers(model.decoder, [model.decoder.layers[i].name for i in cfg.decoder_idx], cfg.reset)
 
-    logger.info("Creating the optimiser...")
     model.encoder.summary()
     model.decoder.summary()
 

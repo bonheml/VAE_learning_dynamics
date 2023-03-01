@@ -101,8 +101,6 @@ class GenericVAE(tf.keras.Model):
         losses = {}
         z_mean, z_log_var, z = self.encoder(data, training=training)[-3:]
         reconstruction = self.decoder(z, training=training)[-1]
-        logger.info(self.reconstruction_loss_fn)
-        logger.info(self.regularisation_loss_fn)
         losses["reconstruction_loss"] = tf.reduce_mean(self.reconstruction_loss_fn(data, reconstruction))
         losses["regularisation_loss"] = tf.reduce_mean(self.regularisation_loss_fn(z_log_var, z_mean))
         losses["elbo_loss"] = -tf.add(losses["reconstruction_loss"], losses["regularisation_loss"])
