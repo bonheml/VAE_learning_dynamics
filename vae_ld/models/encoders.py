@@ -57,7 +57,7 @@ class ConvolutionalEncoder(tf.keras.Model):
     def __init__(self, in_shape, output_shape):
         logger.debug("Expected input shape is {}".format(in_shape))
         super(ConvolutionalEncoder, self).__init__()
-        self.in_shape = in_shape
+        self.in_shape = list(in_shape)
         self.out_shape = output_shape
         self.e1 = layers.Conv2D(input_shape=in_shape, filters=32, kernel_size=4, strides=2, activation="relu",
                                 padding="same", name="encoder/1")
@@ -72,6 +72,13 @@ class ConvolutionalEncoder(tf.keras.Model):
         self.z_mean = layers.Dense(output_shape, name="encoder/z_mean")
         self.z_log_var = layers.Dense(output_shape, name="encoder/z_log_var")
         self.sampling = Sampling()
+
+    def get_config(self):
+        return {"in_shape": self.in_shape, "output_shape": self.out_shape}
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
 
     def call(self, inputs):
         logger.debug("Received input shape is {}".format(inputs.shape))

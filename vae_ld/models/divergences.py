@@ -38,6 +38,10 @@ class KLD:
     >>> kld(log_var, mean, log_var2, mean2)
         <tf.Tensor: shape=(1,), dtype=float32, numpy=array([2.5], dtype=float32)>
     """
+    __name__ = "KLD"
+
+    def __init__(self):
+        pass
 
     def __call__(self, z1_log_var, z1_mean, z2_log_var=None, z2_mean=None):
         z2_log_var = tf.zeros_like(z1_log_var) if z2_log_var is None else z2_log_var

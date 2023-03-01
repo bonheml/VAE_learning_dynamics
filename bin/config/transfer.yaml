@@ -1,0 +1,38 @@
+batch_size: 64
+training_steps: 300000
+latent_shape: 10
+seed: 0
+model_seed: 0
+param_value: 1
+model_name: beta_vae
+source_dataset: celeba
+model_folder: final_model
+model_path: ${oc.env:XP_PATH}/train/latent_${latent_shape}/${model_name}/${source_dataset}/${param_value}/${model_seed}/${model_folder}
+reset: true
+encoder_idx:
+  - -2
+  - -3
+decoder_idx:
+  - 0
+
+defaults:
+  - _self_
+  - dataset: cars
+  - sampling: sampler
+  - optimizer: adam
+  - callbacks:
+    - model_checkpoint
+    - tensorboard
+    - image_generator
+
+hydra:
+  run:
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_shape}/${model_name}/${source_dataset}_to_${dataset.name}/${param_value}/${seed}
+  sweep:
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_shape}/${model_name}/${source_dataset}_to_${dataset.name}/${param_value}
+    subdir: ${seed}
+  job:
+    config:
+      override_dirname:
+        kv_sep: _
+        item_sep: /

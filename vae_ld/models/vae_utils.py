@@ -132,3 +132,18 @@ def shuffle_z(z):
     z_frozen = tf.Variable(z, trainable=False)
     shuffled = [tf.random.shuffle(z_frozen[:, i]) for i in range(tf.shape(z_frozen)[1])]
     return tf.stack(shuffled, 1, name="z_shuffled")
+
+
+def reset_layer(layer):
+    """ Reset the parameters of the given layer
+    Parameters
+    ----------
+    layer : tf.keras.layers
+        The layer to reset
+    """
+    if hasattr(layer, "kernel_initializer"):
+        layer.kernel.assign(layer.kernel_initializer(tf.shape(layer.kernel)))
+    if hasattr(layer, "bias_initializer"):
+        layer.bias.assign(layer.bias_initializer(tf.shape(layer.bias)))
+    if hasattr(layer, "recurrent_initializer"):
+        layer.recurrent_kernel.assign(layer.recurrent_initializer(tf.shape(layer.recurrent_kernel)))

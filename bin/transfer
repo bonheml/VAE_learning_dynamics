@@ -1,0 +1,104 @@
+#!/usr/bin/env python
+import copy
+import glob
+import logging
+from pathlib import Path
+import hydra
+import tensorflow as tf
+from hydra.utils import instantiate
+from omegaconf import OmegaConf
+import numpy as np
+
+from vae_ld.data.util import natural_sort
+from vae_ld.models.decoders import DeconvolutionalDecoder
+from vae_ld.models.divergences import KLD
+from vae_ld.models.encoders import ConvolutionalEncoder
+from vae_ld.models.losses import BernoulliLoss
+from vae_ld.models.vae_utils import reset_layer
+from vae_ld.models.vaes import BetaVAE
+
+logger = logging.getLogger("transfer")
+
+
+def prepare_layers(submodel, to_unfreeze, reset):
+    # We have to iterate over all the layers because freezing everything then unfreezing some layers does not work
+    # All layers stay frozen.
+    for l in submodel.layers:
+        if l.name in to_unfreeze and reset is True:
+            reset_layer(l)
+        else:
+            l.trainable = False
+
+
+@hydra.main(config_path="config", config_name="transfer")
+def train(cfg):
+    logger.info("Experiment config:\n{}".format(OmegaConf.to_yaml(cfg)))
+    logger.info("Ensuring Tensorflow and Numpy are seeded...")
+    tf.random.set_seed(cfg.seed)
+    rng = np.random.RandomState(cfg.seed)
+
+    logger.info("Loading the model and preparing it for transfer learning...")
+    model = tf.keras.models.load_model(cfg.model_path, custom_objects={"BetaVAE": BetaVAE,
+                                                                       "ConvolutionalEncoder": ConvolutionalEncoder,
+                                                                       "DeconvolutionalDecoder": DeconvolutionalDecoder,
+                                                                       "KLD": KLD, "BernoulliLoss": BernoulliLoss})
+    logger.info(type(model))
+    # Freeze all the layers except the specified indexes
+    prepare_layers(model.encoder, [model.encoder.layers[i].name for i in cfg.encoder_idx], cfg.reset)
+    prepare_layers(model.decoder, [model.decoder.layers[i].name for i in cfg.decoder_idx], cfg.reset)
+
+    logger.info("Creating the optimiser...")
+    model.encoder.summary()
+    model.decoder.summary()
+
+    logger.info("Retrieving the data...")
+    # Create a partial instantiation first to share the same dataset between samplers
+    sampler = instantiate(cfg.sampling, _partial_=True)
+    logger.debug("The partial sampler is {}".format(sampler))
+    train_sampler = sampler()
+    logger.debug("The train sampler is {}".format(train_sampler))
+    test_sampler = sampler()
+    logger.debug("The test sampler is {}".format(test_sampler))
+    # Update the test_sampler with the validation indexes from the train sampler
+    test_sampler.validation = True
+    test_sampler.validation_idxs = train_sampler.validation_idxs
+    # Remove unused index list to avoid unneeded memory usage
+    test_sampler.train_idxs = None
+    train_sampler.validation_idxs = None
+
+    logger.info("Instantiating callbacks and creating subdirectories for callback logs...")
+    callbacks = []
+    for k, v in cfg.callbacks.items():
+        if k == "image_generator":
+            callback_sampler = sampler()
+            callback_sampler.batch_size = v.nb_samples
+            data_callback = callback_sampler[0][0]
+            logger.debug("Add data of shape {} to image_generator".format([d.shape for d in data_callback]
+                                                                          if isinstance(data_callback, tuple) else
+                                                                          data_callback.shape))
+            data_callback = data_callback
+            greyscale = cfg.dataset.observation_shape[2] == 1
+            callbacks.append(instantiate(v, data=data_callback, greyscale=greyscale))
+        else:
+            callbacks.append(instantiate(v))
+        if ("filepath" or "logdir") in v.keys():
+            path = Path(k)
+            path.mkdir(parents=True, exist_ok=True)
+            if k == "checkpoint":
+                checkpoint = glob.glob("{}/*".format(path))
+                checkpoint.sort(key=natural_sort)
+                checkpoint = checkpoint[-1] if checkpoint != [] else None
+
+    steps_per_epochs = train_sampler.data.data_size // cfg.batch_size
+
+    epochs = max(cfg.training_steps // steps_per_epochs, 1)
+
+    logger.info("Starting model training...")
+    hist = model.fit(train_sampler, epochs=epochs, batch_size=cfg.batch_size, callbacks=callbacks,
+                     validation_data=test_sampler)
+    model.save("checkpoint/epoch_{}_model_loss_{:.2f}".format(epochs, hist.history["model_loss"][-1]))
+    model.save("final_model")
+
+
+if __name__ == "__main__":
+    train()

@@ -18,7 +18,7 @@ class DeconvolutionalDecoder(tf.keras.Model):
     def __init__(self, in_shape, output_shape):
         super(DeconvolutionalDecoder, self).__init__()
         self.in_shape = in_shape
-        self.out_shape = output_shape
+        self.out_shape = list(output_shape)
         self.d1 = layers.Dense(256, activation="relu", name="decoder/1", input_shape=(in_shape,))
         self.d2 = layers.Dense(1024, activation="relu", name="decoder/2")
         self.d3 = layers.Reshape((4, 4, 64), name="decoder/reshape")
@@ -31,6 +31,13 @@ class DeconvolutionalDecoder(tf.keras.Model):
         self.d7 = layers.Conv2DTranspose(filters=output_shape[2], kernel_size=4, strides=2, padding="same",
                                          name="decoder/6")
         self.d8 = layers.Reshape(output_shape, name="decoder/output")
+
+    def get_config(self):
+        return {"in_shape": self.in_shape, "output_shape": self.out_shape}
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
 
     def call(self, inputs):
         x1 = self.d1(inputs)

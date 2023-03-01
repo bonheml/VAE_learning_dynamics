@@ -26,6 +26,8 @@ class BernoulliLoss:
     >>> loss(y_true, y_pred)
         <tf.Tensor: shape=(1,), dtype=float32, numpy=array([5.3324885], dtype=float32)>
     """
+    __name__ = "BernoulliLoss"
+
     def __call__(self, y_true, y_pred):
         axis = [i+1 for i in range(len(y_true.get_shape().as_list()[1:]))]
         loss = tf.nn.sigmoid_cross_entropy_with_logits(logits=y_pred, labels=y_true)
@@ -55,6 +57,8 @@ class MSELoss:
     >>> loss(y_true, y_pred)
         <tf.Tensor: shape=(1,), dtype=float32, numpy=array([1.0357143], dtype=float32)>
     """
+    __name__ = "MSELoss"
+
     def __call__(self, y_true, y_pred):
         n_dim = len(y_true.get_shape().as_list())
         loss = tf.keras.losses.mean_squared_error(y_true, y_pred)

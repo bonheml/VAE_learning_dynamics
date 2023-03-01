@@ -41,6 +41,7 @@ setup(
         "bin/latent_traversal",
         "bin/evaluate_downstream_task",
         "bin/mixed_variables",
+        "bin/transfer",
     ],
     install_requires=[
         "pillow>=7.2.0",
