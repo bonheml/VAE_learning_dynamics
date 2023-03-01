@@ -1,8 +1,8 @@
 batch_size: 64
 training_steps: 300000
 latent_shape: 10
-seed: 0
 model_seed: 0
+seed: ${model_seed}
 param_value: 1
 source_dataset: celeba
 model_folder: final_model
