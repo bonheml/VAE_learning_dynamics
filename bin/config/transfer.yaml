@@ -21,7 +21,6 @@ defaults:
   - sampling: sampler
   - optimizer: adam
   - callbacks:
-    - model_checkpoint
     - tensorboard
     - image_generator
 
