@@ -2,7 +2,6 @@
 import copy
 import logging
 import hydra
-from glob import glob
 import tensorflow as tf
 from hydra.utils import instantiate
 from omegaconf import OmegaConf
@@ -17,7 +16,6 @@ def generate_images(samples, model):
     enc_out = model.encoder(samples, training=False)
     z = enc_out[-1]
     generated_images = sigmoid(model.decoder(z, training=False)[-1])
-    logger.info("Generated {} images of size {}".format(len(generated_images), generated_images[0].shape))
     return list(generated_images)
 
 
