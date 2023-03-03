@@ -12,7 +12,7 @@ source_dataset: celeba
 models_path:
   - ${oc.env:XP_PATH}/train/latent_${latent_dim}/${model_name}/${dataset.name}/${param_value}/${model_seed}/final_model
   - ${oc.env:XP_PATH}/train/latent_${latent_dim}/${model_name}/${source_dataset}/${param_value}/${source_seed}/final_model
-  - ${oc.env:XP_PATH}/transfer/latent_${latent_dim}/${model_name}/${source_dataset}_to_${dataset.name}/${param_value}/${source_seed}/final_model
+  - ${oc.env:XP_PATH}/transfer/latent_${latent_dim}/${model_name}/${source_dataset}_to_${dataset.name}/${param_value}/${transfer_seed}/final_model
   - ${oc.env:XP_PATH}/transfer/latent_${latent_dim}/${model_name}/${source_dataset}_to_${dataset.name}/${param_value}/2${transfer_seed}/final_model
   - ${oc.env:XP_PATH}/transfer/latent_${latent_dim}/${model_name}/${source_dataset}_to_${dataset.name}/${param_value}/3${transfer_seed}/final_model
   - ${oc.env:XP_PATH}/transfer/latent_${latent_dim}/${model_name}/${source_dataset}_to_${dataset.name}/${param_value}/4${transfer_seed}/final_model
