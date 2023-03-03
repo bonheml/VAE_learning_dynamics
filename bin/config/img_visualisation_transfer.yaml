@@ -18,7 +18,7 @@ models_path:
   - ${oc.env:XP_PATH}/transfer/latent_${latent_dim}/${model_name}/${source_dataset}_to_${dataset.name}/${param_value}/4${transfer_seed}/final_model
   - ${oc.env:XP_PATH}/transfer/latent_${latent_dim}/${model_name}/${source_dataset}_to_${dataset.name}/${param_value}/5${transfer_seed}/final_model
 
-fname: ${dataset.name}_transfer.pdf
+fname: ${dataset.name}_transfer_random_${random_z}.pdf
 
 defaults:
   - _self_
