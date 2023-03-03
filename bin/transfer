@@ -51,6 +51,7 @@ def train(cfg):
     logger.info("Updated model parameters")
     model.encoder.summary(print_fn=logger.info)
     model.decoder.summary(print_fn=logger.info)
+    model.summary(print_fn=logger.info)
 
     logger.info("Retrieving the data...")
     # Create a partial instantiation first to share the same dataset between samplers
