@@ -23,6 +23,7 @@ fname: ${dataset.name}_transfer.pdf
 defaults:
   - _self_
   - dataset: cars
+  - sampling: sampler
 
 hydra:
   run:
