@@ -29,6 +29,7 @@ setup(
         "bin/train",
         "bin/visualise_similarity",
         "bin/visualise_images",
+        "bin/visualise_images_transfer",
         "bin/get_layers_estimate",
         "bin/hidalgo",
         "bin/compute_similarity",
