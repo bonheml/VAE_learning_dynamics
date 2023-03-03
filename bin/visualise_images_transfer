@@ -29,8 +29,10 @@ def visualise_images(cfg):
     sampler = instantiate(cfg.sampling)
     samples = list(sampler[0][0])
     res = copy.copy(samples)
+    models_path = list(cfg.models_path)
+    logger.info(models_path)
 
-    for i, m_path in enumerate(cfg.models_path):
+    for i, m_path in enumerate(models_path):
         model = tf.keras.models.load_model(m_path)
         res += generate_images(samples, model)
 

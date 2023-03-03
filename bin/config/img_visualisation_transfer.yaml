@@ -1,7 +1,7 @@
 model_name: beta_vae
 model_seed: 0
 source_seed: ${model_seed}
-transfer_seed: ${transfer_seed}
+transfer_seed: ${model_seed}
 param_value: 1
 random_z: false
 latent_dim: 10
