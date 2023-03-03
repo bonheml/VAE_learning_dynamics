@@ -146,7 +146,8 @@ class GenericVAE(tf.keras.Model):
         with tf.GradientTape() as tape:
             losses = self.get_gradient_step_output(data)
 
-        logger.info("Trainable weights {}".format(len(self.trainable_weights)))
+        logger.info("Trainable weights {} : {}".format(len(self.trainable_weights),
+                                                       [w.shape for w in self.trainable_weights]))
 
         grads = tape.gradient(losses["model_loss"], self.trainable_weights)
         self.optimizer.apply_gradients(zip(grads, self.trainable_weights))
