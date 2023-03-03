@@ -12,9 +12,11 @@ from vae_ld.visualisation.images import plot_and_save
 logger = logging.getLogger("visualise_images_transfer")
 
 
-def generate_images(samples, model):
-    enc_out = model.encoder(samples, training=False)
-    z = enc_out[-1]
+def generate_images(samples, model, is_random_z):
+    z = samples
+    if not is_random_z:
+        enc_out = model.encoder(samples, training=False)
+        z = enc_out[-1]
     generated_images = sigmoid(model.decoder(z, training=False)[-1])
     return list(generated_images)
 
@@ -25,15 +27,19 @@ def visualise_images(cfg):
     tf.random.set_seed(cfg.seed)
     random_state = np.random.RandomState(cfg.seed)
     greyscale = cfg.dataset.observation_shape[2] == 1
-    sampler = instantiate(cfg.sampling)
-    samples = list(sampler[0][0])
-    res = copy.copy(samples)
+    if not cfg.random_z:
+        sampler = instantiate(cfg.sampling)
+        samples = list(sampler[0][0])
+        res = copy.copy(samples)
+    else:
+        samples = tf.random.normal(shape=(cfg.batch_size, cfg.latent_dim))
+        res = []
     models_path = list(cfg.models_path)
     logger.info(models_path)
 
     for i, m_path in enumerate(models_path):
         model = tf.keras.models.load_model(m_path)
-        res += generate_images(samples, model)
+        res += generate_images(samples, model, cfg.random_z)
 
     logger.info("Generated {} images of size {}".format(len(res), res[0].shape))
     plot_and_save(res, cfg.fname, greyscale, t=True)
