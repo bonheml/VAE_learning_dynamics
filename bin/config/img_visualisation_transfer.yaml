@@ -1,0 +1,37 @@
+model_name: beta_vae
+model_seed: 0
+source_seed: ${model_seed}
+transfer_seed: ${transfer_seed}
+param_value: 1
+random_z: false
+latent_dim: 10
+batch_size: 8
+seed: 0
+source_dataset: celeba
+
+models_path:
+  - ${oc.env:XP_PATH}/train/latent_${latent_dim}/${model_name}/${dataset.name}/${param_value}/${model_seed}/final_model
+  - ${oc.env:XP_PATH}/train/latent_${latent_dim}/${model_name}/${source_dataset}/${param_value}/${source_seed}/final_model
+  - ${oc.env:XP_PATH}/transfer/latent_${latent_dim}/${model_name}/${source_dataset}_to_${dataset.name}/${param_value}/${source_seed}/final_model
+  - ${oc.env:XP_PATH}/transfer/latent_${latent_dim}/${model_name}/${source_dataset}_to_${dataset.name}/${param_value}/2${transfer_seed}/final_model
+  - ${oc.env:XP_PATH}/transfer/latent_${latent_dim}/${model_name}/${source_dataset}_to_${dataset.name}/${param_value}/3${transfer_seed}/final_model
+  - ${oc.env:XP_PATH}/transfer/latent_${latent_dim}/${model_name}/${source_dataset}_to_${dataset.name}/${param_value}/4${transfer_seed}/final_model
+  - ${oc.env:XP_PATH}/transfer/latent_${latent_dim}/${model_name}/${source_dataset}_to_${dataset.name}/${param_value}/5${transfer_seed}/final_model
+
+fname: ${dataset.name}_transfer.pdf
+
+defaults:
+  - _self_
+  - dataset: cars
+
+hydra:
+  run:
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_dim}/${dataset.name}/${model_name}/param_${param_value}/seed_${model_seed}
+  sweep:
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_dim}/${dataset.name}/${model_name}/param_${param_value}
+    subdir: seed_${model_seed}
+  job:
+    config:
+      override_dirname:
+        kv_sep: _
+        item_sep: /

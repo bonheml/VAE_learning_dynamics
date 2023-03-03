@@ -1,0 +1,41 @@
+#!/usr/bin/env python
+import copy
+import logging
+import hydra
+from glob import glob
+import tensorflow as tf
+from hydra.utils import instantiate
+from omegaconf import OmegaConf
+from tensorflow import sigmoid
+import numpy as np
+from vae_ld.visualisation.images import plot_and_save
+
+logger = logging.getLogger("visualise_images_transfer")
+
+
+def generate_images(samples, model):
+    enc_out = model.encoder(samples, training=False)
+    z = enc_out[-1]
+    generated_images = sigmoid(model.decoder(z, training=False)[-1])
+    return generated_images
+
+
+@hydra.main(config_path="config", config_name="img_visualisation_transfer")
+def visualise_images(cfg):
+    logger.info("Config:\n{}".format(OmegaConf.to_yaml(cfg)))
+    tf.random.set_seed(cfg.seed)
+    random_state = np.random.RandomState(cfg.seed)
+    greyscale = cfg.dataset.observation_shape[2] == 1
+    sampler = instantiate(cfg.sampling)
+    samples = list(sampler[0][0])
+    res = copy.copy(samples)
+
+    for i, m_path in enumerate(cfg.models_path):
+        model = tf.keras.models.load_model(m_path)
+        res += generate_images(samples, model)
+
+    plot_and_save(res, cfg.fname, greyscale, t=True)
+
+
+if __name__ == "__main__":
+    visualise_images()

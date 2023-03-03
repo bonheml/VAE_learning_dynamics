@@ -5,11 +5,11 @@ from vae_ld.visualisation.utils import save_figure
 import tensorflow as tf
 
 
-def plot_and_save(imgs, fname, greyscale, samples=None, r=None, c=None):
+def plot_and_save(imgs, fname, greyscale, samples=None, r=None, c=None, t=False):
     if r and c:
         plot_traversal(imgs, r, c, greyscale)
     else:
-        plot_images(imgs, greyscale, samples=samples)
+        plot_images(imgs, greyscale, samples=samples) if not t else plot_images_transfer(imgs, greyscale)
     save_figure(fname, tight=False)
 
 
@@ -27,6 +27,24 @@ def plot_images(imgs, greyscale, samples=None, show=False):
             to_process += t
 
     for ax, im in zip(grid, to_process):
+        ax.set_axis_off()
+        if greyscale is True:
+            ax.imshow(im, cmap="gray")
+        else:
+            ax.imshow(im)
+
+    fig.subplots_adjust(wspace=0, hspace=0)
+    if show is True:
+        plt.show()
+
+
+def plot_images_transfer(imgs, greyscale, show=False):
+    r = int(np.floor(np.sqrt(len(imgs))))
+    c = r
+    fig = plt.figure(figsize=(10., 10.))
+    grid = ImageGrid(fig, 111, nrows_ncols=(r, c), axes_pad=0, direction="column")
+
+    for ax, im in zip(grid, imgs):
         ax.set_axis_off()
         if greyscale is True:
             ax.imshow(im, cmap="gray")
