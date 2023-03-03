@@ -28,14 +28,15 @@ def visualise_images(cfg):
     greyscale = cfg.dataset.observation_shape[2] == 1
     sampler = instantiate(cfg.sampling)
     samples = list(sampler[0][0])
-    res = [copy.copy(samples)]
+    res = copy.copy(samples)
     models_path = list(cfg.models_path)
     logger.info(models_path)
 
     for i, m_path in enumerate(models_path):
         model = tf.keras.models.load_model(m_path)
-        res.append(generate_images(samples, model))
+        res += generate_images(samples, model)
 
+    logger.info("Generated {} images of size {}".format(len(res), res[0].shape))
     plot_and_save(res, cfg.fname, greyscale, t=True)
 
 
