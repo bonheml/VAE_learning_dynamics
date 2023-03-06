@@ -29,7 +29,8 @@ def filter_vars(cfg):
     res = {name: prepare_activations(act) for name, act in zip(names, acts)}
     logger.info("Saving latent representations.")
     np.savez_compressed("{}_original.npz".format(cfg.save_file), **res)
-    samples = sigmoid(model(acts[-1]))
+    samples = model.decoder(acts[-1])[-1]
+    _, acts, names = get_encoder_latents_activations(samples, None, model)
     res = {name: prepare_activations(act) for name, act in zip(names, acts)}
     logger.info("Saving latent representations.")
     np.savez_compressed("{}_reconstructed.npz".format(cfg.save_file), **res)
