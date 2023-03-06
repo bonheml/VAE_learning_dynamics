@@ -23,8 +23,10 @@ def filter_vars(cfg):
     sampler = instantiate(cfg.sampling)
     samples = get_unique_samples(sampler[0][0])
 
+    logger.info("Computing latent representations.")
     _, acts, names = get_encoder_latents_activations(samples, cfg.model_path, None)
     res = {name: prepare_activations(act) for name, act in zip(names, acts)}
+    logger.info("Saving latent representations.")
     np.savez_compressed(cfg.save_file, **res)
 
 
