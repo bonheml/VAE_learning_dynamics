@@ -5,13 +5,14 @@ defaults:
 
 batch_size: 10000
 seed: 0
+source_dataset_name: celeba
 model_name: beta_vae
 model_seed: 0
 latent_shape: 10
 param_value: 1
 param_name: beta
-model_path: ${oc.env:XP_PATH}/train/latent_${latent_shape}/${model_name}/${dataset.name}/${param_value}/${model_seed}/final_model
-save_file: ${dataset.name}_${model_name}_${param_name}_${param_value}_latent_${latent_shape}_seed_${seed}.npz
+model_path: ${oc.env:XP_PATH}/train/latent_${latent_shape}/${model_name}/${source_dataset_name}/${param_value}/${model_seed}/final_model
+save_file: ${dataset.name}_${model_name}_${source_dataset_name}_${param_name}_${param_value}_latent_${latent_shape}_seed_${seed}.npz
 
 hydra:
   run:

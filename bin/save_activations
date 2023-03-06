@@ -10,6 +10,7 @@ from vae_ld.data.util import get_unique_samples
 from vae_ld.learning_dynamics.utils import get_file_list, get_model_filename, get_model_epoch, \
     get_encoder_latents_activations, prepare_activations
 from vae_ld.learning_dynamics.variable_filter import filter_variables
+from tensorflow import sigmoid
 
 logger = logging.getLogger("save_activations")
 
@@ -24,10 +25,14 @@ def filter_vars(cfg):
     samples = get_unique_samples(sampler[0][0])
 
     logger.info("Computing latent representations.")
-    _, acts, names = get_encoder_latents_activations(samples, cfg.model_path, None)
+    model, acts, names = get_encoder_latents_activations(samples, cfg.model_path, None)
     res = {name: prepare_activations(act) for name, act in zip(names, acts)}
     logger.info("Saving latent representations.")
-    np.savez_compressed(cfg.save_file, **res)
+    np.savez_compressed("{}_original.npz".format(cfg.save_file), **res)
+    samples = sigmoid(model(acts[-1]))
+    res = {name: prepare_activations(act) for name, act in zip(names, acts)}
+    logger.info("Saving latent representations.")
+    np.savez_compressed("{}_reconstructed.npz".format(cfg.save_file), **res)
 
 
 if __name__ == "__main__":
