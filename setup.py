@@ -27,6 +27,7 @@ setup(
     include_package_data=True,
     scripts=[
         "bin/train",
+        "bin/save_activations",
         "bin/visualise_similarity",
         "bin/visualise_images",
         "bin/visualise_images_transfer",
