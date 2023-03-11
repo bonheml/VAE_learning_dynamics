@@ -1,0 +1,40 @@
+#!/usr/bin/env python
+import logging
+import hydra
+from hydra.utils import instantiate
+import numpy as np
+import tensorflow as tf
+from omegaconf import OmegaConf
+
+from vae_ld.data.util import get_unique_samples
+from vae_ld.learning_dynamics.utils import get_file_list, get_model_filename, get_model_epoch, \
+    get_encoder_latents_activations, prepare_activations
+from vae_ld.learning_dynamics.variable_filter import filter_variables
+from tensorflow import sigmoid
+
+logger = logging.getLogger("save_activations")
+
+
+@hydra.main(config_path="config", config_name="save_activations")
+def filter_vars(cfg):
+    logger.info("Experiment config:\n{}".format(OmegaConf.to_yaml(cfg)))
+    random_state = np.random.RandomState(cfg.seed)
+
+    logger.info("Instantiating {} dataset".format(cfg.dataset.name))
+    sampler = instantiate(cfg.sampling)
+    samples = get_unique_samples(sampler[0][0])
+
+    logger.info("Computing latent representations.")
+    model, acts, names = get_encoder_latents_activations(samples, cfg.model_path, None)
+    res = {name: prepare_activations(act) for name, act in zip(names, acts)}
+    logger.info("Saving latent representations.")
+    np.savez_compressed("{}_original.npz".format(cfg.save_file), **res)
+    samples = sigmoid(model.decoder(acts[-1])[-1])
+    _, acts, names = get_encoder_latents_activations(samples, None, model)
+    res = {name: prepare_activations(act) for name, act in zip(names, acts)}
+    logger.info("Saving latent representations.")
+    np.savez_compressed("{}_reconstructed.npz".format(cfg.save_file), **res)
+
+
+if __name__ == "__main__":
+    filter_vars()

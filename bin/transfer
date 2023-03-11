@@ -48,8 +48,12 @@ def train(cfg):
     prepare_layers(model.encoder, [model.encoder.layers[i].name for i in cfg.encoder_idx], cfg.reset)
     prepare_layers(model.decoder, [model.decoder.layers[i].name for i in cfg.decoder_idx], cfg.reset)
 
-    model.encoder.summary()
-    model.decoder.summary()
+    logger.info("Updated model parameters")
+    optimizer = instantiate(cfg.optimizer)
+    model.compile(optimizer=optimizer, run_eagerly=True)
+    model.encoder.summary(print_fn=logger.info)
+    model.decoder.summary(print_fn=logger.info)
+    model.summary(print_fn=logger.info)
 
     logger.info("Retrieving the data...")
     # Create a partial instantiation first to share the same dataset between samplers
