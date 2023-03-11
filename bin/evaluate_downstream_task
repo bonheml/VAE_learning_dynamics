@@ -41,8 +41,7 @@ def dt_classify(clf, X_train, y_train, X_test, y_test):
 
 def get_data(sampler, encoder, n_items, batch_size):
     X, y = None, None
-    for i in range(n_items // batch_size):
-        X_tmp, y_tmp = sampler[i]
+    for i, (X_tmp, y_tmp) in enumerate(sampler):
         X_tmp = encoder(X_tmp)[-3].numpy()
         X = X_tmp if i == 0 else np.vstack((X, X_tmp))
         y = y_tmp if i == 0 else np.vstack((y, y_tmp))
