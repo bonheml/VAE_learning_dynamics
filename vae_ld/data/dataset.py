@@ -337,8 +337,8 @@ class DataSampler(Sequence):
 
     def __len__(self):
         if self._validation is True:
-            return len(self._validation_idxs) // self.batch_size
-        return len(self._train_idxs) // self.batch_size
+            return (len(self._validation_idxs) - 1) // self.batch_size
+        return (len(self._train_idxs) - 1) // self.batch_size
 
     def __getitem__(self, idx):
         idxs_map = self._validation_idxs if self.validation else self._train_idxs
@@ -347,7 +347,7 @@ class DataSampler(Sequence):
         start_idx = idx * self.batch_size
         stop_idx = (idx + 1) * self.batch_size
         if stop_idx >= len(idxs_map):
-            stop_idx = (len(idxs_map) - 1) // self.batch_size
+            stop_idx = len(idxs_map) - 1
 
         logger.debug("Retrieving indexes in range ({},{})".format(start_idx, stop_idx))
         idxs = idxs_map[start_idx:stop_idx]
