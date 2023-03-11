@@ -337,8 +337,8 @@ class DataSampler(Sequence):
 
     def __len__(self):
         if self._validation is True:
-            return (len(self._validation_idxs) - 1) // self.batch_size
-        return (len(self._train_idxs) - 1) // self.batch_size
+            return len(self._validation_idxs) // self.batch_size
+        return len(self._train_idxs) // self.batch_size
 
     def __getitem__(self, idx):
         idxs_map = self._validation_idxs if self.validation else self._train_idxs
