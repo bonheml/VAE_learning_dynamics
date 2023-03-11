@@ -342,8 +342,7 @@ class DataSampler(Sequence):
 
     def __getitem__(self, idx):
         idxs_map = self._validation_idxs if self.validation else self._train_idxs
-        logger.debug("Validation is {}, current index is {}/{}".format(self.validation, idx,
-                                                                       (len(idxs_map) - 1) // self.batch_size))
+        logger.debug("Validation is {}, current index is {}/{}".format(self.validation, idx, self.__len__() - 1))
         start_idx = idx * self.batch_size
         stop_idx = (idx + 1) * self.batch_size
         if stop_idx >= len(idxs_map):
