@@ -10,7 +10,7 @@ import numpy as np
 from vae_ld.visualisation.images import plot_and_save
 
 logger = logging.getLogger("visualise_images_transfer")
-
+OmegaConf.register_new_resolver("sum", lambda x, y: x+y)
 
 def generate_images(samples, model, is_random_z):
     z = samples

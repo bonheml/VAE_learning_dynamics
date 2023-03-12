@@ -5,20 +5,24 @@ transfer_seed: ${model_seed}
 param_value: 1
 random_z: false
 latent_dim: 10
-batch_size: 8
+batch_size: 10
 seed: 0
 source_dataset: celeba
+dec_only: true
 
 models_path:
   - ${oc.env:XP_PATH}/train/latent_${latent_dim}/${model_name}/${dataset.name}/${param_value}/${model_seed}/final_model
   - ${oc.env:XP_PATH}/train/latent_${latent_dim}/${model_name}/${source_dataset}/${param_value}/${source_seed}/final_model
   - ${oc.env:XP_PATH}/transfer/latent_${latent_dim}/${model_name}/${source_dataset}_to_${dataset.name}/${param_value}/${transfer_seed}/final_model
-  - ${oc.env:XP_PATH}/transfer/latent_${latent_dim}/${model_name}/${source_dataset}_to_${dataset.name}/${param_value}/2${transfer_seed}/final_model
-  - ${oc.env:XP_PATH}/transfer/latent_${latent_dim}/${model_name}/${source_dataset}_to_${dataset.name}/${param_value}/3${transfer_seed}/final_model
-  - ${oc.env:XP_PATH}/transfer/latent_${latent_dim}/${model_name}/${source_dataset}_to_${dataset.name}/${param_value}/4${transfer_seed}/final_model
-  - ${oc.env:XP_PATH}/transfer/latent_${latent_dim}/${model_name}/${source_dataset}_to_${dataset.name}/${param_value}/5${transfer_seed}/final_model
+  - ${oc.env:XP_PATH}/transfer/latent_${latent_dim}/${model_name}/${source_dataset}_to_${dataset.name}/${param_value}/${sum:${transfer_seed},1}/final_model
+  - ${oc.env:XP_PATH}/transfer/latent_${latent_dim}/${model_name}/${source_dataset}_to_${dataset.name}/${param_value}/${sum:${transfer_seed},2}/final_model
+  - ${oc.env:XP_PATH}/transfer/latent_${latent_dim}/${model_name}/${source_dataset}_to_${dataset.name}/${param_value}/${sum:${transfer_seed},2}/final_model
+  - ${oc.env:XP_PATH}/transfer/latent_${latent_dim}/${model_name}/${source_dataset}_to_${dataset.name}/${param_value}/${sum:${transfer_seed},4}}/final_model
+  - ${oc.env:XP_PATH}/transfer/latent_${latent_dim}/${model_name}/${source_dataset}_to_${dataset.name}/${param_value}/${sum:${transfer_seed},5}}/final_model
+  - ${oc.env:XP_PATH}/transfer/latent_${latent_dim}/${model_name}/${source_dataset}_to_${dataset.name}/${param_value}/${sum:${transfer_seed},6}}/final_model
+  - ${oc.env:XP_PATH}/transfer/latent_${latent_dim}/${model_name}/${source_dataset}_to_${dataset.name}/${param_value}/${sum:${transfer_seed},7}}/final_model
 
-fname: ${dataset.name}_transfer_random_${random_z}.pdf
+fname: ${dataset.name}_transfer_random_${random_z}_dec_only_${dec_only}.pdf
 
 defaults:
   - _self_
