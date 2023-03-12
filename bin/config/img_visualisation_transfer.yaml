@@ -8,8 +8,6 @@ latent_dim: 10
 batch_size: 10
 seed: 0
 source_dataset: dsprites
-dec_only: true
-
 models_path:
   - ${oc.env:XP_PATH}/train/latent_${latent_dim}/${model_name}/${dataset.name}/${param_value}/${model_seed}/final_model
   - ${oc.env:XP_PATH}/train/latent_${latent_dim}/${model_name}/${source_dataset}/${param_value}/${source_seed}/final_model
@@ -22,7 +20,7 @@ models_path:
   - ${oc.env:XP_PATH}/transfer/latent_${latent_dim}/${model_name}/${source_dataset}_to_${dataset.name}/${param_value}/${sum:${transfer_seed},6}/final_model
   - ${oc.env:XP_PATH}/transfer/latent_${latent_dim}/${model_name}/${source_dataset}_to_${dataset.name}/${param_value}/${sum:${transfer_seed},7}/final_model
 
-fname: ${dataset.name}_transfer_random_${random_z}_dec_only_${dec_only}.pdf
+fname: ${dataset.name}_transfer_random_${random_z}_${transfer_seed}.pdf
 
 defaults:
   - _self_
