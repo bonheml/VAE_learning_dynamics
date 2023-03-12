@@ -1,5 +1,4 @@
 model_name: beta_vae
-model_epoch: 1090
 model_seed: 0
 param_value: 1
 random_z: false
@@ -7,8 +6,8 @@ latent_dim: 10
 n_samples: 16
 seed: 0
 
-model_path: ${oc.env:XP_PATH}/train/latent_${latent_dim}/${model_name}/${dataset.name}/${param_value}/${model_seed}/checkpoint/epoch_${model_epoch}*
-fname: epoch_${model_epoch}_random_z_${random_z}.pdf
+model_path: ${oc.env:XP_PATH}/train/latent_${latent_dim}/${model_name}/${dataset.name}/${param_value}/${model_seed}/checkpoint/final_model
+fname: ${model_name}_${param_value}_seed_${model_seed}_random_z_${random_z}.pdf
 
 defaults:
   - _self_
