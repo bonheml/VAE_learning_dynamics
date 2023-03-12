@@ -1,5 +1,5 @@
 model_name: beta_vae
-model_seed: 0
+model_seed: 10
 source_seed: ${model_seed}
 transfer_seed: ${model_seed}
 param_value: 1
@@ -7,7 +7,7 @@ random_z: false
 latent_dim: 10
 batch_size: 10
 seed: 0
-source_dataset: celeba
+source_dataset: dsprites
 dec_only: true
 
 models_path:
@@ -26,7 +26,7 @@ fname: ${dataset.name}_transfer_random_${random_z}_dec_only_${dec_only}.pdf
 
 defaults:
   - _self_
-  - dataset: cars
+  - dataset: symsol
   - sampling: sampler
 
 hydra:
