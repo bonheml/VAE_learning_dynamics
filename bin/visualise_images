@@ -25,8 +25,7 @@ def visualise_images(cfg):
     if cfg.random_z is True:
         z = tf.random.normal(shape=(cfg.n_samples, cfg.latent_dim))
     else:
-        dataset = instantiate(cfg.dataset)
-        samples = dataset.sample(cfg.n_samples, random_state, unique=True)[1]
+        samples = instantiate(cfg.sampling)[0][0]
         enc_out = model.encoder(samples, training=False)
         z = enc_out[-1]
 
