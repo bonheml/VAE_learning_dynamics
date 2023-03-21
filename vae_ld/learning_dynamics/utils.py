@@ -80,25 +80,30 @@ def get_model_epoch(model):
     return epoch
 
 
-def get_activations(data, model_path, model=None):
+def get_activations(data, model_path, model=None, full=True):
+    return get_full_activations(data, model_path, model) if full else get_encoder_latents_activations(data, model_path,
+                                                                                                      model)
+
+
+def get_full_activations(data, model_path, model=None):
     """ Load a model and generate a dictionary of the activations obtained from `data`.
-    We assume that the activations of each layers are exposed.
+       We assume that the activations of each layers are exposed.
 
-    Parameters
-    ----------
-    data : np.array
-        A (n_examples, n_features) data matrix
-    model_path : str or None
-        The path of the model to load, or None if model is not None.
-         ignored if model is not None
-    model : tf.keras.Model or None
-        The model to use, if None, load the model using model_path
+       Parameters
+       ----------
+       data : np.array
+           A (n_examples, n_features) data matrix
+       model_path : str or None
+           The path of the model to load, or None if model is not None.
+            ignored if model is not None
+       model : tf.keras.Model or None
+           The model to use, if None, load the model using model_path
 
-    Returns
-    -------
-    tuple
-        A tuple containing the loaded model, list of activations, and list of layer names.
-    """
+       Returns
+       -------
+       tuple
+           A tuple containing the loaded model, list of activations, and list of layer names.
+       """
     if model is None:
         model = tf.keras.models.load_model(model_path)
     # This handle the case where we have multiple inputs and are only interested in the similarity between

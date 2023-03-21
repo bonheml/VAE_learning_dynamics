@@ -14,13 +14,17 @@ import pandas as pd
 logger = logging.getLogger("similarity_metric")
 
 
-def compute_similarity_metric(metric, data, m1_path, m2_path, save_path, models_info):
-    m1, acts1, layers1 = get_activations(data, m1_path)
-    m2, acts2, layers2 = get_activations(data, m2_path)
+def compute_similarity_metric(metric, data, m1_path, m2_path, save_path, models_info, full=True):
+    m1, acts1, layers1 = get_activations(data, m1_path, full)
     logger.info("Preparing layer activations of {}".format(m1_path))
     acts1 = [metric.center(prepare_activations(act)) for act in acts1]
-    logger.info("Preparing layer activations of {}".format(m2_path))
-    acts2 = [metric.center(prepare_activations(act)) for act in acts2]
+    if type(m2_path) == str:
+        logger.info("Preparing layer activations of {}".format(m2_path))
+        m2, acts2, layers2 = get_activations(data, m2_path, full)
+        acts2 = [metric.center(prepare_activations(act)) for act in acts2]
+    else:
+        acts2 = m2_path
+        layers2 = ["labels"]
     res = {}
     for i, l1 in enumerate(layers1):
         res[l1] = {}
@@ -36,21 +40,27 @@ def compute_similarity_metric(metric, data, m1_path, m2_path, save_path, models_
     res.to_csv(save_path, sep="\t")
 
 
-@hydra.main(config_path="config", config_name="similarity")
-def compute_sim(cfg):
-    logger.info("Experiment config:\n{}".format(OmegaConf.to_yaml(cfg)))
-    random_state = np.random.RandomState(cfg.seed)
-    logger.info("Instantiating {}...".format(cfg.similarity_metric.name))
-    metric = instantiate(cfg.similarity_metric)
-    logger.info("Instantiating {} dataset".format(cfg.dataset.name))
-    samples = instantiate(cfg.sampling)[0][0]
-    samples = get_unique_samples(samples)
-    logger.info("Looking for model folders in {}".format(cfg.m1_path))
-    m1_files = get_file_list(cfg.m1_path, cfg.keep_n, cfg.selection_type)
+def compute_sim_labels(m1_files, metric, cfg):
+    models_info = {"m1_name": cfg.m1_name, "p1_name": cfg.p1_name, "p1_value": cfg.p1_value, "m1_seed": cfg.m1_seed}
+    samples = instantiate(cfg.sampling)[0]
+    samples, y = get_unique_samples(samples)
+    for i, m1 in enumerate(m1_files):
+        m1_fname = get_model_filename(m1, cfg.m1_name, cfg.p1_value)
+        save_path = "{}_{}_labels.tsv".format(cfg.similarity_metric.name, m1_fname)
+        if pathlib.Path(save_path).exists() and cfg.overwrite is False:
+            logger.info("Skipping already computed similarity for {}".format(save_path))
+            continue
+        compute_similarity_metric(metric, samples, m1, y, save_path, models_info, full=cfg.full)
+
+
+def compute_sim_models(m1_files, metric, cfg):
     logger.info("Looking for model folders in {}".format(cfg.m2_path))
     m2_files = get_file_list(cfg.m2_path, cfg.keep_n, cfg.selection_type)
     models_info = {"m1_name": cfg.m1_name, "p1_name": cfg.p1_name, "p1_value": cfg.p1_value, "m1_seed": cfg.m1_seed,
                    "m2_name": cfg.m2_name, "p2_name": cfg.p2_name, "p2_value": cfg.p2_value, "m2_seed": cfg.m2_seed}
+    logger.info("Instantiating {} dataset".format(cfg.dataset.name))
+    samples = instantiate(cfg.sampling)[0][0]
+    samples = get_unique_samples(samples)
     for i, m1 in enumerate(m1_files):
         m1_fname = get_model_filename(m1, cfg.m1_name, cfg.p1_value)
         models_info["m1_epoch"] = get_model_epoch(m1)
@@ -62,7 +72,18 @@ def compute_sim(cfg):
             if pathlib.Path(save_path).exists() and cfg.overwrite is False:
                 logger.info("Skipping already computed similarity for {}".format(save_path))
                 continue
-            compute_similarity_metric(metric, samples, m1, m2, save_path, models_info)
+            compute_similarity_metric(metric, samples, m1, m2, save_path, models_info, full=cfg.full)
+
+
+@hydra.main(config_path="config", config_name="similarity")
+def compute_sim(cfg):
+    logger.info("Experiment config:\n{}".format(OmegaConf.to_yaml(cfg)))
+    random_state = np.random.RandomState(cfg.seed)
+    logger.info("Instantiating {}...".format(cfg.similarity_metric.name))
+    metric = instantiate(cfg.similarity_metric)
+    logger.info("Looking for model folders in {}".format(cfg.m1_path))
+    m1_files = get_file_list(cfg.m1_path, cfg.keep_n, cfg.selection_type)
+    compute_sim_labels(m1_files, metric, cfg) if cfg.m2_path is None else compute_sim_models(m1_files, metric, cfg)
 
 
 if __name__ == "__main__":
