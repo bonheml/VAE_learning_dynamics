@@ -23,7 +23,7 @@ def compute_similarity_metric(metric, data, m1_path, m2_path, save_path, models_
         m2, acts2, layers2 = get_activations(data, m2_path, full=full)
         acts2 = [metric.center(prepare_activations(act)) for act in acts2]
     else:
-        acts2 = m2_path
+        acts2 = [metric.center(prepare_activations(m2_path))]
         layers2 = ["labels"]
     res = {}
     for i, l1 in enumerate(layers1):
