@@ -44,7 +44,7 @@ def compute_sim_labels(m1_files, metric, cfg):
     models_info = {"m1_name": cfg.m1_name, "p1_name": cfg.p1_name, "p1_value": cfg.p1_value, "m1_seed": cfg.m1_seed}
     samples = instantiate(cfg.sampling)[0]
     samples, y = get_unique_samples(samples)
-    logger.debug("samples shape {}, labels shape {}",format(samples.shape, y.shape))
+    logger.debug("samples shape {}, labels shape {}".format(samples.shape, y.shape))
     for i, m1 in enumerate(m1_files):
         m1_fname = get_model_filename(m1, cfg.m1_name, cfg.p1_value)
         save_path = "{}_{}_labels.tsv".format(cfg.similarity_metric.name, m1_fname)
