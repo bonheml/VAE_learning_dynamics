@@ -81,7 +81,7 @@ def get_model_epoch(model):
 
 
 def get_activations(data, model_path, model=None, full=True):
-    logger.debug("Getting {} activation of {}".format(full, model_path))
+    logger.info("full={}".format(full))
     return get_full_activations(data, model_path, model) if full else get_encoder_latents_activations(data, model_path,
                                                                                                       model)
 
