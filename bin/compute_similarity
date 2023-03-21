@@ -15,13 +15,12 @@ logger = logging.getLogger("similarity_metric")
 
 
 def compute_similarity_metric(metric, data, m1_path, m2_path, save_path, models_info, full=True):
-    logger.info("full={}".format(full))
-    m1, acts1, layers1 = get_activations(data, m1_path, full)
+    m1, acts1, layers1 = get_activations(data, m1_path, full=full)
     logger.info("Preparing layer activations of {}".format(m1_path))
     acts1 = [metric.center(prepare_activations(act)) for act in acts1]
     if type(m2_path) == str:
         logger.info("Preparing layer activations of {}".format(m2_path))
-        m2, acts2, layers2 = get_activations(data, m2_path, full)
+        m2, acts2, layers2 = get_activations(data, m2_path, full=full)
         acts2 = [metric.center(prepare_activations(act)) for act in acts2]
     else:
         acts2 = m2_path
@@ -42,7 +41,6 @@ def compute_similarity_metric(metric, data, m1_path, m2_path, save_path, models_
 
 
 def compute_sim_labels(m1_files, metric, cfg):
-    logger.info("full={}".format(cfg.full))
     models_info = {"m1_name": cfg.m1_name, "p1_name": cfg.p1_name, "p1_value": cfg.p1_value, "m1_seed": cfg.m1_seed}
     samples = instantiate(cfg.sampling)[0]
     samples, y = get_unique_samples(samples)
