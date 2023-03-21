@@ -1,1 +1,4 @@
-_target_: sklearn.ensemble.GradientBoostingClassifier
+clf:
+  _target_: sklearn.ensemble.GradientBoostingClassifier
+
+name: gradient_boosting

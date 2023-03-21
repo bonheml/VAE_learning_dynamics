@@ -1,1 +1,4 @@
-_target_: sklearn.linear_model.LogisticRegressionCV
+clf:
+  _target_: sklearn.linear_model.LogisticRegressionCV
+
+name: logistic_regression

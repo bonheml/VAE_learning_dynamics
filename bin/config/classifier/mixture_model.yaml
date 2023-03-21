@@ -1,3 +1,6 @@
-_target_: sklearn.mixture.GaussianMixture
-n_components: 2
-random_state: ${seed}
+clf:
+  _target_: sklearn.mixture.GaussianMixture
+  n_components: 2
+  random_state: ${seed}
+
+name: mixture_model

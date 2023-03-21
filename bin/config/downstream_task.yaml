@@ -16,7 +16,7 @@ seed: 0
 num_train: 10000
 num_test: 5000
 
-save_file: scores_${dataset.name}_${model_name}_${param_name}_${param_value}_seed_${model_seed}_${latent_dim}_latents.tsv
+save_file: ${classifier.name}_scores_${dataset.name}_${model_name}_${param_name}_${param_value}_seed_${model_seed}_${latent_dim}_latents.tsv
 
 hydra:
   run:
