@@ -59,9 +59,7 @@ def similarity_heatmap(input_file, m1_name, m1_epoch, p1_name, p1_value, m2_name
     df.rename(columns=to_rename, index=to_rename, inplace=True, errors="ignore")
     df = df.reindex(columns=vae_index if m1_name != "classifier" else clf_index,
                     index=vae_index if m2_name != "classifier" else clf_index)
-    ax = sns.heatmap(df.T, vmin=0, vmax=1)
-    m1_name = m1_name.replace("linear", "FC")
-    m2_name = m2_name.replace("linear", "FC")
+    ax = sns.heatmap(df, vmin=0, vmax=1)
     ax.set(ylabel="{}, {}={}, epoch={}".format(m1_name, p1_name, p1_value, m1_epoch) if m1_name != "classifier" else "{}, epoch={}".format(m1_name, m1_epoch),
            xlabel="{}, {}={}, epoch={}".format(m2_name, p2_name, p2_value, m2_epoch) if m2_name != "classifier" else "{}, epoch={}".format(m2_name, m2_epoch))
     save_figure(save_file)
