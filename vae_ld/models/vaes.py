@@ -244,7 +244,7 @@ class IVAE(MultiInputVAE):
     .. [2] Mita, G., Filippone, M., & Michiardi, P. (2021, July). An identifiable double vae for disentangled
            representations. In International Conference on Machine Learning (pp. 7769-7779). PMLR.
     """
-    def __init__(self, *args, prior_model=None, prior_mean=0, prior_shape=10, **kwargs):
+    def __init__(self, *args, beta=1, prior_model=None, prior_mean=0, prior_shape=10, **kwargs):
         in_shape = [list(kwargs.get("in_shape", (64, 64, 3))), prior_shape]
         kwargs["in_shape"] = in_shape
         super().__init__(*args, **kwargs)
@@ -252,10 +252,11 @@ class IVAE(MultiInputVAE):
         self.prior_model = prior_model
         self.prior_model.build((None, prior_shape))
         self.prior_model.summary(print_fn=logger.info)
+        self.beta = beta
 
     def get_config(self):
         config = super(IVAE, self).get_config()
-        config.update({"prior_mean": self.prior_mean, "prior_model": self.prior_model})
+        config.update({"prior_mean": self.prior_mean, "prior_model": self.prior_model, "beta": self.beta})
         return config
 
     def get_gradient_step_output(self, data, training=True):
@@ -288,6 +289,10 @@ class IVAE(MultiInputVAE):
         losses["elbo_loss"] = -tf.add(losses["reconstruction_loss"], losses["regularisation_loss"])
         losses["model_loss"] = self.compute_model_loss(**losses)
         return losses
+
+    def compute_model_loss(self, *args, **kwargs):
+        reg_regularisation_loss = self.beta * kwargs["regularisation_loss"]
+        return tf.add(kwargs["reconstruction_loss"], reg_regularisation_loss)
 
 
 class IDVAE(MultiInputVAE):
