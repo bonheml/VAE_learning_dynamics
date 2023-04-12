@@ -277,7 +277,7 @@ class IVAE(MultiInputVAE):
         z_mean, z_log_var, z = self.encoder(data, training=training)[-3:]
         reconstruction = self.decoder(z, training=training)[-1]
         # Estimate the log var of p_{\lambda, T}(z|u). The mean is fixed, as in [1].
-        prior_log_var = self.prior_model(data[1], training=training)[-1]
+        prior_log_var = self.prior_model(data[1], training=training)
         prior_mean = self.prior_mean * tf.ones_like(prior_log_var)
 
         # Compute E_q_{\phi}(z|x,u)[log p_f(x|z)] - KL(q_{\phi}(z|x,u) || p_{\lambda, T}(z|u))
