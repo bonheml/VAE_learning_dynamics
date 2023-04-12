@@ -132,6 +132,13 @@ class ConvolutionalIdentifiableEncoder(tf.keras.Model):
         self.z_log_var = layers.Dense(output_shape, name="encoder/z_log_var")
         self.sampling = Sampling()
 
+    def get_config(self):
+        return {"in_shape": self.in_shape, "output_shape": self.out_shape, "shape_p_u": self.shape_p_u}
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
+
     def call(self, inputs):
         x, u = inputs
         logger.debug("Received prior shape is {}".format(u.shape))
