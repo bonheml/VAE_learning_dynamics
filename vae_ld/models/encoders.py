@@ -115,7 +115,7 @@ class ConvolutionalIdentifiableEncoder(tf.keras.Model):
         logger.debug("Expected input shape is {}".format(in_shape))
         logger.debug("Expected prior shape is {}".format(shape_p_u))
         super(ConvolutionalIdentifiableEncoder, self).__init__()
-        self.in_shape = in_shape
+        self.in_shape = list(in_shape)
         self.out_shape = output_shape
         self.shape_p_u = shape_p_u
         self.e1 = layers.Conv2D(input_shape=in_shape, filters=32, kernel_size=4, strides=2, activation="relu",
