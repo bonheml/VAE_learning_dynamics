@@ -4,6 +4,7 @@ defaults:
   - _self_
   - encoder: iconvolutional
   - decoder: convolutional
+  - prior_model: prior
   - reconstruction_loss_fn: bernoulli
   - regularisation_loss_fn: kld
 

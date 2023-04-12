@@ -245,25 +245,16 @@ class IVAE(MultiInputVAE):
            representations. In International Conference on Machine Learning (pp. 7769-7779). PMLR.
     """
     def __init__(self, *args, prior_model=None, prior_mean=0, prior_shape=10, **kwargs):
-        in_shape = [list(kwargs.get("in_shape", (64,64,3))), prior_shape]
+        in_shape = [list(kwargs.get("in_shape", (64, 64, 3))), prior_shape]
         kwargs["in_shape"] = in_shape
         super().__init__(*args, **kwargs)
-        latent_shape = kwargs.get("latent_shape")
         self.prior_mean = prior_mean
         self.prior_model = prior_model
-        prior_shape = prior_shape if isinstance(prior_shape, Iterable) else (prior_shape,)
-        if self.prior_model is None:
-            self.prior_model = tf.keras.Sequential()
-            self.prior_model.add(layers.Dense(50, input_shape=(prior_shape,), activation=layers.LeakyReLU(alpha=0.1)))
-            for i in range(2):
-                self.prior_model.add(layers.Dense(50, activation=layers.LeakyReLU(alpha=0.1)))
-            self.prior_model.add(layers.Dense(latent_shape))
-        else:
-            self.prior.build((None, prior_shape))
-            self.prior.summary(print_fn=logger.info)
+        self.prior_model.build((None, prior_shape))
+        self.prior_model.summary(print_fn=logger.info)
 
     def get_config(self):
-        config = super().get_config()
+        config = super(IVAE, self).get_config()
         config.update({"prior_mean": self.prior_mean, "prior_model": self.prior_model})
         return config
 
