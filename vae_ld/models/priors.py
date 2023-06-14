@@ -46,4 +46,4 @@ class iVAEFixedPrior(tf.keras.Model):
         return cls(**config)
 
     def call(self, inputs):
-        return self.n * tf.ones_like(self.output_shape)
+        return self.n * tf.ones_like(self.out_shape, dtype=tf.float32)
