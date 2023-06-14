@@ -1,0 +1,3 @@
+_target_: vae_ld.models.priors.iVAELearnedPrior
+in_shape: "${len: ${dataset.factors_shape}}"
+output_shape: ${latent_shape}

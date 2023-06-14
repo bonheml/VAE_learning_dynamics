@@ -3,5 +3,6 @@ batch_size: ${batch_size}
 seed: ${seed}
 validation_split: 0.1
 data: ${dataset}
+# 0 is unsupervised, 1 is for supervised tasks, 2 is for multi input models
 get_labels: 0
 categorical: false

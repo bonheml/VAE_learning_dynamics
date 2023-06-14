@@ -3,7 +3,7 @@ from tensorflow.keras import layers
 from vae_ld.models import logger
 
 
-class iVAEVariancePrior(tf.keras.Model):
+class iVAELearnedPrior(tf.keras.Model):
     def __init__(self, in_shape, output_shape):
         logger.debug("Expected input shape is {}".format(in_shape))
         super().__init__()
@@ -28,3 +28,22 @@ class iVAEVariancePrior(tf.keras.Model):
         x3 = self.p3(x2)
         x4 = self.p4(x3)
         return x4
+
+
+class iVAEFixedPrior(tf.keras.Model):
+    def __init__(self, in_shape, output_shape, n=0):
+        logger.debug("Expected input shape is {}".format(in_shape))
+        super().__init__()
+        self.in_shape = in_shape
+        self.out_shape = output_shape
+        self.n = n
+
+    def get_config(self):
+        return {"in_shape": self.in_shape, "output_shape": self.out_shape}
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
+
+    def call(self, inputs):
+        return self.n * tf.ones_like(self.output_shape)

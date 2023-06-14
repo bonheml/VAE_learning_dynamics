@@ -229,10 +229,10 @@ class IVAE(MultiInputVAE):
 
     Parameters
     ----------
-    prior_model: tf.keras.Model or None, optional
-        The intialised conditional prior model. If None, creates a model with the same architecture as [2].
-    prior_mean: int, optional
-        The mean of the conditional prior. Default is 0 as in [1].
+    prior_variance: tf.keras.Model
+        The initialised conditional prior variance.
+    prior_mean: tf.keras.Model
+         The initialised conditional prior mean.
     prior_shape: int, optional
         Number of latent dimensions for the variance. Default is 10.
 
@@ -244,19 +244,21 @@ class IVAE(MultiInputVAE):
     .. [2] Mita, G., Filippone, M., & Michiardi, P. (2021, July). An identifiable double vae for disentangled
            representations. In International Conference on Machine Learning (pp. 7769-7779). PMLR.
     """
-    def __init__(self, *args, beta=1, prior_model=None, prior_mean=0, prior_shape=10, **kwargs):
+    def __init__(self, *args, beta=1, prior_variance=None, prior_mean=0, prior_shape=10, **kwargs):
         in_shape = [list(kwargs.get("in_shape", (64, 64, 3))), prior_shape]
         kwargs["in_shape"] = in_shape
         super().__init__(*args, **kwargs)
         self.prior_mean = prior_mean
-        self.prior_model = prior_model
-        self.prior_model.build((None, prior_shape))
-        self.prior_model.summary(print_fn=logger.info)
+        self.prior_mean.build((None, prior_shape))
+        self.prior_mean.summary(print_fn=logger.info)
+        self.prior_variance = prior_variance
+        self.prior_variance.build((None, prior_shape))
+        self.prior_variance.summary(print_fn=logger.info)
         self.beta = beta
 
     def get_config(self):
         config = super(IVAE, self).get_config()
-        config.update({"prior_mean": self.prior_mean, "prior_model": self.prior_model, "beta": self.beta})
+        config.update({"prior_mean": self.prior_mean, "prior_variance": self.prior_variance, "beta": self.beta})
         return config
 
     def get_gradient_step_output(self, data, training=True):
@@ -278,8 +280,8 @@ class IVAE(MultiInputVAE):
         z_mean, z_log_var, z = self.encoder(data, training=training)[-3:]
         reconstruction = self.decoder(z, training=training)[-1]
         # Estimate the log var of p_{\lambda, T}(z|u). The mean is fixed, as in [1].
-        prior_log_var = self.prior_model(data[1], training=training)
-        prior_mean = self.prior_mean * tf.ones_like(prior_log_var)
+        prior_log_var = self.prior_variance(data[1], training=training)
+        prior_mean = self.prior_mean(data[1], training=training)
 
         # Compute E_q_{\phi}(z|x,u)[log p_f(x|z)] - KL(q_{\phi}(z|x,u) || p_{\lambda, T}(z|u))
         losses["reconstruction_loss"] = tf.reduce_mean(self.reconstruction_loss_fn(data[0], reconstruction))
