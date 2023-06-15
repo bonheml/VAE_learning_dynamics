@@ -54,6 +54,7 @@ def train(cfg):
             callbacks.append(instantiate(v, data=data_callback, greyscale=greyscale))
         else:
             callbacks.append(instantiate(v))
+        logger.info("{}:{}".format(v, v.keys()))
         if ("filepath" or "log_dir") in v.keys():
             path = Path(k)
             logger.info("Creating new folder {}".format(path))
