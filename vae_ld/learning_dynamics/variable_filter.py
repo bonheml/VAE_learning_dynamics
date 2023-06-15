@@ -28,14 +28,18 @@ def filter_variables(log_vars, save_file=None, var_threshold=0.1, mean_error_ran
     variances = np.var(vars, axis=1)
     means = np.mean(vars, axis=1)
     logger.debug("num_codes {}, variance shape {}, mean shape {}".format(num_codes, variances.shape, means.shape))
+    logger.debug("variances: {}\nmeans: {}".format(variances, means))
     assert num_codes == variances.shape[0] == means.shape[0]
 
     all_idxs = set(list(range(num_codes)))
     low_var_idxs = set(list(np.where(variances < var_threshold)[0]))
+    logger.debug("Low var idxs: {}".format(low_var_idxs))
     higher_var_idxs = all_idxs - low_var_idxs
     # We only need to check the upper bound as variance will always be positive
     zero_mean_idxs = set(list(np.where(means <= mean_error_range)[0]))
+    logger.debug("zero mean idxs: {}".format(zero_mean_idxs))
     one_mean_idxs = set(list(np.where(((1 - mean_error_range) <= means) & (means <= (1 + mean_error_range)))[0]))
+    logger.debug("one mean idxs: {}".format(one_mean_idxs))
     mixed_means_idxs = all_idxs - (zero_mean_idxs | one_mean_idxs)
 
     scores["passive_variables_idx"] = list(low_var_idxs.intersection(one_mean_idxs))

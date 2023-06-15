@@ -9,7 +9,7 @@ seed: 0
 model_name: beta_vae
 model_seed: 0
 latent_shape: 10
-model_path: ${oc.env:XP_PATH}/train/latent_${latent_shape}/${model_name}/${dataset.name}/${param_value}/${model_seed}/checkpoint/*
+model_path: ${oc.env:XP_PATH}/train/latent_${latent_shape}/${model_name}/${dataset.name}/${param_value}/${model_seed}/final_model
 param_value: 1
 param_name: beta
 var_threshold: 0.1

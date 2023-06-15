@@ -10,16 +10,13 @@ sns.set(rc={'figure.figsize': (10, 10)}, font_scale=3)
 sns.set_style("whitegrid", {'axes.grid': False, 'legend.labelspacing': 1.2})
 
 
-def plot_hist(X, gmm, save_file):
-    X_test = np.linspace(X.min(), X.max(), 1000).reshape(-1, 1)
-    pdf = np.exp(gmm.score_samples(X_test))
-    pdf_components = gmm.predict_proba(X_test) * pdf.reshape(-1, 1)
+def plot_hist(X, save_file, variable_name=r"$\mathbf{\sigma}$", xlims=None, bins=13):
     fig, ax = plt.subplots()
-    ax.hist(X, 50, alpha=0.4, density=True, histtype="stepfilled")
-    ax.plot(X_test, pdf, '-k')
-    ax.plot(X_test, pdf_components, '--k')
-    ax.set_xlabel(r"$\mathbf{\sigma}$")
+    ax.hist(X, density=True, histtype="stepfilled", bins=bins)
+    ax.set_xlabel(variable_name)
     ax.set_ylabel('Density')
+    if xlims is not None:
+        plt.xlim(*xlims)
     save_figure(save_file)
 
 

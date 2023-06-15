@@ -24,25 +24,20 @@ def filter_vars(cfg):
     samples = get_unique_samples(sampler[0][0])
 
     logger.info("Looking for model folders in {}".format(cfg.model_path))
-    model_files = get_file_list(cfg.model_path)
     models_info = {"model_name": cfg.model_name, "param_name": cfg.param_name, "param_value": cfg.param_value,
                    "model_seed": cfg.model_seed}
     agg_fname = "{}_{}_seed_{}.tsv".format(cfg.model_name, cfg.param_value, cfg.model_seed)
 
-    for i, m in enumerate(model_files):
-        save_file = "{}.tsv".format(get_model_filename(m, cfg.model_name, cfg.param_value))
-        models_info["model_epoch"] = get_model_epoch(m)
-        model = tf.keras.models.load_model(m)
-        _, acts, _ = get_encoder_latents_activations(samples, None, model)
-        var_acts = prepare_activations(acts[1])
-        df = filter_variables(var_acts, save_file, var_threshold=cfg.var_threshold,
-                              mean_error_range=cfg.mean_error_range)
-        for k, v in models_info.items():
-            df[k] = v
-        if i == 0:
-            df.to_csv(agg_fname, index=False)
-        else:
-            df.to_csv(agg_fname, mode="a", header=False, index=False)
+
+    save_file = "{}.tsv".format(get_model_filename(cfg.model_path, cfg.model_name, cfg.param_value))
+    model = tf.keras.models.load_model(cfg.model_path)
+    _, acts, _ = get_encoder_latents_activations(samples, None, model)
+    var_acts = prepare_activations(acts[1])
+    df = filter_variables(var_acts, save_file, var_threshold=cfg.var_threshold,
+                          mean_error_range=cfg.mean_error_range)
+    for k, v in models_info.items():
+        df[k] = v
+    df.to_csv(agg_fname, index=False)
 
 
 if __name__ == "__main__":

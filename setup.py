@@ -42,7 +42,7 @@ setup(
         "bin/visualise_ides",
         "bin/latent_traversal",
         "bin/evaluate_downstream_task",
-        "bin/mixed_variables",
+        "bin/ivae_latent_histograms",
         "bin/transfer",
     ],
     install_requires=[

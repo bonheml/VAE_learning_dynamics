@@ -7,5 +7,5 @@ fn:
   overwrite: ${overwrite}
   xy_annot: null
   xy_text: null
-  text: FONDUE
+  text: Estimate
   max_n: 32
