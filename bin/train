@@ -54,8 +54,9 @@ def train(cfg):
             callbacks.append(instantiate(v, data=data_callback, greyscale=greyscale))
         else:
             callbacks.append(instantiate(v))
-        if ("filepath" or "logdir") in v.keys():
+        if ("filepath" or "log_dir") in v.keys():
             path = Path(k)
+            logger.info("Creating new folder {}".format(path))
             path.mkdir(parents=True, exist_ok=True)
             if k == "checkpoint":
                 checkpoint = glob.glob("{}/*".format(path))
