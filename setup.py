@@ -49,7 +49,7 @@ setup(
         "pillow>=7.2.0",
         "pandas>=1.0.5",
         "tensorflow_hub~=0.12",
-        "tensorflow==2.6",
+        "tensorflow==2.11.1",
         "tensorflow-datasets",
         "imageio",
         "hydra-core",
