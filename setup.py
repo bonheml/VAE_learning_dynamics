@@ -49,8 +49,7 @@ setup(
         "pillow>=7.2.0",
         "pandas>=1.0.5",
         "tensorflow_hub~=0.12",
-        "tensorflow~=2.6",
-        "tensorboard~=2.6",
+        "tensorflow==2.6",
         "tensorflow-datasets",
         "imageio",
         "hydra-core",
@@ -64,7 +63,6 @@ setup(
         "tensorflow_probability",
         "scipy",
         "gudhi",
-        "jax[cpu]"
     ],
     extras_require=extras,
     classifiers=[
