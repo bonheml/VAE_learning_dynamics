@@ -13,7 +13,8 @@ class Fixed(layers.Layer):
         self.w = self.add_weight(
             initializer=tf.keras.initializers.Constant(value=self.value),
             shape=(input_shape[-1], self.units),
-            trainable=False
+            trainable=False,
+            name="fixed"
         )
 
     def call(self, inputs):
