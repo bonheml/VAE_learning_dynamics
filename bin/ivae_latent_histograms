@@ -49,6 +49,7 @@ def plot_histograms(cfg):
     prior_mean = model.prior_mean
     prior_mean.trainable = False
     model.compile(optimizer)
+    model.summary()
 
     logger.info("Sampling the data")
     var, mu, z, var_prior, mp, zp = get_data(sampler, encoder, prior_variance, prior_mean, cfg.num_train, cfg.batch_size)
