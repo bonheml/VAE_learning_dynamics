@@ -18,13 +18,10 @@ def get_data(sampler, encoder, prior_variance, prior_mean, n_items, batch_size):
         X = sampler[i][0]
         mu_tmp, v_tmp, _ = encoder(X)[-3:]
         z_tmp = sampling((mu_tmp, v_tmp)).numpy()
+        logger.debug("mu shape: {}, log_var shape:{}".format(tf.shape(mu_tmp), tf.shape(v_tmp)))
         vp_tmp = prior_variance(X[1]).numpy()
         mp_tmp = prior_mean(X[1]).numpy()
-        logger.info(prior_mean.in_shape)
-        logger.info(mp_tmp)
-        logger.info(prior_mean(X[1]))
-        logger.info(prior_mean.predict(X[1]))
-        logger.info("mu prior shape: {}, log_var prior shape:{}".format(tf.shape(mp_tmp), tf.shape(vp_tmp)))
+        logger.debug("mu prior shape: {}, log_var prior shape:{}".format(tf.shape(mp_tmp), tf.shape(vp_tmp)))
         zp_tmp = sampling((mp_tmp, vp_tmp)).numpy()
         mu_tmp, v_tmp = mu_tmp.numpy(), v_tmp.numpy()
         if i == 0:
