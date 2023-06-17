@@ -17,7 +17,7 @@ class Fixed(layers.Layer):
         )
 
     def call(self, inputs):
-        return self.w
+        return tf.tile([self.w[0]], [tf.shape(inputs)[0], 1])
 
 
 class iVAELearnedPrior(tf.keras.Model):
