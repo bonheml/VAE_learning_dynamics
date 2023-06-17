@@ -18,9 +18,11 @@ def get_data(sampler, encoder, prior_variance, prior_mean, n_items, batch_size):
         X = sampler[i][0]
         mu_tmp, v_tmp, _ = encoder(X)[-3:]
         z_tmp = sampling((mu_tmp, v_tmp)).numpy()
-        logger.info("mu shape: {}, log_var shape:{}".format(tf.shape(mu_tmp), tf.shape(v_tmp)))
         vp_tmp = prior_variance(X[1]).numpy()
         mp_tmp = prior_mean(X[1]).numpy()
+        logger.info(mp_tmp)
+        logger.info(prior_mean(X[1]))
+        logger.info(prior_mean.predict(X[1]))
         logger.info("mu prior shape: {}, log_var prior shape:{}".format(tf.shape(mp_tmp), tf.shape(vp_tmp)))
         zp_tmp = sampling((mp_tmp, vp_tmp)).numpy()
         mu_tmp, v_tmp = mu_tmp.numpy(), v_tmp.numpy()
@@ -50,6 +52,8 @@ def plot_histograms(cfg):
     prior_mean.trainable = False
     model.compile(optimizer)
     model.summary()
+
+    logger.info(prior_mean)
 
     logger.info("Sampling the data")
     var, mu, z, var_prior, mp, zp = get_data(sampler, encoder, prior_variance, prior_mean, cfg.num_train, cfg.batch_size)
