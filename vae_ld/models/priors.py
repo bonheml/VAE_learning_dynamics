@@ -3,6 +3,23 @@ from tensorflow.keras import layers
 from vae_ld.models import logger
 
 
+class Fixed(layers.Layer):
+    def __init__(self, units=32, value=0):
+        super().__init__()
+        self.units = units
+        self.value = value
+
+    def build(self, input_shape):
+        self.w = self.add_weight(
+            initializer=tf.keras.initializers.Constant(value=self.value),
+            shape=(input_shape[-1], self.units),
+            trainable=False
+        )
+
+    def call(self, inputs):
+        return self.w
+
+
 class iVAELearnedPrior(tf.keras.Model):
     def __init__(self, in_shape, output_shape):
         logger.debug("Expected input shape is {}".format(in_shape))
@@ -36,7 +53,7 @@ class iVAEFixedPrior(tf.keras.Model):
         super().__init__()
         self.in_shape = in_shape
         self.out_shape = output_shape
-        self.n = n
+        self.p1 = Fixed(units=self.out_shape, value=n)
 
     def get_config(self):
         return {"in_shape": self.in_shape, "output_shape": self.out_shape}
@@ -46,4 +63,4 @@ class iVAEFixedPrior(tf.keras.Model):
         return cls(**config)
 
     def call(self, inputs):
-        return self.n * tf.ones_like(self.out_shape, dtype=tf.float32)
+        return self.p1(inputs)
