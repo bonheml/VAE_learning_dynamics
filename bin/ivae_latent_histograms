@@ -20,7 +20,7 @@ def get_data(sampler, encoder, prior_variance, prior_mean, n_items, batch_size):
         z_tmp = sampling((mu_tmp, v_tmp)).numpy()
         vp_tmp = prior_variance(X[1]).numpy()
         mp_tmp = prior_mean(X[1]).numpy()
-        logger.info(X[1].shape)
+        logger.info(prior_mean.out_shape, prior_mean.output_shape)
         logger.info(mp_tmp)
         logger.info(prior_mean(X[1]))
         logger.info(prior_mean.predict(X[1]))
