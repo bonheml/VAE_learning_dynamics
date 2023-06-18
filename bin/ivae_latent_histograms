@@ -39,6 +39,7 @@ def plot_histograms(cfg):
     # We create a partial instantiation first to share the same dataset between samplers
     sampler = instantiate(cfg.sampling)
     optimizer = instantiate(cfg.optimizer)
+    plot_prior_sampled = cfg.plot_prior_mean and cfg.plot_prior_variance
 
     logger.info("Loading model from {}".format(cfg.model_path))
     model = tf.keras.models.load_model(cfg.model_path)
@@ -51,21 +52,25 @@ def plot_histograms(cfg):
     model.compile(optimizer)
     model.summary()
 
-    logger.info(prior_mean)
-
     logger.info("Sampling the data")
-    var, mu, z, var_prior, mp, zp = get_data(sampler, encoder, prior_variance, prior_mean, cfg.num_train, cfg.batch_size)
+    var, mu, z, var_prior, mp, zp = get_data(sampler, encoder, prior_variance, prior_mean, cfg.num_items, cfg.batch_size)
 
     for i in cfg.var_idx:
-        var_i, mu_i, z_i, varp_i, mp_i, zp_i = var[:, i], mu[:, i], z[:, i], var_prior[:, i], mp[:,i], zp[:,i]
-        var_i, mu_i, z_i = var_i.reshape(-1, 1), mu_i.reshape(-1, 1), z_i.reshape(-1, 1)
-        varp_i, mp_i, zp_i = varp_i.reshape(-1, 1), mp_i.reshape(-1, 1), zp_i.reshape(-1, 1)
+        var_i, mu_i, z_i = var[:, i].reshape(-1, 1), mu[:, i].reshape(-1, 1), z[:, i].reshape(-1, 1)
+
         plot_hist(z_i, "{}_z_{}_histogram.pdf".format(cfg.fname, i), r"$\mathbf{z}$")
-        plot_hist(zp_i, "{}_prior_z_{}_histogram.pdf".format(cfg.fname, i), r"$\mathbf{z^{\dagger}}$")
         plot_hist(var_i, "{}_var_{}_histogram.pdf".format(cfg.fname, i), r"$\mathbf{\sigma}$")
-        plot_hist(varp_i, "{}_prior_var_{}_histogram.pdf".format(cfg.fname, i), r"$\mathbf{\sigma^{\dagger}}$")
         plot_hist(mu_i, "{}_mean_{}_histogram.pdf".format(cfg.fname, i), r"$\mathbf{\mu}$")
-        plot_hist(mp_i, "{}_prior_mean_{}_histogram.pdf".format(cfg.fname, i), r"$\mathbf{\mu^{\dagger}}$")
+
+        if cfg.plot_prior_mean:
+            mp_i = mp[:,i].reshape(-1, 1)
+            plot_hist(mp_i, "{}_prior_mean_{}_histogram.pdf".format(cfg.fname, i), r"$\mathbf{\mu^{\dagger}}$")
+        if cfg.plot_prior_variance:
+            varp_i = var_prior[:,i].reshape(-1, 1)
+            plot_hist(varp_i, "{}_prior_var_{}_histogram.pdf".format(cfg.fname, i), r"$\mathbf{\sigma^{\dagger}}$")
+        if plot_prior_sampled:
+            zp_i = zp[:,i].reshape(-1, 1)
+            plot_hist(zp_i, "{}_prior_z_{}_histogram.pdf".format(cfg.fname, i), r"$\mathbf{z^{\dagger}}$")
 
 
 if __name__ == "__main__":

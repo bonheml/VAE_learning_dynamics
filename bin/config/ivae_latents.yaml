@@ -10,11 +10,12 @@ param_name: beta
 param_value: 1
 model_seed: 0
 latent_shape: 10
-n_samples: 5
+plot_prior_mean: true
+plot_prior_variance: true
 model_path: ${oc.env:XP_PATH}/train/latent_${latent_shape}/${model_name}/${dataset.name}/${param_value}/${model_seed}/final_model
 
 seed: 0
-num_train: 10000
+num_items: 10000
 var_idx:
   - 0
 fname: mixed_variables_${dataset.name}_${model_name}_${param_name}_${param_value}_seed_${model_seed}_${latent_shape}
