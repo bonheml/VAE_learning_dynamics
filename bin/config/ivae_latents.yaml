@@ -18,7 +18,7 @@ seed: 0
 num_items: 10000
 var_idx:
   - 0
-fname: mixed_variables_${dataset.name}_${model_name}_${param_name}_${param_value}_seed_${model_seed}_${latent_shape}
+fname: histogram_${dataset.name}_${model_name}_${param_name}_${param_value}_seed_${model_seed}_${latent_shape}
 
 hydra:
   run:
