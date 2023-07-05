@@ -71,6 +71,7 @@ def compute_sim_from_sa(cfg):
     res.append(m2_info)
 
     df = pd.DataFrame.from_records(res)
+    logger.info(df)
     df.to_csv(cfg.save_file, sep="\t", index=False)
 
 
