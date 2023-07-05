@@ -24,6 +24,7 @@ def save_acts(cfg):
     logger.info("Computing latent representations.")
     model, acts, names = get_encoder_latents_activations(samples, cfg.model_path, None)
     res = {name: prepare_activations(act) for name, act in zip(names, acts)}
+    logger.debug("{}".format({k: v.shape for k, v in res.items()}))
     #res["input"] = prepare_activations(samples)
     logger.info("Saving latent representations.")
     np.savez_compressed("{}_original.npz".format(cfg.save_file), **res)
