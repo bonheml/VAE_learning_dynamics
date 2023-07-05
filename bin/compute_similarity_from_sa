@@ -52,12 +52,12 @@ def compute_sim_from_sa(cfg):
     random_state = np.random.RandomState(cfg.seed)
     logger.info("Instantiating {}...".format(cfg.similarity_metric.name))
     metric = instantiate(cfg.similarity_metric)
-    m1_acts = np.load(cfg.m1_acts)
+    m1_acts = np.load(cfg.m1_acts_path)
     m1_acts.pop("input", None)
     res = []
-    m2_acts = np.load(cfg.m2_acts)
+    m2_acts = np.load(cfg.m2_acts_path)
     m2_acts.pop("input", None)
-    m2_info = get_model_info(cfg.m2_acts)
+    m2_info = get_model_info(cfg.m2_acts_path)
     m2_info["metric"] = metric.name
     m2_info["mean_sim"] = metric(m1_acts["encoder/z_mean"], m2_acts["encoder/z_mean"])
     m2_info["mean_sim_agg"] = np.sum(m2_info["mean_sim"])
