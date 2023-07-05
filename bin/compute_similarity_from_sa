@@ -1,0 +1,78 @@
+#!/usr/bin/env python
+import logging
+import pathlib
+import hydra
+from hydra.utils import instantiate
+import numpy as np
+from omegaconf import OmegaConf
+
+from vae_ld.data.util import get_unique_samples
+from vae_ld.learning_dynamics.utils import get_file_list, get_model_filename, get_model_epoch, get_activations, \
+    prepare_activations
+import pandas as pd
+
+logger = logging.getLogger("similarity_metric")
+
+
+def compute_similarity_metric(metric, data, m1_path, m2_path, save_path, models_info, full=True):
+    m1, acts1, layers1 = get_activations(data, m1_path, full=full)
+    logger.info("Preparing layer activations of {}".format(m1_path))
+    acts1 = [metric.center(prepare_activations(act)) for act in acts1]
+    if type(m2_path) == str:
+        logger.info("Preparing layer activations of {}".format(m2_path))
+        m2, acts2, layers2 = get_activations(data, m2_path, full=full)
+        acts2 = [metric.center(prepare_activations(act)) for act in acts2]
+    else:
+        acts2 = [metric.center(prepare_activations(m2_path))]
+        layers2 = ["labels"]
+    res = {}
+    for i, l1 in enumerate(layers1):
+        res[l1] = {}
+        for j, l2 in enumerate(layers2):
+            logger.info("Computing similarity of {} and {}".format(l1, l2))
+            res[l1][l2] = float(metric(acts1[i], acts2[j]))
+    res = pd.DataFrame(res).T
+    for k, v in models_info.items():
+        res[k] = v
+    # Save csv with m1 layers as header, m2 layers as indexes
+    res = res.rename_axis("m1", axis="columns")
+    res = res.rename_axis("m2")
+    res.to_csv(save_path, sep="\t")
+
+def get_model_info(model_file):
+    fpath = pathlib.Path(model_file).parts
+    return {"source_dataset":fpath[-6], "target_dataset":fpath[-5], "model_name":fpath[-4], "seed": int(fpath[-2]),
+            "param_value": float(fpath[-3]), "latent_shape": int(fpath[-7].replace("latent_", ""))}
+
+
+
+@hydra.main(config_path="config", config_name="similarity_from_sa")
+def compute_sim_from_sa(cfg):
+    logger.info("Experiment config:\n{}".format(OmegaConf.to_yaml(cfg)))
+    random_state = np.random.RandomState(cfg.seed)
+    logger.info("Instantiating {}...".format(cfg.similarity_metric.name))
+    metric = instantiate(cfg.similarity_metric)
+    m1_acts = np.load(cfg.m1_acts)
+    m1_acts.pop("input", None)
+    res = []
+    m2_acts = np.load(cfg.m2_acts)
+    m2_acts.pop("input", None)
+    m2_info = get_model_info(cfg.m2_acts)
+    m2_info["metric"] = metric.name
+    m2_info["mean_sim"] = metric(m1_acts["encoder/z_mean"], m2_acts["encoder/z_mean"])
+    m2_info["mean_sim_agg"] = np.sum(m2_info["mean_sim"])
+    m2_info["mean_sim_squared_agg"] = np.sum(m2_info["mean_sim"] ** 2)
+    m2_info["logvar_sim"] = metric(m1_acts["encoder/z_log_var"], m2_acts["encoder/z_log_var"])
+    m2_info["logvar_sim_agg"] = np.sum(m2_info["logvar_sim"])
+    m2_info["logvar_sim_squared_agg"] = np.sum(m2_info["logvar_sim"] ** 2)
+    m2_info["z_sim"] = metric(m1_acts["sampling"], m2_acts["sampling"])
+    m2_info["z_sim_agg"] = np.sum(m2_info["z_sim"])
+    m2_info["z_sim_squared_agg"] = np.sum(m2_info["z_sim"] ** 2)
+    res.append(m2_info)
+
+    df = pd.DataFrame.from_records(res)
+    df.to_csv(cfg.save_file, sep="\t", index=False)
+
+
+if __name__ == "__main__":
+    compute_sim_from_sa()

@@ -1,0 +1,30 @@
+batch_size: 10000
+seed: 0
+latent_shape: 10
+model_name: beta_vae
+param_name: beta
+param_value: 1
+model_seed: 0
+source_dataset_name: dsprites
+target_dataset_name: symsol
+
+m1_acts_path: ${oc.env:XP_PATH}/save_activations/latent_${latent_shape}/${source_dataset_name}/${source_dataset_name}/${model_name}/param_${param_value}/seed_${model_seed}/${source_dataset_name}_${model_name}_${source_dataset_name}_${param_name}_${param_value}_latent_${latent_shape}_seed_${model_seed}_original.npz
+m2_acts_path: ${oc.env:XP_PATH}/save_activations/latent_${latent_shape}/${source_dataset_name}/${target_dataset_name}/${model_name}/param_${param_value}/seed_${model_seed}/${target_dataset_name}_${model_name}_${source_dataset_name}_${param_name}_${param_value}_latent_${latent_shape}_seed_${model_seed}_original.npz
+save_file: ${target_dataset_name}_${model_name}_${source_dataset_name}_${param_name}_${param_value}_latent_${latent_shape}_seed_${model_seed}_${similarity_metric.name}.tsv
+
+
+defaults:
+  - _self_
+  - similarity_metric: ang_sim
+
+hydra:
+  run:
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_shape}/${similarity_metric.name}/${source_dataset_name}/${target_dataset_name}/${model_name}/param_${param_value}/seed_${model_seed}/
+  sweep:
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_shape}/${similarity_metric.name}/${source_dataset_name}/${target_dataset_name}/${model_name}/param_${param_value}/
+    subdir: seed_${model_seed}
+  job:
+    config:
+      override_dirname:
+        kv_sep: _
+        item_sep: /

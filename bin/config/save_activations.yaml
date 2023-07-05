@@ -16,9 +16,9 @@ save_file: ${dataset.name}_${model_name}_${source_dataset_name}_${param_name}_${
 
 hydra:
   run:
-    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_shape}/${dataset.name}/${model_name}/param_${param_value}/seed_${model_seed}/
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_shape}/${source_dataset_name}/${dataset.name}/${model_name}/param_${param_value}/seed_${model_seed}/
   sweep:
-    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_shape}/${dataset.name}/${model_name}/param_${param_value}
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_shape}/${source_dataset_name}/${dataset.name}/${model_name}/param_${param_value}
     subdir: seed_${model_seed}
   job:
     config:

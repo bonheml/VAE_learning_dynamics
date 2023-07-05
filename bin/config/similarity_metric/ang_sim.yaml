@@ -1,0 +1,4 @@
+_target_: vae_ld.learning_dynamics.cos_sim.AngularSim
+name: ang_sim
+use_gpu: true
+agg: false
