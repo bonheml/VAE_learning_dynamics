@@ -5,10 +5,7 @@ import hydra
 from hydra.utils import instantiate
 import numpy as np
 from omegaconf import OmegaConf
-
-from vae_ld.data.util import get_unique_samples
-from vae_ld.learning_dynamics.utils import get_file_list, get_model_filename, get_model_epoch, get_activations, \
-    prepare_activations
+from sklearn.neighbors import NearestNeighbors
 import pandas as pd
 
 logger = logging.getLogger("similarity_from_sa")
@@ -29,22 +26,31 @@ def compute_sim_from_sa(cfg):
     logger.info("Instantiating {}...".format(cfg.similarity_metric.name))
     metric = instantiate(cfg.similarity_metric)
     m1_acts = np.load(cfg.m1_acts_path)
+    n_mean = NearestNeighbors(n_neighbors=1)
+    n_mean.fit(m1_acts["encoder/z_mean"])
     res = []
     m2_acts = np.load(cfg.m2_acts_path)
     m2_info = get_model_info(cfg.m2_acts_path)
     m2_info["metric"] = metric.name
+    dist, idxs = n_mean.kneighbors(m2_acts["encoder/z_mean"])
+    logger.info("The average distance between source and target latents is {}".format(np.mean(dist)))
+    idxs = idxs.flatten()
+    logger.debug(idxs[:10])
+    m1_acts_ordered = m1_acts["encoder/z_mean"][idxs]
     logger.info("Computing similarity of mean representations")
-    m2_info["mean_sim"] = metric(m1_acts["encoder/z_mean"], m2_acts["encoder/z_mean"])
+    m2_info["mean_sim"] = metric(m1_acts_ordered, m2_acts["encoder/z_mean"])
     m2_info["mean_sim_agg"] = np.sum(m2_info["mean_sim"])
+    m2_info["mean_sim_avg"] = np.mean(m2_info["mean_sim"])
+    m2_info["mean_sim_avg"] = np.std(m2_info["mean_sim"])
     m2_info["mean_sim_squared_agg"] = np.sum(m2_info["mean_sim"] ** 2)
-    logger.info("Computing similarity of log variance representations")
-    m2_info["logvar_sim"] = metric(m1_acts["encoder/z_log_var"], m2_acts["encoder/z_log_var"])
-    m2_info["logvar_sim_agg"] = np.sum(m2_info["logvar_sim"])
-    m2_info["logvar_sim_squared_agg"] = np.sum(m2_info["logvar_sim"] ** 2)
-    logger.info("Computing similarity of sampled representations")
-    m2_info["z_sim"] = metric(m1_acts["sampling"], m2_acts["sampling"])
-    m2_info["z_sim_agg"] = np.sum(m2_info["z_sim"])
-    m2_info["z_sim_squared_agg"] = np.sum(m2_info["z_sim"] ** 2)
+    # logger.info("Computing similarity of log variance representations")
+    # m2_info["logvar_sim"] = metric(m1_acts["encoder/z_log_var"], m2_acts["encoder/z_log_var"])
+    # m2_info["logvar_sim_agg"] = np.sum(m2_info["logvar_sim"])
+    # m2_info["logvar_sim_squared_agg"] = np.sum(m2_info["logvar_sim"] ** 2)
+    # logger.info("Computing similarity of sampled representations")
+    # m2_info["z_sim"] = metric(m1_acts["sampling"], m2_acts["sampling"])
+    # m2_info["z_sim_agg"] = np.sum(m2_info["z_sim"])
+    # m2_info["z_sim_squared_agg"] = np.sum(m2_info["z_sim"] ** 2)
     res.append(m2_info)
 
     df = pd.DataFrame.from_records(res)
