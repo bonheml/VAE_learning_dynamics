@@ -3,6 +3,7 @@ model_name: beta_vae
 param_name: beta
 param_value: 1
 model_seed: 0
+seed: 0
 source_dataset_name: dsprites
 target_dataset_name: symsol
 
