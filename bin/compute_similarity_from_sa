@@ -47,10 +47,7 @@ def compute_sim_from_sa(cfg):
     m2_info["z_sim_squared_agg"] = np.sum(m2_info["z_sim"] ** 2)
     res.append(m2_info)
 
-    pd.set_option('display.max_columns', 20)
-
     df = pd.DataFrame.from_records(res)
-    logger.info(df)
     df.to_csv(cfg.save_file, sep="\t", index=False)
 
 
