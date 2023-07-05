@@ -44,6 +44,8 @@ setup(
         "bin/evaluate_downstream_task",
         "bin/ivae_latent_histograms",
         "bin/transfer",
+        "bin/save_activations",
+        "bin/compute_similarity_from_sa",
     ],
     install_requires=[
         "pillow>=7.2.0",
