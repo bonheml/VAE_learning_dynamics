@@ -19,7 +19,7 @@ def save_acts(cfg):
 
     logger.info("Instantiating {} dataset".format(cfg.dataset.name))
     sampler = instantiate(cfg.sampling)
-    samples = get_unique_samples(sampler[0][0])
+    samples = sampler[0][0]
 
     logger.info("Computing latent representations.")
     model, acts, names = get_encoder_latents_activations(samples, cfg.model_path, None)
@@ -27,6 +27,7 @@ def save_acts(cfg):
     #res["input"] = prepare_activations(samples)
     logger.info("Saving latent representations.")
     np.savez_compressed("{}_original.npz".format(cfg.save_file), **res)
+
 
 if __name__ == "__main__":
     save_acts()

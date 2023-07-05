@@ -11,33 +11,8 @@ from vae_ld.learning_dynamics.utils import get_file_list, get_model_filename, ge
     prepare_activations
 import pandas as pd
 
-logger = logging.getLogger("similarity_metric")
+logger = logging.getLogger("similarity_from_sa")
 
-
-def compute_similarity_metric(metric, data, m1_path, m2_path, save_path, models_info, full=True):
-    m1, acts1, layers1 = get_activations(data, m1_path, full=full)
-    logger.info("Preparing layer activations of {}".format(m1_path))
-    acts1 = [metric.center(prepare_activations(act)) for act in acts1]
-    if type(m2_path) == str:
-        logger.info("Preparing layer activations of {}".format(m2_path))
-        m2, acts2, layers2 = get_activations(data, m2_path, full=full)
-        acts2 = [metric.center(prepare_activations(act)) for act in acts2]
-    else:
-        acts2 = [metric.center(prepare_activations(m2_path))]
-        layers2 = ["labels"]
-    res = {}
-    for i, l1 in enumerate(layers1):
-        res[l1] = {}
-        for j, l2 in enumerate(layers2):
-            logger.info("Computing similarity of {} and {}".format(l1, l2))
-            res[l1][l2] = float(metric(acts1[i], acts2[j]))
-    res = pd.DataFrame(res).T
-    for k, v in models_info.items():
-        res[k] = v
-    # Save csv with m1 layers as header, m2 layers as indexes
-    res = res.rename_axis("m1", axis="columns")
-    res = res.rename_axis("m2")
-    res.to_csv(save_path, sep="\t")
 
 def get_model_info(model_file):
     fpath = pathlib.Path(model_file).parts
@@ -45,7 +20,6 @@ def get_model_info(model_file):
             "seed": int(fpath[-2].replace("seed_", "")),
             "param_value": float(fpath[-3].replace("param_", "")),
             "latent_shape": int(fpath[-7].replace("latent_", ""))}
-
 
 
 @hydra.main(config_path="config", config_name="similarity_from_sa")
