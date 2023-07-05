@@ -24,16 +24,9 @@ def save_acts(cfg):
     logger.info("Computing latent representations.")
     model, acts, names = get_encoder_latents_activations(samples, cfg.model_path, None)
     res = {name: prepare_activations(act) for name, act in zip(names, acts)}
-    res["input"] = prepare_activations(samples)
+    #res["input"] = prepare_activations(samples)
     logger.info("Saving latent representations.")
     np.savez_compressed("{}_original.npz".format(cfg.save_file), **res)
-    samples = sigmoid(model.decoder(acts[-1])[-1])
-    _, acts, names = get_encoder_latents_activations(samples, None, model)
-    res = {name: prepare_activations(act) for name, act in zip(names, acts)}
-    res["input"] = prepare_activations(samples)
-    logger.info("Saving latent representations.")
-    np.savez_compressed("{}_reconstructed.npz".format(cfg.save_file), **res)
-
 
 if __name__ == "__main__":
     save_acts()
