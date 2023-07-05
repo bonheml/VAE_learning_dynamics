@@ -1,5 +1,3 @@
-batch_size: 10000
-seed: 0
 latent_shape: 10
 model_name: beta_vae
 param_name: beta
