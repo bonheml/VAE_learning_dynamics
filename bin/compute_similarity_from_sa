@@ -41,7 +41,8 @@ def compute_similarity_metric(metric, data, m1_path, m2_path, save_path, models_
 
 def get_model_info(model_file):
     fpath = pathlib.Path(model_file).parts
-    return {"source_dataset":fpath[-6], "target_dataset":fpath[-5], "model_name":fpath[-4], "seed": int(fpath[-2]),
+    return {"source_dataset": fpath[-6], "target_dataset": fpath[-5], "model_name": fpath[-4],
+            "seed": int(fpath[-2].replace("seed_", "")),
             "param_value": float(fpath[-3]), "latent_shape": int(fpath[-7].replace("latent_", ""))}
 
 
