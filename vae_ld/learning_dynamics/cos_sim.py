@@ -61,6 +61,7 @@ class CosineSim:
             if self._agg is True:
                 res = tf.reduce_sum(res)
                 logger.info("Summed cosine similarity is {}".format(res))
+            res = res.numpy()
         else:
             res = np.zeros(X.shape[1])
             for i in range(X.shape[1]):
@@ -130,6 +131,7 @@ class AngularSim:
             if self._agg is True:
                 res = tf.reduce_sum(res)
                 logger.info("Summed angular similarity is {}".format(res))
+            res = res.numpy()
         else:
             res = 1 - np.arccos(sim) / math.pi
             logger.info("Angular similarity is {}".format(res))
