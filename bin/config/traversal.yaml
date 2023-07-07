@@ -4,24 +4,25 @@ defaults:
   - _self_
 
 model_name: beta_vae
+source_dataset_name: dsprites
 param_name: beta
 param_value: 1
 model_seed: 0
 latent_dim: 10
 checkpoint: [-1]
-model_path: ${oc.env:XP_PATH}/train/latent_${latent_dim}/${model_name}/${dataset.name}/${param_value}/${model_seed}/checkpoint/*
+model_path: ${oc.env:XP_PATH}/train/latent_${latent_dim}/${model_name}/${source_dataset_name}/${param_value}/${model_seed}/checkpoint/*
 
 seed: 0
 range: [-1,1]
 batch_size: 10
 n_changes: 10
-fname: traversal_${dataset.name}_${model_name}_${param_name}_${param_value}_seed_${model_seed}_range_${range}
+fname: traversal_${source_dataset_name}_${dataset.name}_${model_name}_${param_name}_${param_value}_seed_${model_seed}_range_${range}
 
 hydra:
   run:
-    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_dim}/${dataset.name}
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_dim}/${source_dataset_name}/${dataset.name}
   sweep:
-    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_dim}
+    dir: ${oc.env:XP_PATH}/${hydra.job.name}/latent_${latent_dim}/${source_dataset_name}
     subdir: ${dataset.name}
   job:
     config:
