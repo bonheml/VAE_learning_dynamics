@@ -103,3 +103,4 @@ def latent_traversal(model_path, fname, samples, greyscale, n_changes=10, val_ra
             z_iter[:, i] = vals
             imgs[r * i:(r * i) + r] = tf.sigmoid(m.decoder(z_iter, training=False)[-1])
         plot_and_save(imgs, "{}_example_{}.pdf".format(fname, j), greyscale, r=r, c=c)
+    plot_and_save(samples, "original_samples.pdf", greyscale)
