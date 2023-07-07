@@ -1,0 +1,57 @@
+#!/usr/bin/env python
+import logging
+import hydra
+import numpy as np
+from hydra.utils import instantiate
+from omegaconf import OmegaConf
+import tensorflow as tf
+from vae_ld.models.encoders import Sampling
+from vae_ld.visualisation.gmm import plot_hist
+
+logger = logging.getLogger("vae_latent_histograms")
+
+
+
+def get_data(sampler, encoder, n_items, batch_size):
+    mu, v, vp, z = None, None, None, None
+    sampling = Sampling()
+    for i in range(n_items // batch_size):
+        X = sampler[i][0]
+        mu_tmp, v_tmp, _ = encoder(X)[-3:]
+        z_tmp = sampling((mu_tmp, v_tmp)).numpy()
+        logger.debug("mu shape: {}, log_var shape:{}".format(tf.shape(mu_tmp), tf.shape(v_tmp)))
+        mu_tmp, v_tmp = mu_tmp.numpy(), v_tmp.numpy()
+        if i == 0:
+            mu, v, z = mu_tmp, v_tmp, z_tmp
+        else:
+            mu, v, z = (np.vstack((mu, mu_tmp)), np.vstack((v, v_tmp)), np.vstack((z, z_tmp)))
+    return np.nan_to_num(np.exp(v)), mu, z
+
+
+@hydra.main(config_path="config", config_name="vae_latents")
+def plot_histograms(cfg):
+    logger.info("Experiment config:\n{}".format(OmegaConf.to_yaml(cfg)))
+    logger.info("Retrieving the data...")
+    # We create a partial instantiation first to share the same dataset between samplers
+    sampler = instantiate(cfg.sampling)
+    optimizer = instantiate(cfg.optimizer)
+
+    logger.info("Loading model from {}".format(cfg.model_path))
+    model = tf.keras.models.load_model(cfg.model_path)
+    encoder = model.encoder
+    encoder.trainable = False
+    model.compile(optimizer)
+    model.summary()
+
+    logger.info("Sampling the data")
+    var, mu, z = get_data(sampler, encoder, cfg.num_items, cfg.batch_size)
+
+    for i in cfg.var_idx:
+        var_i, mu_i, z_i = var[:, i].reshape(-1, 1), mu[:, i].reshape(-1, 1), z[:, i].reshape(-1, 1)
+        plot_hist(z_i, "{}_z_{}_histogram.pdf".format(cfg.fname, i), r"$\mathbf{z}$")
+        plot_hist(var_i, "{}_var_{}_histogram.pdf".format(cfg.fname, i), r"$\mathbf{\sigma}$")
+        plot_hist(mu_i, "{}_mean_{}_histogram.pdf".format(cfg.fname, i), r"$\mathbf{\mu}$")
+
+
+if __name__ == "__main__":
+    plot_histograms()

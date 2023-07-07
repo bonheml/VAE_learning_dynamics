@@ -43,6 +43,7 @@ setup(
         "bin/latent_traversal",
         "bin/evaluate_downstream_task",
         "bin/ivae_latent_histograms",
+        "bin/vae_latent_histograms",
         "bin/transfer",
         "bin/save_activations",
         "bin/compute_similarity_from_sa",
