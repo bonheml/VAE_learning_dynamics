@@ -9,11 +9,10 @@ param_name: beta
 param_value: 1
 model_seed: 0
 latent_dim: 10
-checkpoint: [-1]
-model_path: ${oc.env:XP_PATH}/train/latent_${latent_dim}/${model_name}/${source_dataset_name}/${param_value}/${model_seed}/checkpoint/*
+model_path: ${oc.env:XP_PATH}/train/latent_${latent_dim}/${model_name}/${source_dataset_name}/${param_value}/${model_seed}/final_model
 
 seed: 0
-range: [-1,1]
+range: [-2,2]
 batch_size: 10
 n_changes: 10
 fname: traversal_${source_dataset_name}_${dataset.name}_${model_name}_${param_name}_${param_value}_seed_${model_seed}_range_${range}
