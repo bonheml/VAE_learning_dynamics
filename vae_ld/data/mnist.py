@@ -30,6 +30,31 @@ class Mnist(Data):
         return self._data[indices]
 
 
+class FashionMnist(Data):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._data, self._features, self._lookup_table = self.load_data()
+        self.index = CustomIndex(self._features)
+
+    def load_data(self):
+        if not self.path.exists():
+            self.path.mkdir(parents=True, exist_ok=True)
+        mnist_digits, mnist_features = load_and_preprocess_tf_dataset("fashion_mnist", self.path, [64, 64])
+        lookup_table = []
+        for i in range(10):
+            lookup_table.append(np.where(mnist_features == i)[0])
+        return mnist_digits, mnist_features, lookup_table
+
+    def sample_factors(self, batch_size, seed):
+        return seed.choice(10, batch_size)
+
+    def sample_observations_from_factors(self, factors, seed):
+        indices = []
+        for i in factors:
+            indices.append(self._lookup_table[i][seed.choice(len(self._lookup_table[i]), 1)][0])
+        return self._data[indices]
+
+
 class MnistSvhn(Mnist):
 
     def __getitem__(self, keys):
