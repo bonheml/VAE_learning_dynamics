@@ -11,9 +11,7 @@ defaults:
   - optimizer: adam
   - model: beta_vae
   - callbacks:
-    - model_checkpoint
     - tensorboard
-    - image_generator
 
 hydra:
   run:
