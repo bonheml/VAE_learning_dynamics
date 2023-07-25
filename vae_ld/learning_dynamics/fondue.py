@@ -1,3 +1,4 @@
+import gc
 from hydra.utils import instantiate
 from vae_ld.learning_dynamics import logger
 from vae_ld.learning_dynamics.utils import get_encoder_latents_activations, prepare_activations
@@ -96,6 +97,8 @@ def get_mem(mem, pivot, cfg, optimizer, sampler, estimator, data_examples):
         logger.debug("Computing score for mean and sampled representations")
         mean, sampled = train_model_and_get_estimate(model, sampler, estimator, data_examples, cfg)
         mem[pivot] = (sampled, mean)
+        del model
+        gc.collect()
 
     return mem[pivot]
 
@@ -180,3 +183,5 @@ def fondue_var_type(estimator, data_ide, data_examples, sampler, cfg):
         if cfg.threshold is False and (mixed_vars > 0 or passive_vars > 0):
             return active_vars
         latent_dim *= 2
+        del model
+        gc.collect()
