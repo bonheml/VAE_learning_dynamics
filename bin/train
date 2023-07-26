@@ -78,7 +78,7 @@ def train(cfg):
                      validation_data=test_sampler)
     model.save("checkpoint/epoch_{}_model_loss_{:.2f}".format(epochs, hist.history["model_loss"][-1]))
     model.save("final_model")
-    del model, train_sampler, test_sampler, model, callbacks
+    del model, train_sampler, test_sampler, callbacks
     gc.collect()
 
 
