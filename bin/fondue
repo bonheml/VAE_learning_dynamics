@@ -38,8 +38,6 @@ def get_optimal_nb_latents(cfg):
     else:
         n = fondue_var_type(filter_variables, data_ide, X, sampler, cfg)
     logger.info("The dimensionality for the latent dimensions is {}".format(n))
-    del X, sampler
-    gc.collect()
 
 
 if __name__ == "__main__":
