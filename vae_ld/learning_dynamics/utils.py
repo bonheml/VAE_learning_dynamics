@@ -111,8 +111,11 @@ def get_full_activations(data, model_path, model=None):
     X = data[0] if isinstance(data, tuple) else data
     if hasattr(model, "encoder"):
         acts = (X,) + model.encoder.predict(data)
+        # Convert log var to var
+        acts[-2] = np.exp(acts[-2])
         acts += model.decoder.predict(acts[-1])
         layer_names = ["input"] + [l.name for l in model.encoder.layers]
+        layer_names[-2] = "encoder/z_var"
         layer_names += [l.name for l in model.decoder.layers]
     elif hasattr(model, "clf"):
         acts = [X] + list(model.clf.predict(data))
@@ -147,8 +150,11 @@ def get_encoder_latents_activations(data, model_path, model=None):
     """
     if model is None:
         model = tf.keras.models.load_model(model_path)
-    acts = model.encoder.predict(data)[-3:]
+    acts = list(model.encoder.predict(data)[-3:])
+    # Convert log var to var
+    acts[-2] = np.exp(acts[-2])
     layer_names = [l.name for l in model.encoder.layers[-3:]]
+    layer_names[-2] = "encoder/z_var"
     return model, acts, layer_names
 
 
