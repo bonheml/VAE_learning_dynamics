@@ -145,6 +145,47 @@ def fondue(estimator, data_ide, data_examples, sampler, cfg):
     return pivot
 
 
+def binary_search(estimator, max_n, data_examples, sampler, cfg):
+    """ binary search algorithm, retrieve the optimal number of latent dimensions to use for a VAE in a supervised way.
+
+    Parameters
+    ----------
+    estimator:
+        The estimator to use
+    max_n:
+        The maximum number of latent dimensions to use
+    data_examples:
+        The data used to compute the IDE
+    sampler:
+        The data sampler
+    cfg:
+        The config containing the model info
+
+
+    Returns
+    -------
+    The optimal number of latent dimensions
+    """
+
+    lower_bound, upper_bound = 1, max_n
+    mem = {}
+    threshold = cfg.threshold
+    logger.debug("The threshold is {}".format(threshold))
+    optimizer = instantiate(cfg.optimizer)
+
+    while lower_bound < upper_bound:
+        pivot = (lower_bound + upper_bound) // 2
+        logger.debug("p: {}, l: {}, u: {}".format(pivot, lower_bound, upper_bound))
+        sampled, mean = get_mem(mem, pivot, cfg, optimizer, sampler, estimator, data_examples)
+        diff = sampled - mean
+        logger.info("diff = {} - {} = {}".format(sampled, mean, diff))
+        if diff <= threshold:
+            lower_bound = pivot + 1
+        else:
+            upper_bound = pivot
+    return lower_bound
+
+
 def fondue_var_type(estimator, data_ide, data_examples, sampler, cfg):
     """ FONDUE algorithm, retrieve the optimal number of latent dimensions to use for a VAE using IDE.
 

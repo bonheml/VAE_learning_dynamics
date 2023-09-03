@@ -4,9 +4,8 @@ import logging
 import hydra
 from hydra.utils import instantiate
 from omegaconf import OmegaConf
-
 from vae_ld.data.util import get_unique_samples
-from vae_ld.learning_dynamics.fondue import fondue, fondue_var_type
+from vae_ld.learning_dynamics.fondue import fondue, fondue_var_type, binary_search
 
 
 from vae_ld.learning_dynamics.variable_filter import filter_variables
@@ -32,11 +31,12 @@ def get_optimal_nb_latents(cfg):
     data_ide = cfg.data_ide
 
     logger.info("Searching the number of latent dimensions")
-    if cfg.fondue_type != "var_type":
-        n = fondue(estimator.fit_transform, data_ide, X, sampler, cfg)
-
-    else:
+    if cfg.fondue_type == "supervised":
+        n = binary_search(estimator.fit_transform, data_ide, X, sampler, cfg)
+    elif cfg.fondue_type == "var_type":
         n = fondue_var_type(filter_variables, data_ide, X, sampler, cfg)
+    else:
+        n = fondue(estimator.fit_transform, data_ide, X, sampler, cfg)
     logger.info("The number of latent dimensions is {}".format(n))
 
 
