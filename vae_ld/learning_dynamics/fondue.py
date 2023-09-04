@@ -183,7 +183,8 @@ def binary_search(estimator, max_n, data_examples, sampler, cfg):
             lower_bound = pivot + 1
         else:
             upper_bound = pivot
-    return lower_bound
+    # We subtract one as when l=u=n, we have diff > t and we want the number of dimensions just before this.
+    return lower_bound - 1
 
 
 def fondue_var_type(estimator, data_ide, data_examples, sampler, cfg):
